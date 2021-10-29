@@ -1,0 +1,4 @@
+Frequency to wavelength converter
+
+Usage: freq2wavelen <freq> [=<out>]  
+  
