@@ -2,3 +2,5 @@ Frequency to wavelength converter
 
 Usage: freq2wavelen <freq> [=<out>]  
   
+  freq        Frequency in Hertz [Hz]
+  out         Output argument

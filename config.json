@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "freq2wavelen",
+  "definition": "Convert frequency to wavelength.",
+  "args":[
+    {"id":"freq", "definition": "Frequency in Hertz [Hz]", "required": true},
+    {"id":"freq", "definition": "Frequency in Hertz [Hz]", "required": true}
+  ],
+  "usage":[
+    "freq2wavelen <freq> [=<out>]"
+  ],
+  "output": true
+}
