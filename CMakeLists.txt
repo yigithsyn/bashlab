@@ -6,13 +6,10 @@ if (WIN32)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif (WIN32)
 
-
-
-
-
-
-include_directories("libs/argtable3/dist/")
-file(GLOB SOURCES "libs/argtable3/dist/*.c")
+if(UNIX)
+  include_directories("libs/argtable3/dist/")
+  file(GLOB SOURCES "libs/argtable3/dist/*.c")
+endif(UNIX)
 add_executable(freq2wavelen main.c ${SOURCES})
 target_link_libraries(freq2wavelen m)
 

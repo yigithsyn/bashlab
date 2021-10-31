@@ -1,5 +1,7 @@
 #include "argtable3.h"
 
+#define C0 299792458  // speed of in m/s
+
 /* global arg_xxx structs */
 struct arg_lit *verb, *help, *version;
 struct arg_int *level;
@@ -52,7 +54,10 @@ int main(int argc, char *argv[])
     goto exit;
   }
 
-  printf("%f\n", anbr->dval[0]);
+  double wavelen = C0/anbr->dval[0];
+  printf("%f\n", wavelen);
+
+  
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
