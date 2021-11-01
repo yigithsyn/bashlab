@@ -1,0 +1,6 @@
+Usage: freq2wavelen [--help] [--version] <freq>
+Convert frequency to wavelength.
+
+  --help                    display this help and exit   
+  --version                 display version info and exit
+  <freq>                    frequency in Hertz [Hz] 
