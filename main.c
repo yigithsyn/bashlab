@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
     exitcode = 1;
     goto exit;
   }
+  /* Insufficient argument.*/
   if (argc == 1)
   {
-    /* Display the error details contained in the arg_end struct.*/
     printf("%s: insufficient argument.\n", progname);
     printf("Try '%s --help' for more information.\n", progname);
     exitcode = 1;
