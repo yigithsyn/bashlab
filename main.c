@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   struct arg_lit *version   = arg_lit0(NULL, "version", "display version info and exit");
   struct arg_lit *human     = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
   struct arg_dbl *freq      = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
-  struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for colmun-wise vector operation");
+  struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
   struct arg_end *end       = arg_end(20);
   void *argtable[]          = {freq, filename, human, help, version, end};
 
