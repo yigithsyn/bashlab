@@ -1,9 +1,9 @@
 #include "argtable3.h"
 
-#define C0 299792458  // speed of in m/s
+#define C0 299792458 // speed of in m/s
 
 /* global arg_xxx structs */
-struct arg_lit *verb, *help, *version;
+struct arg_lit *verb, *help, *version, *human;
 struct arg_int *level;
 struct arg_file *o, *file;
 struct arg_dbl *anbr;
@@ -15,7 +15,9 @@ int main(int argc, char *argv[])
   void *argtable[] = {
       help = arg_litn(NULL, "help", 0, 1, "display this help and exit"),
       version = arg_litn(NULL, "version", 0, 1, "display version info and exit"),
-      anbr = arg_dbln(NULL, NULL, "<freq>", 1, 1, "frequency in Hertz [Hz]"),
+      human = arg_litn("h", "human", 0, 1, "human readable output like 1.36 GHz, 512 MHz"),
+      anbr = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]"),
+      file = arg_file0("f", "file", "<filename>", "input file for colmun-wise vector operation"),
       end = arg_end(20),
   };
 
@@ -53,11 +55,26 @@ int main(int argc, char *argv[])
     exitcode = 1;
     goto exit;
   }
+  if (argc == 1)
+  {
+    /* Display the error details contained in the arg_end struct.*/
+    printf("Try '%s --help' for more information.\n", progname);
+    exitcode = 1;
+    goto exit;
+  }
+  if (anbr->count == 1 && file->count == 1)
+  {
+    /* Display the error details contained in the arg_end struct.*/
+    arg_print_errors(stdout, end, progname);
+    printf("One of <freq> or <filename> should be supplied only.\n");
+    printf("Try '%s --help' for more information.\n", progname);
+    exitcode = 1;
+    goto exit;
+  }
 
-  double wavelen = C0/anbr->dval[0];
+  double wavelen = C0 / anbr->dval[0];
   printf("%f\n", wavelen);
 
-  
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
