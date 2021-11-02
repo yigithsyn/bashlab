@@ -1,5 +1,9 @@
 
+#include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+
+#define MAX_LINE_BUFFER 50
 #define C0 299792458 // speed of in m/s
 double freq2wavelen0(double freq){
   return C0/freq;
@@ -21,6 +25,9 @@ char* freq2wavelen1(double freq, char *buff){
 
 int main(int argc, char *argv[])
 {
+  /*------------------------------------------*/
+  /* argument parsing                         */
+  /*------------------------------------------*/
   /* the global arg_xxx structs are initialised within the argtable */
   struct arg_lit *help      = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version   = arg_lit0(NULL, "version", "display version info and exit");
@@ -85,26 +92,41 @@ int main(int argc, char *argv[])
     goto exit;
   }
 
-  if (freq->count == 1)
-  {
-    if(human->count == 1){
-      char buff[50];
+  /*------------------------------------------*/
+  /* main operation                           */
+  /*------------------------------------------*/
+  char buff[MAX_LINE_BUFFER], buff2[MAX_LINE_BUFFER];
+  FILE* fp;
+  if (freq->count == 1){
+    if(human->count == 1)
       printf("%s\n", freq2wavelen1(freq->dval[0], buff));
-    }
-    else{
+    else
       printf("%.6f\n", freq2wavelen0(freq->dval[0]));
-    }
   }
   else
- {
-    printf("%s\n", filename->basename[0]);
-    printf("%s\n", filename->filename[0]);
-    printf("%s\n", filename->extension[0]);
+  {
+    fp = fopen(filename->filename[0], "r");
+    if (fp == NULL) {
+      fprintf(stderr, "%s: Unable to read input file.", progname);
+      exitcode = 1;
+      goto exit;
+    }
+
+    // -1 to allow room for NULL terminator for really long string
+    while (fgets(buff, MAX_LINE_BUFFER - 1, fp))
+    {
+       if(human->count == 0)
+        printf("%f\n", freq2wavelen0(atof(buff)));
+      else
+        printf("%s\n", freq2wavelen1(atof(buff), buff2));
+    }
+    fclose(fp);
   }
   
 
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+  if(fp != NULL) fclose(fp);
   return exitcode;
 }
