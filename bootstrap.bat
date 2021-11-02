@@ -13,7 +13,6 @@ MKDIR build
 CD build
 
 SET filename=cmake.exe
-
 FOR /R C:\ %%a IN (\) DO (
    IF EXIST "%%a\%filename%" (
 
@@ -25,10 +24,17 @@ FOR /R C:\ %%a IN (\) DO (
 
 ECHO %fullpath%
 "%fullpath%" -version
-"%fullpath%" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
-"%fullpath%" --build . --config Release
+reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" > NUL && set OS=32BIT || set OS=64BIT
+
+if %OS%==32BIT echo This is a 32bit operating system
+if %OS%==64BIT echo This is a 64bit operating system
+
+if %OS%==32BIT "%fullpath%" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local .. -T host=x86 -A Win32
+if %OS%==64BIT "%fullpath%" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local .. -T host=x64 -A x64
+
+"%fullpath%" --build . --config Debug
 
 ECHO "[INFO] Installing ..."
-"%fullpath%" --build . --target INSTALL --config Release
+"%fullpath%" --build . --target INSTALL --config MinSizeRel
 
 CD ..
