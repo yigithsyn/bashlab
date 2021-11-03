@@ -127,6 +127,5 @@ int main(int argc, char *argv[])
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
-  if(fp != NULL) fclose(fp);
   return exitcode;
 }
