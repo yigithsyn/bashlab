@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
   struct arg_lit *human     = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
   struct arg_dbl *freq      = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
   struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
+  struct arg_file *outfname = arg_file0("o", "out", "<output>", "output file for result storage");
   struct arg_end *end       = arg_end(20);
-  void *argtable[]          = {freq, filename, human, help, version, end};
+  void *argtable[]          = {freq, filename, human, outfname, help, version, end};
 
   int exitcode = 0;
   char progname[] = "freq2wavelen";
@@ -96,12 +97,12 @@ int main(int argc, char *argv[])
   /* main operation                           */
   /*------------------------------------------*/
   char buff[MAX_LINE_BUFFER], buff2[MAX_LINE_BUFFER];
-  FILE* fp;
+  FILE *fp, *fp2;
   if (freq->count == 1){
     if(human->count == 1)
-      printf("%s\n", freq2wavelen1(freq->dval[0], buff));
+      fprintf(stdout, "%s\n", freq2wavelen1(freq->dval[0], buff));
     else
-      printf("%.6f\n", freq2wavelen0(freq->dval[0]));
+      fprintf(stdout, "%.6f\n", freq2wavelen0(freq->dval[0]));
   }
   else
   {
@@ -115,10 +116,29 @@ int main(int argc, char *argv[])
     // -1 to allow room for NULL terminator for really long string
     while (fgets(buff, MAX_LINE_BUFFER - 1, fp))
     {
-       if(human->count == 0)
-        printf("%f\n", freq2wavelen0(atof(buff)));
-      else
-        printf("%s\n", freq2wavelen1(atof(buff), buff2));
+      if(outfname->count == 1){
+      int errnum;
+       fp2 = fopen(outfname->filename[0], "a");
+         if (fp2 == NULL) {
+          errnum = errno;
+          fprintf(stderr, "%s: Unable to open output file.\n", progname);
+          sprintf(buff2, "Error %d", errnum);
+          perror(buff2);
+          exitcode = 1;
+          goto exit;
+        }
+        if(human->count == 0)
+          fprintf(fp2, "%f\n", freq2wavelen0(atof(buff)));
+        else
+          fprintf(fp2, "%s\n", freq2wavelen1(atof(buff), buff2));
+        fclose(fp2);
+      }
+      else{
+        if(human->count == 0)
+          fprintf(stdout, "%f\n", freq2wavelen0(atof(buff)));
+        else
+          fprintf(stdout, "%s\n", freq2wavelen1(atof(buff), buff2));
+      }
     }
     fclose(fp);
   }
