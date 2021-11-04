@@ -1,0 +1,11 @@
+{
+  "cmake.debugConfig": {
+    "args": [
+      "-f",
+      "${workspaceFolder}\\test\\freqs.txt",
+      "-h",
+      "-o",
+      "${workspaceFolder}\\test\\wavelens.txt"
+    ]
+  }
+}
