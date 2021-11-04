@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
   struct arg_lit *human     = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
   struct arg_dbl *freq      = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
   struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
-  struct arg_file *outfname = arg_file0("o", "out", "<output>", "output file for result storage");
+  struct arg_file *outfilename = arg_file0("o", "out", "<output>", "output file for result storage");
   struct arg_end *end       = arg_end(20);
-  void *argtable[]          = {freq, filename, human, outfname, help, version, end};
+  void *argtable[]          = {freq, filename, human, outfilename, help, version, end};
 
   int exitcode = 0;
   char progname[] = "freq2wavelen";
@@ -112,12 +112,11 @@ int main(int argc, char *argv[])
   /* main operation                           */
   /*------------------------------------------*/
   char buff[MAX_LINE_BUFFER], buff_err[MAX_LINE_BUFFER];
-  double wavelens[MAX_LINE], freqs[MAX_LINE];
-  char wavelens_h[MAX_LINE][MAX_LINE_BUFFER];
+  double freqs[MAX_LINE];
   int N = 0;
-  FILE *fp, *fp2, *fout;
+  FILE *fp, *outfilep, *fout;
   if (freq->count == 1)
-    wavelens[N] = freq2wavelen0(freq->dval[0]);
+    freqs[N++] = freq->dval[0];
   else
   {
     fp = fopen(filename->filename[0], "r");
@@ -134,46 +133,24 @@ int main(int argc, char *argv[])
     fclose(fp);
   }
   
-
-
-
-  if(human->count == 1)
-    for(int i=0; i<N; ++i)
-      strcpy(wavelens_h[i], wavelen_str(wavelens[i], buff));
-
-  if(outfname->count == 1){
-    fp2 = fopen(outfname->filename[0], "w");
-    if (fp2 == NULL) {
-      sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfname->filename[0]);
+  if(outfilename->count == 1){
+    outfilep = fopen(outfilename->filename[0], "w");
+    if (outfilep == NULL) {
+      sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfilename->filename[0]);
       perror(buff_err);
       exitcode = 1;
       goto exit;
     }
-    fout = fp2;
+    fout = outfilep;
   }
   else
     fout = stdout;
 
-  if(human->count == 0)
-    for(int i=0; i<N; ++i)
-      fprintf(fout, "%s\n", freq2wavelen1(atof(buff), buff_err));
-  else
-    for(int i=0; i<N; ++i)
-      fprintf(fout, "%f\n", freq2wavelen0(freqs[i]));
-  
-  // if(outfname->count == 1){
-  //     fprintf(fp2, "%f\n", freq2wavelen0(atof(buff)));
-  //   else
-  //     fprintf(fp2, "%s\n", freq2wavelen1(atof(buff), buff_err));
-  // }
-  // else{
-  //   if(human->count == 0)
-  //     fprintf(stdout, "%f\n", freq2wavelen0(atof(buff)));
-  //   else
-  //     fprintf(stdout, "%s\n", freq2wavelen1(atof(buff), buff_err));
-  // }
-  if(outfname->count == 1)
-    fclose(fp2);
+  for(int i=0; i<N; ++i)
+    (human->count == 1) ? fprintf(fout, "%s\n", freq2wavelen1(freqs[i], buff)) : fprintf(fout, "%f\n", freq2wavelen0(freqs[i]));
+
+  if(outfilename->count == 1)
+    fclose(outfilep);
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
