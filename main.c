@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
   struct arg_lit *human     = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
   struct arg_dbl *freq      = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
   struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
-  struct arg_file *outfilename = arg_file0("o", "out", "<output>", "output file for result storage");
+  struct arg_file *outfile  = arg_file0("o", "out", "<outfile>", "output file for result storage");
   struct arg_end *end       = arg_end(20);
-  void *argtable[]          = {freq, filename, human, outfilename, help, version, end};
+  void *argtable[]          = {freq, filename, human, outfile, help, version, end};
 
   int exitcode = 0;
   char progname[] = "freq2wavelen";
@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
   {
     printf("Usage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
-    printf("%s <freq> [-h|--human]\n", progname);
-    printf("       %s -f|--file=<filename>\n", progname);
+    printf("%s <freq> [-h|--human] [-o|--out=<outfile>] \n", progname);
+    printf("       %s -f|--file=<filename> [-o|--out=<outfile>]\n", progname);
     printf("       %s [--help] [--version]\n", progname);
     printf("Convert frequency to wavelength.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
@@ -133,10 +133,10 @@ int main(int argc, char *argv[])
     fclose(fp);
   }
   
-  if(outfilename->count == 1){
-    outfilep = fopen(outfilename->filename[0], "w");
+  if(outfile->count == 1){
+    outfilep = fopen(outfile->filename[0], "w");
     if (outfilep == NULL) {
-      sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfilename->filename[0]);
+      sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfile->filename[0]);
       perror(buff_err);
       exitcode = 1;
       goto exit;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   for(int i=0; i<N; ++i)
     (human->count == 1) ? fprintf(fout, "%s\n", freq2wavelen1(freqs[i], buff)) : fprintf(fout, "%f\n", freq2wavelen0(freqs[i]));
 
-  if(outfilename->count == 1)
+  if(outfile->count == 1)
     fclose(outfilep);
 exit:
   /* deallocate each non-null entry in argtable[] */
