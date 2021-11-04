@@ -1,0 +1,6 @@
+freq2wavelen0(atof(buff))
+freq2wavelen0(atof(buff))
+freq2wavelen0(atof(buff))
+freq2wavelen0(atof(buff))
+freq2wavelen0(atof(buff))
+freq2wavelen0(atof(buff))

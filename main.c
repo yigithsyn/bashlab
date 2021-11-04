@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   double wavelens[MAX_LINE], freqs[MAX_LINE];
   char wavelens_h[MAX_LINE][MAX_LINE_BUFFER];
   int N = 0;
-  FILE *fp, *fp2;
+  FILE *fp, *fp2, *fout;
   if (freq->count == 1)
     wavelens[N] = freq2wavelen0(freq->dval[0]);
   else
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 
     // -1 to allow room for NULL terminator for really long string
     while (fgets(buff, MAX_LINE_BUFFER - 1, fp))
-      wavelens[N++] = freq2wavelen0(atof(buff));
+      freqs[N++] = atof(buff);
     fclose(fp);
   }
   
@@ -142,17 +142,25 @@ int main(int argc, char *argv[])
       strcpy(wavelens_h[i], wavelen_str(wavelens[i], buff));
 
   if(outfname->count == 1){
-    fp2 = fopen("C:\\test.txt", "w");
+    fp2 = fopen(outfname->filename[0], "w");
     if (fp2 == NULL) {
       sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfname->filename[0]);
       perror(buff_err);
       exitcode = 1;
       goto exit;
     }
-    fclose(fp2);
+    fout = fp2;
   }
-  Sleep(5000);
+  else
+    fout = stdout;
 
+  if(human->count == 0)
+    for(int i=0; i<N; ++i)
+      fprintf(fout, "%s\n", freq2wavelen1(atof(buff), buff_err));
+  else
+    for(int i=0; i<N; ++i)
+      fprintf(fout, "%f\n", freq2wavelen0(freqs[i]));
+  
   // if(outfname->count == 1){
   //     fprintf(fp2, "%f\n", freq2wavelen0(atof(buff)));
   //   else
@@ -164,6 +172,8 @@ int main(int argc, char *argv[])
   //   else
   //     fprintf(stdout, "%s\n", freq2wavelen1(atof(buff), buff_err));
   // }
+  if(outfname->count == 1)
+    fclose(fp2);
 exit:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
