@@ -5,12 +5,14 @@
 #define VERSION_PATCH 0
 
 #include <stdio.h>
-#include <io.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #if defined(_WIN32)
+#include <io.h>
 #else
+#include <sys/io.h>
 #include <unistd.h>
+#include <errno.h>
 #endif
 
 #include "argtable3.h"
@@ -128,7 +130,11 @@ int main(int argc, char *argv[])
   double *freqs = (double *)calloc(Nmax, sizeof(double));
 
   /* stdin */
+#if defined(_WIN32)
   if (!_isatty(_fileno(stdin)))
+#else
+  if (!isatty(fileno(stdin)))
+#endif
   {
     while (fgets(buff, 100, stdin))
     {
