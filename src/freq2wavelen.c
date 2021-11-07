@@ -1,4 +1,9 @@
 
+#define PROGNAME "freq2wavelen"
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
+#define VERSION_PATCH 0
+
 #include <stdio.h>
 #include <io.h>
 #include <stdbool.h>
@@ -8,20 +13,21 @@
 #include <unistd.h>
 #endif
 
-#define MAX_LINE 100
-#define MAX_LINE_BUFFER 100
-
-#define C0 299792458 // speed of in m/s
-double freq2wavelen0(double freq);
-char *freq2wavelen1(double freq, char *buff);
-
 #include "argtable3.h"
+#include "freq2wavelen.h"
+
+#define MAX_LINE_BUFFER 100
+#define MAX_ERR_BUFF_LEN 250
 
 int main(int argc, char *argv[])
 {
-  /*------------------------------------------*/
-  /* argument parsing                         */
-  /*------------------------------------------*/
+  char err_buff[MAX_ERR_BUFF_LEN];
+  FILE *fin = NULL, *fout = stdout;
+  int exitcode = EXIT_SUCCESS;
+  /* ======================================================================== */
+  /* argument parse                                                           */
+  /* ======================================================================== */
+
   /* the global arg_xxx structs are initialised within the argtable */
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
@@ -32,9 +38,6 @@ int main(int argc, char *argv[])
   struct arg_end *end = arg_end(20);
   void *argtable[] = {freq, filename, human, outfile, help, version, end};
 
-  int exitcode = 0;
-  char progname[] = "freq2wavelen";
-
   int nerrors;
   nerrors = arg_parse(argc, argv, argtable);
 
@@ -43,31 +46,30 @@ int main(int argc, char *argv[])
   {
     printf("Usage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
-    printf("%s <freq> [-h|--human] [-o|--out=<outfile>] \n", progname);
-    printf("       %s -f|--file=<filename> [-o|--out=<outfile>]\n", progname);
-    printf("       %s [--help] [--version]\n", progname);
+    printf("%s <freq> [-h|--human] [-o|--out=<outfile>] \n", PROGNAME);
+    printf("       %s -f|--file=<filename> [-h|--human] [-o|--out=<outfile>]\n", PROGNAME);
+    printf(">>     %s [-h|--human] [-o|--out=<outfile>] (stdin pipe)\n", PROGNAME);
+    printf("       %s [--help] [--version]\n", PROGNAME);
     printf("Convert frequency to wavelength.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
-    exitcode = 0;
-    goto exit;
+    goto EXIT;
   }
 
   /* special case: '--version' takes precedence over error reporting */
   if (version->count > 0)
   {
-    printf("v1.0.0\n");
-    exitcode = 0;
-    goto exit;
+    printf("%d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    goto EXIT;
   }
 
   /* If the parser returned any errors then display them and exit */
   if (nerrors > 0)
   {
     /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout, end, progname);
-    printf("Try '%s --help' for more information.\n", progname);
-    exitcode = 1;
-    goto exit;
+    arg_print_errors(stdout, end, PROGNAME);
+    printf("Try '%s --help' for more information.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
   }
   /* Insufficient argument.*/
   if (argc == 1
@@ -78,10 +80,10 @@ int main(int argc, char *argv[])
 #endif
   )
   {
-    printf("%s: insufficient argument.\n", progname);
-    printf("Try '%s --help' for more information.\n", progname);
-    exitcode = 1;
-    goto exit;
+    printf("%s: insufficient argument.\n", PROGNAME);
+    printf("Try '%s --help' for more information.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
   }
   if (freq->count == 1 && filename->count == 1
 #if defined(_WIN32)
@@ -92,83 +94,100 @@ int main(int argc, char *argv[])
   )
   {
     /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout, end, progname);
+    arg_print_errors(stdout, end, PROGNAME);
     printf("One of <freq>, <filename> or pipe should be supplied only.\n");
-    printf("Try '%s --help' for more information.\n", progname);
-    exitcode = 1;
-    goto exit;
+    printf("Try '%s --help' for more information.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
   }
 
-  /*------------------------------------------*/
-  /* main operation                           */
-  /*------------------------------------------*/
-  char buff[MAX_LINE_BUFFER], buff_err[MAX_LINE_BUFFER];
-  double freqs[MAX_LINE];
-  int N = 0;
-  FILE *fp, *fout;
+  /* ======================================================================== */
+  /* main operation                                                           */
+  /* ======================================================================== */
 
-  if (!_isatty(_fileno(stdin)))
-    while (fgets(buff, 100, stdin)) /* break with ^D or ^Z */
-      freqs[N++] = atof(buff);
-  else if (freq->count == 1)
-    freqs[N++] = freq->dval[0];
-  else
+  /* ------------------------------------------------------------------------ */
+  /* switch output stream                                                     */
+  /* ------------------------------------------------------------------------ */
+  if (outfile->count == 1)
   {
-    fp = fopen(filename->filename[0], "r");
-    if (fp == NULL)
+    fout = fopen(outfile->filename[0], "w");
+    if (fout == NULL)
     {
-      sprintf(buff_err, "%s: Error %d: Unable to open input file '%s'", progname, errno, filename->filename[0]);
-      perror(buff_err);
+      sprintf(err_buff, "%s: Error %d: Unable to open output file '%s'",
+              PROGNAME, errno, outfile->filename[0]);
+      perror(err_buff);
       exitcode = 1;
-      goto exit;
+      goto EXIT;
+    }
+  }
+  /* ------------------------------------------------------------------------ */
+  /* fetch input                                                              */
+  /* ------------------------------------------------------------------------ */
+  char buff[MAX_LINE_BUFFER];
+  int N = 0, Nmax = 1;
+  double *freqs = (double *)calloc(Nmax, sizeof(double));
+
+  /* stdin */
+  if (!_isatty(_fileno(stdin)))
+  {
+    while (fgets(buff, 100, stdin))
+    {
+      if (N >= Nmax)
+      {
+        Nmax *= 2;
+        freqs = realloc(freqs, sizeof(double) * Nmax);
+      }
+      freqs[N++] = atof(buff);
+    }
+    goto OUTPUT;
+  }
+
+  /* file argument*/
+  if (filename->count == 1)
+  {
+    fin = fopen(filename->filename[0], "r");
+    if (fin == NULL)
+    {
+      sprintf(err_buff, "%s: Error %d: Unable to open input file '%s'", PROGNAME, errno, filename->filename[0]);
+      perror(err_buff);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
     }
 
     // -1 to allow room for NULL terminator for really long string
-    while (fgets(buff, MAX_LINE_BUFFER - 1, fp))
-      freqs[N++] = atof(buff);
-    fclose(fp);
-  }
-
-  if (outfile->count == 1)
-  {
-    fp = fopen(outfile->filename[0], "w");
-    if (fp == NULL)
+    while (fgets(buff, MAX_LINE_BUFFER - 1, fin))
     {
-      sprintf(buff_err, "%s: Error %d: Unable to open output file '%s'", progname, errno, outfile->filename[0]);
-      perror(buff_err);
-      exitcode = 1;
-      goto exit;
+      if (N >= Nmax)
+      {
+        Nmax *= 2;
+        freqs = realloc(freqs, sizeof(double) * Nmax);
+      }
+      freqs[N++] = atof(buff);
     }
-    fout = fp;
+    fclose(fin);
+    goto OUTPUT;
   }
-  else
-    fout = stdout;
 
+  /* argument */
+  if (freq->count == 1)
+    freqs[N++] = freq->dval[0];
+
+  /* ------------------------------------------------------------------------ */
+  /* write output                                                             */
+  /* ------------------------------------------------------------------------ */
+OUTPUT:
   for (int i = 0; i < N; ++i)
-    (human->count == 1) ? fprintf(fout, "%s\n", freq2wavelen1(freqs[i], buff)) : fprintf(fout, "%f\n", freq2wavelen0(freqs[i]));
+    (human->count == 1) ? fprintf(fout, "%s\n", freq2wavelen_h(freqs[i], buff))
+                        : fprintf(fout, "%f\n", freq2wavelen(freqs[i]));
 
   if (outfile->count == 1)
-    fclose(fp);
-exit:
+    fclose(fout);
+
+  /* ======================================================================== */
+  /* exit                                                                     */
+  /* ======================================================================== */
+EXIT:
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;
-}
-
-double freq2wavelen0(double freq)
-{
-  return C0 / freq;
-}
-char *freq2wavelen1(double freq, char *buff)
-{
-  double wavelen = freq2wavelen0(freq);
-  if (freq >= 1E12)
-    sprintf(buff, "%.1f mm", wavelen * 1E3);
-  else if (freq >= 1E9)
-    sprintf(buff, "%.1f cm", wavelen * 1E2);
-  else if (freq < 1E6)
-    sprintf(buff, "%.1f km", wavelen / 1E3);
-  else
-    sprintf(buff, "%.1f m", wavelen);
-  return buff;
 }

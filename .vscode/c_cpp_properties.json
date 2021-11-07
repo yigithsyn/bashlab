@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "name": "Win32",
+      "includePath": [
+        "${default}",
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/libs/argtable3/dist"
+      ]
+    }
+  ],
+  "version": 4
+}

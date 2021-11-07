@@ -7,5 +7,8 @@
       "-o",
       "${workspaceFolder}\\test\\wavelenghts.txt"
     ]
+  },
+  "files.associations": {
+    "constants.h": "c"
   }
 }
