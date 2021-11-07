@@ -7,8 +7,9 @@ if (WIN32)
 endif (WIN32)
 
 include_directories("libs/argtable3/dist/")
-file(GLOB SOURCES "libs/argtable3/dist/*.c")
-add_executable(freq2wavelen main.c ${SOURCES})
+file(GLOB SOURCES "src/*.c" "libs/argtable3/dist/*.c")
+
+add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES})
 if(UNIX)
   target_link_libraries(freq2wavelen m)
 endif(UNIX)
