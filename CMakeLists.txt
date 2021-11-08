@@ -15,4 +15,4 @@ if(UNIX)
   target_link_libraries(freq2wavelen m)
 endif(UNIX)
 
-install(TARGETS freq2wavelen CONFIGURATIONS MinSizeRel)
+install(TARGETS freq2wavelen CONFIGURATIONS Release)

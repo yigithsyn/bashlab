@@ -36,7 +36,7 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
     fi
   fi
 else
-  cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=MinSizeRel ..
+  cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
   make
 fi
 
@@ -44,7 +44,7 @@ echo ============================
 echo "[INFO] Installing ..." 
 echo ============================
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-  "$CMAKE" --build . --target INSTALL --config MinSizeRel
+  "$CMAKE" --build . --target INSTALL --config Release
 else
   make install 
 fi
