@@ -1,7 +1,7 @@
 @ECHO OFF
 
 ECHO ============================
-ECHO "[INFO] Dependencies ..."
+ECHO [INFO] Dependencies ...
 ECHO ============================
 RMDIR /Q /S libs 
 MKDIR libs
@@ -11,7 +11,7 @@ MKDIR libs\argtable3
 tar -xf libs\argtable3.tar.gz --directory libs\argtable3
 
 ECHO ============================
-ECHO "[INFO] Building ..."
+ECHO [INFO] Building ...
 ECHO ============================
 RMDIR /Q /S build > nul 2>&1
 MKDIR build
