@@ -20,34 +20,13 @@ echo ============================
 echo "[INFO] Building ..."
 echo ============================
 rm -rf build && mkdir build && cd build
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-  type cmake > /dev/null 2>&1
-  if [[ $? == 0 ]]; then
-    echo "CMake found in path."
-  else
-    echo "CMake not found in path. Checking through filesystem ..."
-    CMAKE=$(find "/c" -name "cmake.exe"  2>&1 | grep -v "Permission denied" | head -n 1)
-    if [[ $? == 0 ]]; then
-      echo "CMake found at: $CMAKE"
-      "$CMAKE" -DCMAKE_INSTALL_PREFIX=$USERPROFILE/AppData/Local ..
-    else
-      cd ..
-      exit 1
-    fi
-  fi
-else
-  cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
-  make
-fi
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
+make
 
 echo ============================
 echo "[INFO] Installing ..." 
 echo ============================
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-  "$CMAKE" --build . --target INSTALL --config Release
-else
-  make install 
-fi
+make install 
 
 cd ..
 
