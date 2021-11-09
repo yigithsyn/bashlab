@@ -14,6 +14,7 @@ add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES})
 add_executable(wavelen2freq src/wavelen2freq.c ${SOURCES})
 if(UNIX)
   target_link_libraries(freq2wavelen m)
+  target_link_libraries(wavelen2freq m)
 endif(UNIX)
 
-install(TARGETS freq2wavelen CONFIGURATIONS Release)
+install(TARGETS freq2wavelen wavelen2freq CONFIGURATIONS Release)
