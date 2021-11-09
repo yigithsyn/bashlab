@@ -2,7 +2,7 @@
 #define PROGNAME "freq2wavelen"
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
-#define VERSION_PATCH 0
+#define VERSION_PATCH 1
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   /* the global arg_xxx structs are initialised within the argtable */
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
-  struct arg_lit *human = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
+  struct arg_lit *human = arg_lit0("h", "human", "human readable output like 3.36 cm, 0.7 km");
   struct arg_dbl *freq = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
   struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
   struct arg_file *outfile = arg_file0("o", "out", "<outfile>", "output file for result storage");
