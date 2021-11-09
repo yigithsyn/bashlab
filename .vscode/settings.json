@@ -9,6 +9,7 @@
     ]
   },
   "files.associations": {
-    "constants.h": "c"
+    "constants.h": "c",
+    "wavelen2freq_implc": "c"
   }
 }

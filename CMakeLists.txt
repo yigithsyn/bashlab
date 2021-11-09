@@ -11,6 +11,7 @@ include_directories("libs/argtable3/dist/")
 file(GLOB SOURCES "src/impl/*.c" "libs/argtable3/dist/*.c")
 
 add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES})
+add_executable(wavelen2freq src/wavelen2freq.c ${SOURCES})
 if(UNIX)
   target_link_libraries(freq2wavelen m)
 endif(UNIX)
