@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     printf("       %s -f|--file=<filename> [-h|--human] [-o|--out=<outfile>]\n", PROGNAME);
     printf(">>     %s [-h|--human] [-o|--out=<outfile>] (stdin pipe)\n", PROGNAME);
     printf("       %s [--help] [--version]\n", PROGNAME);
-    printf("Convert frequency to wavelength.\n\n");
+    printf("Convert wavelength to frequency.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
     goto EXIT;
   }
