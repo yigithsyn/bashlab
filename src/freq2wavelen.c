@@ -96,17 +96,12 @@ int main(int argc, char *argv[])
   /* Argument conflict.*/
   if ((dpos->count + wsinp->count + fileinp->count
 #if defined(_WIN32)
-      + _isatty(_fileno(stdin))
+      + !_isatty(_fileno(stdin))
 #else
-      + isatty(fileno(stdin))
+      + !isatty(fileno(stdin))
 #endif
-  ) > 2)
+  ) > 1)
   {
-    printf("%d\n", dpos->count);
-    printf("%d\n", wsinp->count);
-    printf("%d\n", fileinp->count);
-    printf("%d\n", _isatty(_fileno(stdin)));
-    printf("%s: input argument conflict.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto HELP;
   }
