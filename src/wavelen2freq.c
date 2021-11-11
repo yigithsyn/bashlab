@@ -119,6 +119,11 @@ HELP:
   int N = 0, Nmax = 1;
   double *freqs = (double *)calloc(Nmax, sizeof(double));
 
+  /* argument */
+  if (freq->count == 1)
+    freqs[N++] = freq->dval[0];
+  goto OUTPUT;
+
   /* stdin */
 #if defined(_WIN32)
   if (!_isatty(_fileno(stdin)))
@@ -164,9 +169,7 @@ HELP:
     goto OUTPUT;
   }
 
-  /* argument */
-  if (freq->count == 1)
-    freqs[N++] = freq->dval[0];
+
 
   /* ------------------------------------------------------------------------ */
   /* write output                                                             */
