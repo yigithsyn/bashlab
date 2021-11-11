@@ -35,10 +35,12 @@ int main(int argc, char *argv[])
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
   struct arg_lit *human = arg_lit0("h", "human", "human readable output like 3.36 cm, 0.7 km");
   struct arg_dbl *freq = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
-  struct arg_file *fileinp = arg_file0("f", "file", "<fileinp>", "input file for column-wise vector operation");
-  struct arg_file *fileout = arg_file0("o", "out", "<fileout>", "output file for result storage");
+  struct arg_file *fileinp = arg_file0(NULL, "finp", "<fileinp>", "input file for column-wise vector operation");
+  struct arg_file *fileout = arg_file0(NULL, "fout", "<fileout>", "output file for result storage");
+  struct arg_str *wsinp = arg_str0("i", NULL, "<wsinp>", "input argument name from workspace");
+  struct arg_str *wsout = arg_str0("o", NULL, "<wsout>", "output argument name for workspace");
   struct arg_end *end = arg_end(20);
-  void *argtable[] = {freq, fileinp, human, fileout, help, version, end};
+  void *argtable[] = {freq, wsinp, fileinp, human, wsout, fileout, help, version, end};
 
   int nerrors;
   nerrors = arg_parse(argc, argv, argtable);
@@ -49,9 +51,10 @@ int main(int argc, char *argv[])
 HELP:
     printf("\nUsage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
-    printf("%s <freq> [-h|--human] [-o|--out=<fileout>] \n", PROGNAME);
-    printf("       %s -f|--file=<fileinp> [-h|--human] [-o|--out=<fileout>]\n", PROGNAME);
-    printf(">>     %s [-h|--human] [-o|--out=<fileout>] (stdin pipe)\n", PROGNAME);
+    printf("%s <freq> [-h|--human] [-o=<wsout>] [--fout<fileout>] \n", PROGNAME);
+    printf("       %s -i=<wsinp> [-h|--human] [-o=<wsout>] [--fout<fileout>]\n", PROGNAME);
+    printf("       %s --finp=<fileinp> [-h|--human] [-o=<wsout>] [--fout<fileout>]\n", PROGNAME);
+    printf(">>     %s [-h|--human] [-o=<wsout>] [--fout<fileout>] (stdin pipe)\n", PROGNAME);
     printf("       %s [--help] [--version]\n\n", PROGNAME);
     printf("Convert frequency to wavelength.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
@@ -70,9 +73,9 @@ HELP:
   {
     /* Display the error details contained in the arg_end struct.*/
     arg_print_errors(stdout, end, PROGNAME);
-    printf("Try '%s --help' for more information.\n", PROGNAME);
+    // printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
-    goto EXIT;
+    goto HELP;
   }
   /* Insufficient argument.*/
   if (argc == 1
@@ -89,21 +92,7 @@ HELP:
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
-  if (freq->count == 1 && fileinp->count == 1
-#if defined(_WIN32)
-      && !_isatty(_fileno(stdin))
-#else
-      && !isatty(fileno(stdin))
-#endif
-  )
-  {
-    /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout, end, PROGNAME);
-    printf("One of <freq>, <fileinp> or pipe should be supplied only.\n");
-    printf("Try '%s --help' for more information.\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
+ 
 
   /* ======================================================================== */
   /* main operation                                                           */

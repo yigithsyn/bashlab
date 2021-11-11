@@ -41,12 +41,12 @@ CD build
 "%cmake_path%" --build . --config Release
 CD ../../..
 
+RMDIR /Q /S build > nul 2>&1
+MKDIR build
 :build
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
-RMDIR /Q /S build > nul 2>&1
-MKDIR build
 CD build
 
 "%cmake_path%" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
