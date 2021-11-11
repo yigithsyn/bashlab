@@ -46,12 +46,13 @@ int main(int argc, char *argv[])
   /* special case: '--help' takes precedence over error reporting */
   if (help->count > 0)
   {
-    printf("Usage: ");
+HELP:
+    printf("\nUsage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
     printf("%s <freq> [-h|--human] [-o|--out=<fileout>] \n", PROGNAME);
     printf("       %s -f|--file=<fileinp> [-h|--human] [-o|--out=<fileout>]\n", PROGNAME);
     printf(">>     %s [-h|--human] [-o|--out=<fileout>] (stdin pipe)\n", PROGNAME);
-    printf("       %s [--help] [--version]\n", PROGNAME);
+    printf("       %s [--help] [--version]\n\n", PROGNAME);
     printf("Convert frequency to wavelength.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
     goto EXIT;
@@ -82,6 +83,7 @@ int main(int argc, char *argv[])
 #endif
   )
   {
+    goto HELP;
     printf("%s: insufficient argument.\n", PROGNAME);
     printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;

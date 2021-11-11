@@ -1,7 +1,8 @@
 @ECHO OFF
 
-ECHO %1
 IF "%1"=="build" GOTO build
+@REM for arguements with quotes
+@REM IF "%~1"=="build" GOTO build
 
 ECHO ============================
 ECHO [INFO] Search for CMake ...
