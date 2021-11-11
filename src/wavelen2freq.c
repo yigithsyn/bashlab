@@ -93,6 +93,19 @@ HELP:
     goto HELP;
   }
 
+  /* Argument conflict.*/
+  if ((dpos->count + wsinp->count + fileinp->count
+#if defined(_WIN32)
+      + _isatty(_fileno(stdin))
+#else
+      + isatty(fileno(stdin))
+#endif
+  ) > 2)
+  {
+    printf("%s: input argument conflict.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto HELP;
+  }
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
