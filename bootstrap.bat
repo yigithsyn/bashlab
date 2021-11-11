@@ -1,5 +1,8 @@
 @ECHO OFF
 
+ECHO %1
+IF "%1"=="build" GOTO build
+
 ECHO ============================
 ECHO [INFO] Search for CMake ...
 ECHO ============================
@@ -37,7 +40,7 @@ CD build
 "%cmake_path%" --build . --config Release
 CD ../../..
 
-
+:build
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
@@ -47,7 +50,7 @@ CD build
 
 "%cmake_path%" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
 
-
+:install
 ECHO ============================
 ECHO Installing ...
 ECHO ============================

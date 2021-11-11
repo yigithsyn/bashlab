@@ -35,10 +35,10 @@ int main(int argc, char *argv[])
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
   struct arg_lit *human = arg_lit0("h", "human", "human readable output like 3.36 cm, 0.7 km");
   struct arg_dbl *freq = arg_dbl0(NULL, NULL, "<freq>", "frequency in Hertz [Hz]");
-  struct arg_file *filename = arg_file0("f", "file", "<filename>", "input file for column-wise vector operation");
-  struct arg_file *outfile = arg_file0("o", "out", "<outfile>", "output file for result storage");
+  struct arg_file *fileinp = arg_file0("f", "file", "<fileinp>", "input file for column-wise vector operation");
+  struct arg_file *fileout = arg_file0("o", "out", "<fileout>", "output file for result storage");
   struct arg_end *end = arg_end(20);
-  void *argtable[] = {freq, filename, human, outfile, help, version, end};
+  void *argtable[] = {freq, fileinp, human, fileout, help, version, end};
 
   int nerrors;
   nerrors = arg_parse(argc, argv, argtable);
@@ -48,9 +48,9 @@ int main(int argc, char *argv[])
   {
     printf("Usage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
-    printf("%s <freq> [-h|--human] [-o|--out=<outfile>] \n", PROGNAME);
-    printf("       %s -f|--file=<filename> [-h|--human] [-o|--out=<outfile>]\n", PROGNAME);
-    printf(">>     %s [-h|--human] [-o|--out=<outfile>] (stdin pipe)\n", PROGNAME);
+    printf("%s <freq> [-h|--human] [-o|--out=<fileout>] \n", PROGNAME);
+    printf("       %s -f|--file=<fileinp> [-h|--human] [-o|--out=<fileout>]\n", PROGNAME);
+    printf(">>     %s [-h|--human] [-o|--out=<fileout>] (stdin pipe)\n", PROGNAME);
     printf("       %s [--help] [--version]\n", PROGNAME);
     printf("Convert frequency to wavelength.\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
-  if (freq->count == 1 && filename->count == 1
+  if (freq->count == 1 && fileinp->count == 1
 #if defined(_WIN32)
       && !_isatty(_fileno(stdin))
 #else
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   {
     /* Display the error details contained in the arg_end struct.*/
     arg_print_errors(stdout, end, PROGNAME);
-    printf("One of <freq>, <filename> or pipe should be supplied only.\n");
+    printf("One of <freq>, <fileinp> or pipe should be supplied only.\n");
     printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT;
@@ -110,13 +110,13 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* switch output stream                                                     */
   /* ------------------------------------------------------------------------ */
-  if (outfile->count == 1)
+  if (fileout->count == 1)
   {
-    fout = fopen(outfile->filename[0], "w");
+    fout = fopen(fileout->filename[0], "w");
     if (fout == NULL)
     {
       sprintf(err_buff, "%s: Error %d: Unable to open output file '%s'",
-              PROGNAME, errno, outfile->filename[0]);
+              PROGNAME, errno, fileout->filename[0]);
       perror(err_buff);
       exitcode = 1;
       goto EXIT;
@@ -149,12 +149,12 @@ int main(int argc, char *argv[])
   }
 
   /* file argument*/
-  if (filename->count == 1)
+  if (fileinp->count == 1)
   {
-    fin = fopen(filename->filename[0], "r");
+    fin = fopen(fileinp->filename[0], "r");
     if (fin == NULL)
     {
-      sprintf(err_buff, "%s: Error %d: Unable to open input file '%s'", PROGNAME, errno, filename->filename[0]);
+      sprintf(err_buff, "%s: Error %d: Unable to open input file '%s'", PROGNAME, errno, fileinp->filename[0]);
       perror(err_buff);
       exitcode = EXIT_FAILURE;
       goto EXIT;
@@ -186,7 +186,7 @@ OUTPUT:
     (human->count == 1) ? fprintf(fout, "%s\n", freq2wavelen_h(freqs[i], buff))
                         : fprintf(fout, "%f\n", freq2wavelen(freqs[i]));
 
-  if (outfile->count == 1)
+  if (fileout->count == 1)
     fclose(fout);
 
   /* ======================================================================== */
