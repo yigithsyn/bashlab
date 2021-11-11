@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   /* special case: '--help' takes precedence over error reporting */
   if (help->count > 0)
   {
-HELP:
+  HELP:
     printf("\nUsage: ");
     // arg_print_syntaxv(stdout, argtable, "\n");
     printf("%s <freq> [-h|--human] [-o=<wsout>] [--fout<fileout>] \n", PROGNAME);
@@ -86,13 +86,10 @@ HELP:
 #endif
   )
   {
-    goto HELP;
     printf("%s: insufficient argument.\n", PROGNAME);
-    printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
-    goto EXIT;
+    goto HELP;
   }
- 
 
   /* ======================================================================== */
   /* main operation                                                           */

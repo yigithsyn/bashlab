@@ -86,11 +86,9 @@ HELP:
 #endif
   )
   {
-    goto HELP;
     printf("%s: insufficient argument.\n", PROGNAME);
-    printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
-    goto EXIT;
+    goto HELP;
   }
 
   /* ======================================================================== */
