@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
 #endif
   ) > 1)
   {
+    printf("%s: input argument conflict.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto HELP;
   }
