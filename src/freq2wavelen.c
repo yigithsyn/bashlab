@@ -2,7 +2,7 @@
 #define PROGNAME "freq2wavelen"
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
-#define VERSION_PATCH 1
+#define VERSION_PATCH 2
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -96,11 +96,11 @@ int main(int argc, char *argv[])
   /* Argument conflict.*/
   if ((dpos->count + wsinp->count + fileinp->count
 #if defined(_WIN32)
-      + !_isatty(_fileno(stdin))
+       + !_isatty(_fileno(stdin))
 #else
-      + !isatty(fileno(stdin))
+       + !isatty(fileno(stdin))
 #endif
-  ) > 1)
+           ) > 1)
   {
     printf("%s: input argument conflict.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
@@ -121,8 +121,10 @@ int main(int argc, char *argv[])
 INPUT:
   /* argument */
   if (dpos->count == 1)
+  {
     darr[N++] = dpos->dval[0];
-  goto OUTPUT;
+    goto OUTPUT;
+  }
 
   /* stdin */
 #if defined(_WIN32)
@@ -203,3 +205,9 @@ EXIT:
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;
 }
+
+/*
+Version history:
+1.0.0: Initial release
+1.0.2: Input fetch fix
+*/

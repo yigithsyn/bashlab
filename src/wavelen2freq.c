@@ -2,7 +2,7 @@
 #define PROGNAME "wavelen2freq"
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
-#define VERSION_PATCH 0
+#define VERSION_PATCH 1
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -120,8 +120,10 @@ HELP:
 INPUT:
   /* argument */
   if (dpos->count == 1)
+  {
     darr[N++] = dpos->dval[0];
-  goto OUTPUT;
+    goto OUTPUT;
+  }
 
   /* stdin */
 #if defined(_WIN32)
@@ -202,3 +204,9 @@ EXIT:
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;
 }
+
+/*
+Version history:
+1.0.0: Initial release
+1.0.1: Input fetch fix
+*/
