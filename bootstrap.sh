@@ -20,7 +20,7 @@ tar -xf libs/jansson-2.14.tar.gz --directory libs/
 cd libs/jansson-2.14
 mkdir build
 cd build
-cmake -DJANSSON_BUILD_SHARED_LIBS=1 -DJANSSON_BUILD_DOCS=OFF ..
+cmake -DJANSSON_BUILD_DOCS=OFF ..
 # make
 # make check
 cmake --build . --config Release
