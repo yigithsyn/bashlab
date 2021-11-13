@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #if defined(_WIN32)
 #include <io.h>
 #else
@@ -16,8 +17,11 @@
 #endif
 
 #include "argtable3.h"
+#include "jansson.h"
+
 #include "freq2wavelen.h"
 
+#define WORKSPACE "workspace.json"
 #define MAX_LINE_BUFFER 100
 #define MAX_ERR_BUFF_LEN 250
 
@@ -27,6 +31,10 @@ int main(int argc, char *argv[])
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
   double *darr = (double *)calloc(0, sizeof(double));
+  struct stat stat_buff;
+  int valid_workspace = false;
+  json_error_t *json_error = NULL;
+  json_t *workspace;
 
   /* ======================================================================== */
   /* argument parse                                                           */
@@ -124,6 +132,24 @@ INPUT:
   {
     darr[N++] = dpos->dval[0];
     goto OUTPUT;
+  }
+
+  /* argument */
+  if (wsinp->count)
+  {
+    workspace = json_load_file(WORKSPACE, 0, json_error);
+    if (stat(WORKSPACE, &stat_buff) == 0)
+      if (workspace != NULL && json_typeof(workspace) == JSON_OBJECT)
+        valid_workspace = true;
+    if(!valid_workspace){
+      printf("Error\n");
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    else{
+      printf("Okay");
+      goto EXIT;
+    }
   }
 
   /* stdin */
