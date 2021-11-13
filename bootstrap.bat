@@ -37,7 +37,7 @@ tar -xvf libs\jansson-2.14.tar.gz --directory libs\
 CD libs\jansson-2.14
 MKDIR build
 CD build
-"%cmake_path%" -DJANSSON_BUILD_SHARED_LIBS=1 -DJANSSON_BUILD_DOCS=OFF ..
+"%cmake_path%" -DJANSSON_BUILD_DOCS=OFF ..
 "%cmake_path%" --build . --config Release
 CD ../../..
 
