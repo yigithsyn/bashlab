@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   double *darr = (double *)calloc(0, sizeof(double));
   struct stat stat_buff;
-  int valid_workspace = false;
   json_error_t *json_error = NULL;
   json_t *workspace;
 
@@ -144,11 +143,18 @@ INPUT:
       {
         ;
       }
+      else
+      {
+        fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+        fprintf(stdout, "Try '%s --help' for more information.\n\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
     }
     else
     {
       fprintf(stderr, "%s: workspace file not found.\n", PROGNAME);
-      fprintf(stdout,"Try '%s --help' for more information.\n\n", PROGNAME);
+      fprintf(stdout, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT;
     }
