@@ -137,17 +137,19 @@ INPUT:
   /* argument */
   if (wsinp->count)
   {
-    workspace = json_load_file(WORKSPACE, 0, json_error);
     if (stat(WORKSPACE, &stat_buff) == 0)
+    {
+      workspace = json_load_file(WORKSPACE, 0, json_error);
       if (workspace != NULL && json_typeof(workspace) == JSON_OBJECT)
-        valid_workspace = true;
-    if(!valid_workspace){
-      printf("Error\n");
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
+      {
+        ;
+      }
     }
-    else{
-      printf("Okay");
+    else
+    {
+      fprintf(stderr, "%s: workspace file not found.\n", PROGNAME);
+      fprintf(stdout,"Try '%s --help' for more information.\n\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
       goto EXIT;
     }
   }
