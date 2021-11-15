@@ -27,9 +27,14 @@ ECHO ============================
 RMDIR /Q /S libs 
 MKDIR libs
 ECHO Argtable3: A single-file, ANSI C, command-line parsing library that parses GNU-style command-line options.
-curl -L https://github.com/argtable/argtable3/releases/download/v3.2.1.52f24e5/argtable-v3.2.1.52f24e5-amalgamation.tar.gz --output libs\argtable3.tar.gz --silent 
-MKDIR libs\argtable3
-tar -xf libs\argtable3.tar.gz --directory libs\argtable3
+curl -L https://github.com/argtable/argtable3/releases/download/v3.2.1.52f24e5/argtable-v3.2.1.52f24e5.tar.gz --output libs\argtable-v3.2.1.52f24e5.tar.gz --silent 
+tar -xf libs\argtable-v3.2.1.52f24e5.tar.gz --directory libs\
+CD libs\argtable-v3.2.1.52f24e5
+MKDIR build
+CD build
+"%cmake_path%" ..
+"%cmake_path%" --build . --config Release
+CD ../../..
 
 ECHO Jansson: C library for encoding, decoding and manipulating JSON data
 curl -L https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.gz --output libs\jansson-2.14.tar.gz --silent
