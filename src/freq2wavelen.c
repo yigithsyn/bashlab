@@ -237,20 +237,6 @@ INPUT:
   /* write output                                                             */
   /* ------------------------------------------------------------------------ */
 OUTPUT:
-  /* file */
-  if (fileout->count == 1)
-  {
-    fout = fopen(fileout->filename[0], "w");
-    if (fout == NULL)
-    {
-      sprintf(err_buff, "%s: Error %d: Unable to open output file '%s'",
-              PROGNAME, errno, fileout->filename[0]);
-      perror(err_buff);
-      exitcode = 1;
-      goto EXIT;
-    }
-  }
-
   /* workspace */
   if (wsout->count)
   {
@@ -275,11 +261,24 @@ OUTPUT:
       json_array_append_new(new_var_vals, json_real(freq2wavelen(darr[i])));
     json_object_set_new(new_var, "value", new_var_vals);
     json_array_append_new(ws_vars, new_var);
-
     /* write workspace */
     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
     json_decref(workspace);
     goto EXIT;
+  }
+
+  /* file */
+  if (fileout->count == 1)
+  {
+    fout = fopen(fileout->filename[0], "w");
+    if (fout == NULL)
+    {
+      sprintf(err_buff, "%s: Error %d: Unable to open output file '%s'",
+              PROGNAME, errno, fileout->filename[0]);
+      perror(err_buff);
+      exitcode = 1;
+      goto EXIT;
+    }
   }
 
   for (int i = 0; i < N; ++i)

@@ -11,6 +11,7 @@
   "files.associations": {
     "constants.h": "c",
     "wavelen2freq_implc": "c",
-    "argtable3.h": "c"
+    "argtable3.h": "c",
+    "wavelen2freq.h": "c"
   }
 }
