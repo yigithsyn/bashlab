@@ -1,8 +1,8 @@
 
 #define PROGNAME "wavelen2freq"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
-#define VERSION_PATCH 1
+#define VERSION_MINOR 1
+#define VERSION_PATCH 0
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -301,4 +301,5 @@ EXIT:
 Version history:
 1.0.0: Initial release
 1.0.1: Input fetch fix
+1.1.0: Update version
 */
