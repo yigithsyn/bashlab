@@ -5,7 +5,8 @@
       "includePath": [
         "${default}",
         "${workspaceFolder}/include",
-        "${workspaceFolder}/libs/argtable3/dist"
+        "${workspaceFolder}/libs/argtable3/dist",
+        "${workspaceFolder}/libs/jansson-2.14/build/include"
       ]
     }
   ],

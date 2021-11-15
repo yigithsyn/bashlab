@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #if defined(_WIN32)
 #include <io.h>
 #else
@@ -31,7 +30,6 @@ int main(int argc, char *argv[])
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
   double *darr = (double *)calloc(0, sizeof(double));
-  struct stat stat_buff;
   json_error_t *json_error = NULL;
   json_t *workspace;
 
@@ -133,31 +131,61 @@ INPUT:
     goto OUTPUT;
   }
 
-  /* argument */
+  /* workspace */
   if (wsinp->count)
   {
-    if (stat(WORKSPACE, &stat_buff) == 0)
+    /* check for file and structure */
+    workspace = json_load_file(WORKSPACE, 0, json_error);
+    if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
     {
-      workspace = json_load_file(WORKSPACE, 0, json_error);
-      if (workspace != NULL && json_typeof(workspace) == JSON_OBJECT)
-      {
-        ;
-      }
-      else
-      {
-        fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
-        fprintf(stdout, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT;
-      }
-    }
-    else
-    {
-      fprintf(stderr, "%s: workspace file not found.\n", PROGNAME);
-      fprintf(stdout, "Try '%s --help' for more information.\n\n", PROGNAME);
+      fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT;
     }
+    /* search for variable */
+    json_t *ivar, *ws_vars, *dvar, *var_val;
+    size_t ivar_index;
+    ws_vars = json_object_get(workspace, "variables");
+    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), wsinp->sval[0]) == 0) break;
+    if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
+    {
+      fprintf(stderr, "%s: variable not found in workspace.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      json_decref(workspace);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    var_val = json_object_get(ivar, "value");
+    /* validity check */
+    if (var_val == NULL)
+    {
+      fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      json_decref(workspace);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    if (json_typeof(var_val) != JSON_ARRAY)
+    {
+      fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      json_decref(workspace);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    /* process variable */
+    json_array_foreach(json_object_get(ivar, "value"), ivar_index, dvar)
+    {
+      if (N >= Nmax)
+      {
+        Nmax *= 2;
+        darr = realloc(darr, sizeof(double) * Nmax);
+      }
+      darr[N++] = json_real_value(dvar);
+    }
+    json_decref(workspace);
+    goto OUTPUT;
   }
 
   /* stdin */
@@ -210,7 +238,7 @@ INPUT:
   /* ------------------------------------------------------------------------ */
 OUTPUT:
   /* file */
-  if (fileout->count == 1 && wsout->count == 0)
+  if (fileout->count == 1)
   {
     fout = fopen(fileout->filename[0], "w");
     if (fout == NULL)
@@ -221,6 +249,37 @@ OUTPUT:
       exitcode = 1;
       goto EXIT;
     }
+  }
+
+  /* workspace */
+  if (wsout->count)
+  {
+    /* check for file structure */
+    workspace = json_load_file(WORKSPACE, 0, json_error);
+    if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+      workspace = json_loads("{\"variables\": []}", 0, NULL);
+    /* search for variable */
+    json_t *ivar, *ws_vars, *new_var, *new_var_val, *new_var_vals;
+    size_t ivar_index;
+    ws_vars = json_object_get(workspace, "variables");
+    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), wsout->sval[0]) == 0) break;
+    /* delete existing */
+    if (ivar_index != json_array_size(ws_vars))
+      json_array_remove(ws_vars, ivar_index);
+    /* create new */
+    new_var = json_object();
+    json_object_set_new(new_var, "name", json_string(wsout->sval[0]));
+    new_var_vals = json_array();
+    /* append results */
+    for (int i = 0; i < N; ++i)
+      json_array_append_new(new_var_vals, json_real(freq2wavelen(darr[i])));
+    json_object_set_new(new_var, "value", new_var_vals);
+    json_array_append_new(ws_vars, new_var);
+
+    /* write workspace */
+    json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+    json_decref(workspace);
+    goto EXIT;
   }
 
   for (int i = 0; i < N; ++i)
@@ -244,4 +303,5 @@ EXIT:
 Version history:
 1.0.0: Initial release
 1.0.2: Input fetch fix
+1.1.0: Argument support from workspace
 */

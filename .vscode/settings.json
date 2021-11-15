@@ -1,12 +1,12 @@
 {
   "cmake.debugConfig": {
     "args": [
-      "-f",
-      "${workspaceFolder}\\test\\freqs.txt",
-      "-h",
+      "-i",
+      "freqs",
       "-o",
-      "${workspaceFolder}\\test\\wavelenghts.txt"
-    ]
+      "wavelens"
+    ],
+    "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
     "constants.h": "c",
