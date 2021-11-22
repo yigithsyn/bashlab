@@ -28,5 +28,10 @@
         0.0099930819333333334
       ]
     }
+  ],
+  "history": [
+    "wavelen2freq -i freqs -o wavelens",
+    "wavelen2freq -i freqs -o wavelens",
+    "wavelen2freq -i freqs -o wavelens"
   ]
 }

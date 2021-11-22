@@ -26,6 +26,7 @@
 
 int main(int argc, char *argv[])
 {
+  char buff[MAX_LINE_BUFFER];
   char err_buff[MAX_ERR_BUFF_LEN];
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
@@ -119,7 +120,6 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* fetch input                                                              */
   /* ------------------------------------------------------------------------ */
-  char buff[MAX_LINE_BUFFER];
   int N = 0, Nmax = 1;
   darr = realloc(darr, sizeof(double) * Nmax);
 
@@ -289,6 +289,22 @@ OUTPUT:
     fclose(fout);
 
   /* ======================================================================== */
+  /* history                                                                     */
+  /* ======================================================================== */
+HISTORY:
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+    workspace = json_loads("{\"history\": []}", 0, NULL);
+  if (json_object_get(workspace, "history") == NULL)
+    json_object_set_new(workspace, "history", json_array());
+  strcpy(buff, PROGNAME);
+  for (int i = 1; i < argc; i++)
+    sprintf(buff, "%s %s\0", buff, argv[i]);
+  json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+  /* write workspace */
+  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  json_decref(workspace);
+  /* ======================================================================== */
   /* exit                                                                     */
   /* ======================================================================== */
 EXIT:
@@ -303,4 +319,5 @@ Version history:
 1.0.0: Initial release
 1.0.2: Input fetch fix
 1.1.0: Argument support from workspace
+1.2.0: Add command to workspace history
 */
