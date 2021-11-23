@@ -237,8 +237,7 @@ INPUT:
   /* ------------------------------------------------------------------------ */
 OUTPUT:
   /* workspace */
-  if (wsout->count)
-  {
+
     /* check for file structure */
     workspace = json_load_file(WORKSPACE, 0, json_error);
     if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
@@ -247,13 +246,17 @@ OUTPUT:
     json_t *ivar, *ws_vars, *new_var, *new_var_val, *new_var_vals;
     size_t ivar_index;
     ws_vars = json_object_get(workspace, "variables");
-    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), wsout->sval[0]) == 0) break;
+    if (wsout->count)
+      strcpy(buff, wsout->sval[0]);
+    else
+      strcpy(buff, "ans");
+    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
     /* delete existing */
     if (ivar_index != json_array_size(ws_vars))
       json_array_remove(ws_vars, ivar_index);
     /* create new */
     new_var = json_object();
-    json_object_set_new(new_var, "name", json_string(wsout->sval[0]));
+    json_object_set_new(new_var, "name", json_string(buff));
     new_var_vals = json_array();
     /* append results */
     for (int i = 0; i < N; ++i)
@@ -263,8 +266,6 @@ OUTPUT:
     /* write workspace */
     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
     json_decref(workspace);
-    goto HISTORY;
-  }
 
   /* file */
   if (fileout->count == 1 && wsout->count == 0)

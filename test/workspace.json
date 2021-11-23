@@ -22,7 +22,20 @@
       ]
     },
     {
+      "name": "temp",
+      "value": [
+        99.930819333333332
+      ]
+    },
+    {
       "name": "wavelens",
+      "value": [
+        59.958491600000002,
+        0.0099930819333333334
+      ]
+    },
+    {
+      "name": "ans",
       "value": [
         59.958491600000002,
         0.0099930819333333334
@@ -32,6 +45,15 @@
   "history": [
     "wavelen2freq -i freqs -o wavelens",
     "wavelen2freq -i freqs -o wavelens",
-    "wavelen2freq -i freqs -o wavelens"
+    "wavelen2freq -i freqs -o wavelens",
+    "freq2wavelen -i freqs",
+    "freq2wavelen -i freqs -o wavelens",
+    "freq2wavelen -i freqs",
+    "freq2wavelen -i freqs -h",
+    "freq2wavelen 3E6",
+    "freq2wavelen 3E6 -h",
+    "freq2wavelen 3E6 -h -o temp",
+    "wavelen2freq -i freqs -o wavelens",
+    "wavelen2freq -i freqs"
   ]
 }
