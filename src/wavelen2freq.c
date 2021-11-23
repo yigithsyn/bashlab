@@ -1,7 +1,7 @@
 
 #define PROGNAME "wavelen2freq"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 1
+#define VERSION_MINOR 3
 #define VERSION_PATCH 0
 
 #include <stdio.h>
@@ -321,4 +321,5 @@ Version history:
 1.0.1: Input fetch fix
 1.1.0: Update version
 1.2.0: Add command to workspace history
+1.3.0: Always add result to history
 */

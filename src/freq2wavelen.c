@@ -1,7 +1,7 @@
 
 #define PROGNAME "freq2wavelen"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 1
+#define VERSION_MINOR 3
 #define VERSION_PATCH 0
 
 #include <stdio.h>
@@ -304,6 +304,7 @@ HISTORY:
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
   json_decref(workspace);
+
   /* ======================================================================== */
   /* exit                                                                     */
   /* ======================================================================== */
@@ -320,4 +321,5 @@ Version history:
 1.0.2: Input fetch fix
 1.1.0: Argument support from workspace
 1.2.0: Add command to workspace history
+1.3.0: Always add result to history
 */
