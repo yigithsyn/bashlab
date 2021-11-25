@@ -1,6 +1,6 @@
 
-#define PROGNAME "wavelen2freq"
-#define VERSION_MAJOR 2
+#define PROGNAME "ffdist"
+#define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 #define VERSION_PATCH 0
 
@@ -19,7 +19,7 @@
 #include "argtable3.h"
 #include "jansson.h"
 
-#include "wavelen2freq.h"
+#include "ffdist.h"
 
 #define WORKSPACE "workspace.json"
 #define MAX_LINE_BUFFER 100
@@ -42,13 +42,16 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
 
   /* the global arg_xxx structs are initialised within the argtable */
+  int Nposargs = 2;
+  struct arg_str *posargs[2];
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
-  struct arg_lit *human = arg_lit0("h", "human", "human readable output like 1.36 GHz, 512 MHz");
-  struct arg_str *posargs = arg_str1(NULL, NULL, "<wavelen>", "wavelength in meters [m]");
+  struct arg_lit *human = arg_lit0("h", "human", "human readable display like 3.36 cm, 0.7 km");
+  posargs[0] = arg_str1(NULL, NULL, "freq", "frequency in Hertz [Hz]");
+  posargs[1] = arg_str1(NULL, NULL, "D", "aperture cross-sectional size in meters [m]");
   struct arg_str *wsout = arg_str0("o", NULL, "<wsout>", "output argument name for workspace");
   struct arg_end *end = arg_end(20);
-  void *argtable[] = {posargs, human, wsout, help, version, end};
+  void *argtable[] = {posargs[0], posargs[1], human, wsout, help, version, end};
 
   int nerrors;
   nerrors = arg_parse(argc, argv, argtable);
@@ -57,9 +60,9 @@ int main(int argc, char *argv[])
   if (help->count > 0)
   {
   HELP:
-    printf("%s: Convert wavelength to frequency.\n\n", PROGNAME);
+    printf("%s: Far-field (Fraunhofer) distance of an aperture.\n\n",PROGNAME);
     printf("Usage: %s", PROGNAME);
-    arg_print_syntaxv(stdout, argtable, "\n");
+    arg_print_syntaxv(stdout, argtable, "\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
     goto EXIT;
   }
@@ -88,14 +91,15 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* fetch input                                                              */
   /* ------------------------------------------------------------------------ */
-  int N = 0, Nmax = 1;
+  int N = 0, Nmax = Nposargs;
   darr = realloc(darr, sizeof(double) * Nmax);
 
   /* positional argument as value */
   if (stat(WORKSPACE, &stat_buff) != 0)
   {
   ARGASVAL:
-    darr[N++] = atof(posargs->sval[0]);
+    darr[N++] = atof(posargs[0]->sval[0]);
+    darr[N++] = atof(posargs[1]->sval[0]);
     goto OUTPUT;
   }
 
@@ -112,39 +116,36 @@ int main(int argc, char *argv[])
   /* search for variable */
   json_t *dvar, *var_val;
   ws_vars = json_object_get(workspace, "variables");
-  json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs->sval[0]) == 0) break;
-  if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
+  for (int i = 0; i < Nmax; ++i)
   {
-    json_decref(workspace);
-    goto ARGASVAL;
-  }
-  var_val = json_object_get(ivar, "value");
-  /* validity check */
-  if (var_val == NULL)
-  {
-    fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    json_decref(workspace);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (json_typeof(var_val) != JSON_ARRAY)
-  {
-    fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    json_decref(workspace);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  /* process variable */
-  json_array_foreach(json_object_get(ivar, "value"), ivar_index, dvar)
-  {
-    if (N >= Nmax)
+    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0) break;
+    if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
     {
-      Nmax *= 2;
-      darr = realloc(darr, sizeof(double) * Nmax);
+      darr[N++] = atof(posargs[i]->sval[0]);
     }
-    darr[N++] = json_real_value(dvar);
+    else
+    {
+      var_val = json_object_get(ivar, "value");
+      /* validity check */
+      if (var_val == NULL)
+      {
+        fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      if (json_typeof(var_val) != JSON_ARRAY)
+      {
+        fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      /* process variable */
+      darr[N++] = json_real_value(json_array_get(json_object_get(ivar, "value"), 0));
+    }
   }
   json_decref(workspace);
   goto OUTPUT;
@@ -174,8 +175,8 @@ OUTPUT:
   json_object_set_new(new_var, "name", json_string(buff));
   new_var_vals = json_array();
   /* append results */
-  for (int i = 0; i < N; ++i)
-    json_array_append_new(new_var_vals, json_real(wavelen2freq(darr[i])));
+  for (int i = 0; i < 1; ++i)
+    json_array_append_new(new_var_vals, json_real(ffdist(darr[0], darr[1])));
   json_object_set_new(new_var, "value", new_var_vals);
   json_array_append_new(ws_vars, new_var);
   /* write workspace */
@@ -183,31 +184,25 @@ OUTPUT:
   json_decref(workspace);
 
   /* stdout */
-  for (int i = 0; i < min(N, 3); ++i)
-    (human->count == 1) ? fprintf(fout, "%s\n", wavelen2freq_h(darr[i], buff))
-                        : fprintf(fout, "%f\n", wavelen2freq(darr[i]));
-  if (N > 5)
-    fprintf(fout, "...\n");
-  for (int i = max(min(N, 3), N - 2); i < N; ++i)
-    (human->count == 1) ? fprintf(fout, "%s\n", wavelen2freq_h(darr[i], buff))
-                        : fprintf(fout, "%f\n", wavelen2freq(darr[i]));
+  (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(darr[0], darr[1], buff))
+                      : fprintf(fout, "%f\n", ffdist(darr[0], darr[1]));
 
   /* ======================================================================== */
   /* history                                                                     */
   /* ======================================================================== */
-HISTORY:
-  workspace = json_load_file(WORKSPACE, 0, json_error);
-  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-    workspace = json_loads("{\"history\": []}", 0, NULL);
-  if (json_object_get(workspace, "history") == NULL)
-    json_object_set_new(workspace, "history", json_array());
-  strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++)
-    sprintf(buff, "%s %s\0", buff, argv[i]);
-  json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-  /* write workspace */
-  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
+  HISTORY:
+    workspace = json_load_file(WORKSPACE, 0, json_error);
+    if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+      workspace = json_loads("{\"history\": []}", 0, NULL);
+    if (json_object_get(workspace, "history") == NULL)
+      json_object_set_new(workspace, "history", json_array());
+    strcpy(buff, PROGNAME);
+    for (int i = 1; i < argc; i++)
+      sprintf(buff, "%s %s\0", buff, argv[i]);
+    json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+    /* write workspace */
+    json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+    json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
@@ -222,9 +217,4 @@ EXIT:
 /*
 Version history:
 1.0.0: Initial release
-1.0.1: Input fetch fix
-1.1.0: Update version
-1.2.0: Add command to workspace history
-1.3.0: Always add result to history
-2.0.0: Argument simplification by using only positional or workspace argument
 */

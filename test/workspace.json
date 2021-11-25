@@ -2,7 +2,9 @@
   "variables": [
     {
       "name": "freq",
-      "value": 1000000000.0
+      "value": [
+        1000000000.0
+      ]
     },
     {
       "name": "freqs",
@@ -42,15 +44,15 @@
       ]
     },
     {
-      "name": "ans",
+      "name": "test2",
       "value": [
         9993081933.333334
       ]
     },
     {
-      "name": "test2",
+      "name": "ans",
       "value": [
-        9993081933.333334
+        20.013845711889122
       ]
     }
   ],
@@ -92,6 +94,10 @@
     "wavelen2freq freqs -h -o test2",
     "wavelen2freq 3E-2",
     "wavelen2freq 3E-2 -h",
-    "wavelen2freq 3E-2 -h -o test2"
+    "wavelen2freq 3E-2 -h -o test2",
+    "ffdist 1 freq -h",
+    "ffdist 1 freq -h",
+    "ffdist 1 3E9 -h",
+    "ffdist 1 3E9"
   ]
 }

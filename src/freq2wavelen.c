@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
   if (help->count > 0)
   {
   HELP:
-    printf("Usage: ");
+    printf("%s: Convert frequency to wavelength.\n\n", PROGNAME);
+    printf("Usage: %s", PROGNAME);
     arg_print_syntaxv(stdout, argtable, "\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
     goto EXIT;
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
     arg_print_errors(stdout, end, PROGNAME);
     printf("Try '%s --help' for more information.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
-    goto HELP;
+    goto EXIT;
   }
 
   /* ======================================================================== */
@@ -112,7 +113,8 @@ int main(int argc, char *argv[])
   json_t *dvar, *var_val;
   ws_vars = json_object_get(workspace, "variables");
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs->sval[0]) == 0) break;
-  if (ivar_index == json_array_size(json_object_get(workspace, "variables"))){
+  if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
+  {
     json_decref(workspace);
     goto ARGASVAL;
   }
