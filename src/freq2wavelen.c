@@ -206,7 +206,7 @@ HISTORY:
   strcpy(buff, PROGNAME);
   for (int i = 1; i < argc; i++){
     strcat(buff, " ");
-    strcat(buff, argv[1]);
+    strcat(buff, argv[i]);
   }
   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
   /* write workspace */

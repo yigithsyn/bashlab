@@ -1,7 +1,7 @@
 #include "macros.h"
 #include "freq2wavelen.h"
 
-#include <stdlib.h>
+#include <stdio.h>
 
 double ffdist(double D, double freq)
 {
