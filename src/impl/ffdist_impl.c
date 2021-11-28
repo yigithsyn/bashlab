@@ -1,3 +1,4 @@
+#include "macros.h"
 #include "freq2wavelen.h"
 
 #include <stdlib.h>
@@ -6,7 +7,7 @@ double ffdist(double D, double freq)
 {
   /* Warren L. Stutzman, Antenna Theory and Design, 3rd Ed., Page 43 */
   double wavelen = freq2wavelen(freq);
-  return max(2*D*D/wavelen,max(1.6*wavelen,5*D));
+  return MAX(2*D*D/wavelen,MAX(1.6*wavelen,5*D));
 }
 
 char* ffdist_h(double D, double freq, char *buff)

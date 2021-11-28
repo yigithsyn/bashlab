@@ -10,6 +10,13 @@
     "constants.h": "c",
     "wavelen2freq_implc": "c",
     "argtable3.h": "c",
-    "wavelen2freq.h": "c"
+    "wavelen2freq.h": "c",
+    "*.tcc": "c",
+    "string_view": "c",
+    "algorithm": "c",
+    "random": "c",
+    "istream": "c",
+    "limits": "c",
+    "numeric": "c"
   }
 }

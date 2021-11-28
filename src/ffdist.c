@@ -19,6 +19,7 @@
 #include "argtable3.h"
 #include "jansson.h"
 
+#include "macros.h"
 #include "ffdist.h"
 
 #define WORKSPACE "workspace.json"

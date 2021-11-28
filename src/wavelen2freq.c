@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #if defined(_WIN32)
@@ -19,7 +20,9 @@
 #include "argtable3.h"
 #include "jansson.h"
 
+#include "macros.h"
 #include "wavelen2freq.h"
+
 
 #define WORKSPACE "workspace.json"
 #define MAX_LINE_BUFFER 100
@@ -183,12 +186,12 @@ OUTPUT:
   json_decref(workspace);
 
   /* stdout */
-  for (int i = 0; i < min(N, 3); ++i)
+  for (int i = 0; i < MIN(N, 3); ++i)
     (human->count == 1) ? fprintf(fout, "%s\n", wavelen2freq_h(darr[i], buff))
                         : fprintf(fout, "%f\n", wavelen2freq(darr[i]));
   if (N > 5)
     fprintf(fout, "...\n");
-  for (int i = max(min(N, 3), N - 2); i < N; ++i)
+  for (int i = MAX(MIN(N, 3), N - 2); i < N; ++i)
     (human->count == 1) ? fprintf(fout, "%s\n", wavelen2freq_h(darr[i], buff))
                         : fprintf(fout, "%f\n", wavelen2freq(darr[i]));
 
@@ -202,8 +205,10 @@ HISTORY:
   if (json_object_get(workspace, "history") == NULL)
     json_object_set_new(workspace, "history", json_array());
   strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++)
-    sprintf(buff, "%s %s\0", buff, argv[i]);
+  for (int i = 1; i < argc; i++){
+    strcat(buff, " ");
+    strcat(buff, argv[1]);
+  }
   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
