@@ -17,6 +17,7 @@
     "random": "c",
     "istream": "c",
     "limits": "c",
-    "numeric": "c"
+    "numeric": "c",
+    "ffdist.h": "c"
   }
 }
