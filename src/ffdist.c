@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
   struct arg_lit *human = arg_lit0("h", "human", "human readable display like 3.36 cm, 0.7 km");
-  posargs[0] = arg_str1(NULL, NULL, "freq", "frequency in Hertz [Hz]");
-  posargs[1] = arg_str1(NULL, NULL, "D", "aperture cross-sectional size in meters [m]");
+  posargs[0] = arg_str1(NULL, NULL, "D", "aperture cross-sectional size in meters [m]");
+  posargs[1] = arg_str1(NULL, NULL, "freq", "frequency in Hertz [Hz]");
   struct arg_str *wsout = arg_str0("o", NULL, "<wsout>", "output argument name for workspace");
   struct arg_end *end = arg_end(20);
   void *argtable[] = {posargs[0], posargs[1], human, wsout, help, version, end};
