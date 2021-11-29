@@ -52,7 +52,8 @@
     {
       "name": "ans",
       "value": [
-        20.013845711889122
+        299.79245800000001,
+        0.049965409666666669
       ]
     }
   ],
@@ -98,6 +99,18 @@
     "ffdist 1 freq -h",
     "ffdist 1 freq -h",
     "ffdist 1 3E9 -h",
-    "ffdist 1 3E9"
+    "ffdist 1 3E9",
+    "ffdist 1 freq",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6 -h",
+    "ffdist 1 3E6",
+    "ffdist 1 3E6",
+    "ffdist test temp",
+    "ffdist wavelens freqs",
+    "ffdist wavelens freqs -h"
   ]
 }

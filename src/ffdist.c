@@ -1,7 +1,7 @@
 
 #define PROGNAME "ffdist"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 #define VERSION_PATCH 0
 
 #include <stdio.h>
@@ -24,6 +24,7 @@
 #include "ffdist.h"
 
 #define WORKSPACE "workspace.json"
+#define MAX_ARG_NUM 5
 #define MAX_LINE_BUFFER 100
 #define MAX_ERR_BUFF_LEN 250
 
@@ -33,7 +34,15 @@ int main(int argc, char *argv[])
   char err_buff[MAX_ERR_BUFF_LEN];
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
-  double *darr = (double *)calloc(0, sizeof(double));
+
+  double *dargs[MAX_ARG_NUM];
+  int Ndargs[MAX_ARG_NUM];
+  for (int i = 0; i < MAX_ARG_NUM; ++i)
+  {
+    dargs[i] = (double *)calloc(0, sizeof(double));
+    Ndargs[i] = 0;
+  }
+
   struct stat stat_buff;
   json_error_t *json_error = NULL;
   json_t *workspace, *ivar, *ws_vars;
@@ -93,15 +102,15 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* fetch input                                                              */
   /* ------------------------------------------------------------------------ */
-  int N = 0, Nmax = Nposargs;
-  darr = realloc(darr, sizeof(double) * Nmax);
+  for (int i = 0; i < Nposargs; ++i)
+    dargs[i] = realloc(dargs[i], sizeof(double));
 
   /* positional argument as value */
   if (stat(WORKSPACE, &stat_buff) != 0)
   {
   ARGASVAL:
-    darr[N++] = atof(posargs[0]->sval[0]);
-    darr[N++] = atof(posargs[1]->sval[0]);
+    dargs[0][Ndargs[0]++] = atof(posargs[0]->sval[0]);
+    dargs[1][Ndargs[1]++] = atof(posargs[1]->sval[0]);
     goto OUTPUT;
   }
 
@@ -118,12 +127,12 @@ int main(int argc, char *argv[])
   /* search for variable */
   json_t *dvar, *var_val;
   ws_vars = json_object_get(workspace, "variables");
-  for (int i = 0; i < Nmax; ++i)
+  for (int i = 0; i < Nposargs; ++i)
   {
     json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0) break;
     if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
     {
-      darr[N++] = atof(posargs[i]->sval[0]);
+      dargs[i][Ndargs[i]++] = atof(posargs[i]->sval[0]);
     }
     else
     {
@@ -146,10 +155,23 @@ int main(int argc, char *argv[])
         goto EXIT;
       }
       /* process variable */
-      darr[N++] = json_real_value(json_array_get(json_object_get(ivar, "value"), 0));
+      dargs[i] = realloc(dargs[i], sizeof(double)*json_array_size(var_val));
+      for (int j = 0; j < json_array_size(var_val); j++)
+        dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, j));
     }
   }
   json_decref(workspace);
+  /* check for array dimensions */
+  for (int i = 1; i < Nposargs; i++)
+  {
+    if (Ndargs[i] != Ndargs[0])
+    {
+      fprintf(stderr, "%s: array argument size mismatch.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+  }
   goto OUTPUT;
 
   /* ------------------------------------------------------------------------ */
@@ -177,8 +199,8 @@ OUTPUT:
   json_object_set_new(new_var, "name", json_string(buff));
   new_var_vals = json_array();
   /* append results */
-  for (int i = 0; i < 1; ++i)
-    json_array_append_new(new_var_vals, json_real(ffdist(darr[0], darr[1])));
+  for (int i = 0; i < Ndargs[0]; ++i)
+    json_array_append_new(new_var_vals, json_real(ffdist(dargs[0][i], dargs[1][i])));
   json_object_set_new(new_var, "value", new_var_vals);
   json_array_append_new(ws_vars, new_var);
   /* write workspace */
@@ -186,8 +208,15 @@ OUTPUT:
   json_decref(workspace);
 
   /* stdout */
-  (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(darr[0], darr[1], buff))
-                      : fprintf(fout, "%f\n", ffdist(darr[0], darr[1]));
+  /* stdout */
+  for (int i = 0; i < MIN(Ndargs[0], 3); ++i)
+    (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(dargs[0][i], dargs[1][i], buff))
+                        : fprintf(fout, "%f\n", ffdist(dargs[0][i], dargs[1][i]));
+  if (Ndargs[0] > 5)
+    fprintf(fout, "...\n");
+  for (int i = MAX(MIN(Ndargs[0], 3), Ndargs[0] - 2); i < Ndargs[0]; ++i)
+    (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(dargs[0][i], dargs[1][i], buff))
+                        : fprintf(fout, "%f\n", ffdist(dargs[0][i], dargs[1][i]));
 
 /* ======================================================================== */
 /* history                                                                     */
@@ -213,8 +242,9 @@ HISTORY:
   /* exit                                                                     */
   /* ======================================================================== */
 EXIT:
+  for (int i = 0; i < MAX_ARG_NUM; i++)
+    free(dargs[i]);
   /* deallocate each non-null entry in argtable[] */
-  free(darr);
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;
 }
@@ -222,4 +252,5 @@ EXIT:
 /*
 Version history:
 1.0.0: Initial release
+1.1.0: Multiple vector argument support
 */

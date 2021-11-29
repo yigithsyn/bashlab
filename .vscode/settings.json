@@ -1,8 +1,8 @@
 {
   "cmake.debugConfig": {
     "args": [
-      "1",
-      "freq"
+      "test",
+      "temp"
     ],
     "cwd": "${workspaceFolder}/test"
   },
