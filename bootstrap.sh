@@ -33,7 +33,6 @@ if [ "$1" != "build" ]; then
 
   echo "algo: Simple algorithms"
   git clone https://github.com/ntessore/algo.git libs/algo
-  cd ../../..
 
 fi
 

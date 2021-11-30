@@ -48,7 +48,6 @@ CD ../../..
 
 ECHO "algo: Simple algorithms"
 git clone https://github.com/ntessore/algo.git libs/algo
-CD ../../..
 
 RMDIR /Q /S build > nul 2>&1
 MKDIR build
