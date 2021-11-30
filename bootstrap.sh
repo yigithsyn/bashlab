@@ -29,10 +29,10 @@ if [ "$1" != "build" ]; then
   # make
   # make check
   cmake --build . --config Release
+  cd ../../..
 
-  echo "algo: Simple algortihms"
+  echo "algo: Simple algorithms"
   git clone https://github.com/ntessore/algo.git libs/algo
-
   cd ../../..
 
 fi
