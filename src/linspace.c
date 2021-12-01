@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   char err_buff[MAX_ERR_BUFF_LEN];
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
+  double *dbuff = NULL;
 
   double *dargs[MAX_ARG_NUM];
   int Ndargs[MAX_ARG_NUM];
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
 
   /* the global arg_xxx structs are initialised within the argtable */
   int Nposargs = 3;
-  struct arg_str *posargs[3];
+  struct arg_str *posargs[Nposargs];
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
   posargs[0] = arg_str1(NULL, NULL, "start", "the starting value of the sequence.");
@@ -113,62 +114,66 @@ int main(int argc, char *argv[])
     goto OUTPUT;
   }
 
-  // /* workspace */
-  // /* check for file and structure */
-  // workspace = json_load_file(WORKSPACE, 0, json_error);
-  // if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-  // {
-  //   fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
-  //   fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //   exitcode = EXIT_FAILURE;
-  //   goto EXIT;
-  // }
-  // /* search for variable */
-  // json_t *dvar, *var_val;
-  // ws_vars = json_object_get(workspace, "variables");
-  // for (int i = 0; i < Nposargs; ++i)
-  // {
-  //   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0) break;
-  //   if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
-  //   {
-  //     dargs[i][Ndargs[i]++] = atof(posargs[i]->sval[0]);
-  //   }
-  //   else
-  //   {
-  //     var_val = json_object_get(ivar, "value");
-  //     /* validity check */
-  //     if (var_val == NULL)
-  //     {
-  //       fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
-  //       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //       json_decref(workspace);
-  //       exitcode = EXIT_FAILURE;
-  //       goto EXIT;
-  //     }
-  //     if (json_typeof(var_val) != JSON_ARRAY)
-  //     {
-  //       fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
-  //       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //       json_decref(workspace);
-  //       exitcode = EXIT_FAILURE;
-  //       goto EXIT;
-  //     }
-  //     if (json_array_size(var_val) != 1)
-  //     {
-  //       fprintf(stderr, "%s: %s should be real single scalar.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
-  //       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //       json_decref(workspace);
-  //       exitcode = EXIT_FAILURE;
-  //       goto EXIT;
-  //     }
-  //     /* process variable */
-  //     dargs[i] = realloc(dargs[i], sizeof(double) * json_array_size(var_val));
-  //     for (int j = 0; j < json_array_size(var_val); j++)
-  //       dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, j));
-  //   }
-  // }
-  // json_decref(workspace);
-  // /* check for array dimensions */
+  /* workspace */
+  /* check for file and structure */
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+  {
+    fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
+  /* search for variable */
+  json_t *dvar, *var_val;
+  ws_vars = json_object_get(workspace, "variables");
+  for (int i = 0; i < Nposargs; ++i)
+  {
+    json_array_foreach(ws_vars, ivar_index, ivar)
+    {
+      // printf("%d: %s : %s\n", ivar_index, json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]);
+      if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0)
+        break;
+    }
+    if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
+    {
+      dargs[i][Ndargs[i]++] = atof(posargs[i]->sval[0]);
+    }
+    else
+    {
+      var_val = json_object_get(ivar, "value");
+      /* validity check */
+      if (var_val == NULL)
+      {
+        fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      if (json_typeof(var_val) != JSON_ARRAY)
+      {
+        fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      if (json_array_size(var_val) != 1)
+      {
+        fprintf(stderr, "%s: %s should be real single scalar.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      /* process variable */
+      dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, 0));
+    }
+  }
+  json_decref(workspace);
+
+  /* check for array dimensions */
   // for (int i = 1; i < Nposargs; i++)
   // {
   //   if (Ndargs[i] != Ndargs[0])
@@ -179,7 +184,6 @@ int main(int argc, char *argv[])
   //     goto EXIT;
   //   }
   // }
-  goto OUTPUT;
 
   /* ------------------------------------------------------------------------ */
   /* write output                                                             */
@@ -214,36 +218,36 @@ OUTPUT:
   // json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
   // json_decref(workspace);
 
-  // /* stdout */
-  // /* stdout */
-  // for (int i = 0; i < MIN(Ndargs[0], 3); ++i)
-  //   (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(dargs[0][i], dargs[1][i], buff))
-  //                       : fprintf(fout, "%f\n", ffdist(dargs[0][i], dargs[1][i]));
-  // if (Ndargs[0] > 5)
-  //   fprintf(fout, "...\n");
-  // for (int i = MAX(MIN(Ndargs[0], 3), Ndargs[0] - 2); i < Ndargs[0]; ++i)
-  //   (human->count == 1) ? fprintf(fout, "%s\n", ffdist_h(dargs[0][i], dargs[1][i], buff))
-  //                       : fprintf(fout, "%f\n", ffdist(dargs[0][i], dargs[1][i]));
+  /* stdout */
+  dbuff = (double *)calloc((int)dargs[2][0], sizeof(double));
+  linspace(dargs[0][0], dargs[1][0], (int)dargs[2][0], dbuff);
+  for (int i = 0; i < MIN((int)dargs[2][0], 3); ++i)
+    fprintf(fout, "%f\n", dbuff[i]);
+  if ((int)dargs[2][0] > 5)
+    fprintf(fout, "...\n");
+  for (int i = MAX(MIN((int)dargs[2][0], 3), (int)dargs[2][0] - 2); i < (int)dargs[2][0]; ++i)
+    fprintf(fout, "%f\n", dbuff[i]);
+  free(dbuff);
 
 /* ======================================================================== */
 /* history                                                                     */
 /* ======================================================================== */
 HISTORY:
-  workspace = json_load_file(WORKSPACE, 0, json_error);
-  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-    workspace = json_loads("{\"history\": []}", 0, NULL);
-  if (json_object_get(workspace, "history") == NULL)
-    json_object_set_new(workspace, "history", json_array());
-  strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++)
-  {
-    strcat(buff, " ");
-    strcat(buff, argv[i]);
-  }
-  json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-  /* write workspace */
-  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
+  // workspace = json_load_file(WORKSPACE, 0, json_error);
+  // if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+  //   workspace = json_loads("{\"history\": []}", 0, NULL);
+  // if (json_object_get(workspace, "history") == NULL)
+  //   json_object_set_new(workspace, "history", json_array());
+  // strcpy(buff, PROGNAME);
+  // for (int i = 1; i < argc; i++)
+  // {
+  //   strcat(buff, " ");
+  //   strcat(buff, argv[i]);
+  // }
+  // json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+  // /* write workspace */
+  // json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  // json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
@@ -259,5 +263,4 @@ EXIT:
 /*
 Version history:
 1.0.0: Initial release
-1.1.0: Multiple vector argument support
 */
