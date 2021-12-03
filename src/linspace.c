@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
   FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
   double *dbuff = NULL;
-
   double *dargs[MAX_ARG_NUM];
   int Ndargs[MAX_ARG_NUM];
   for (int i = 0; i < MAX_ARG_NUM; ++i)
@@ -168,7 +167,18 @@ int main(int argc, char *argv[])
         goto EXIT;
       }
       /* process variable */
-      dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, 0));
+      if (json_typeof(json_array_get(var_val, 0)) == JSON_INTEGER)
+        dargs[i][Ndargs[i]++] = (double)json_integer_value(json_array_get(var_val, 0));
+      else if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
+        dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, 0));
+      else
+      {
+        fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
     }
   }
   json_decref(workspace);
@@ -189,72 +199,75 @@ int main(int argc, char *argv[])
   /* write output                                                             */
   /* ------------------------------------------------------------------------ */
 OUTPUT:
-  // /* workspace */
-  // /* check for file structure */
-  // workspace = json_load_file(WORKSPACE, 0, json_error);
-  // if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-  //   workspace = json_loads("{\"variables\": []}", 0, NULL);
-  // /* search for variable */
-  // json_t *new_var, *new_var_val, *new_var_vals;
-  // ws_vars = json_object_get(workspace, "variables");
-  // if (wsout->count)
-  //   strcpy(buff, wsout->sval[0]);
-  // else
-  //   strcpy(buff, "ans");
-  // json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
-  // /* delete existing */
-  // if (ivar_index != json_array_size(ws_vars))
-  //   json_array_remove(ws_vars, ivar_index);
-  // /* create new */
-  // new_var = json_object();
-  // json_object_set_new(new_var, "name", json_string(buff));
-  // new_var_vals = json_array();
-  // /* append results */
-  // for (int i = 0; i < Ndargs[0]; ++i)
-  //   json_array_append_new(new_var_vals, json_real(ffdist(dargs[0][i], dargs[1][i])));
-  // json_object_set_new(new_var, "value", new_var_vals);
-  // json_array_append_new(ws_vars, new_var);
-  // /* write workspace */
-  // json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  // json_decref(workspace);
+  dbuff = realloc(dbuff, (int)dargs[2][0] * sizeof(double));
+  linspace(dargs[0][0], dargs[1][0], (int)dargs[2][0], dbuff);
+
+  /* workspace */
+  /* check for file structure */
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+    workspace = json_loads("{\"variables\": []}", 0, NULL);
+  /* search for variable */
+  json_t *new_var, *new_var_val, *new_var_vals;
+  ws_vars = json_object_get(workspace, "variables");
+  if (wsout->count)
+    strcpy(buff, wsout->sval[0]);
+  else
+    strcpy(buff, "ans");
+  json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
+  /* delete existing */
+  if (ivar_index != json_array_size(ws_vars))
+    json_array_remove(ws_vars, ivar_index);
+  /* create new */
+  new_var = json_object();
+  json_object_set_new(new_var, "name", json_string(buff));
+  new_var_vals = json_array();
+  /* append results */
+  for (int i = 0; i < dargs[2][0]; ++i)
+    json_array_append_new(new_var_vals, json_real(dbuff[i]));
+  json_object_set_new(new_var, "value", new_var_vals);
+  json_array_append_new(ws_vars, new_var);
+  /* write workspace */
+  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  json_decref(workspace);
 
   /* stdout */
-  dbuff = (double *)calloc((int)dargs[2][0], sizeof(double));
-  linspace(dargs[0][0], dargs[1][0], (int)dargs[2][0], dbuff);
   for (int i = 0; i < MIN((int)dargs[2][0], 3); ++i)
     fprintf(fout, "%f\n", dbuff[i]);
   if ((int)dargs[2][0] > 5)
     fprintf(fout, "...\n");
   for (int i = MAX(MIN((int)dargs[2][0], 3), (int)dargs[2][0] - 2); i < (int)dargs[2][0]; ++i)
     fprintf(fout, "%f\n", dbuff[i]);
-  free(dbuff);
 
 /* ======================================================================== */
 /* history                                                                     */
 /* ======================================================================== */
 HISTORY:
-  // workspace = json_load_file(WORKSPACE, 0, json_error);
-  // if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-  //   workspace = json_loads("{\"history\": []}", 0, NULL);
-  // if (json_object_get(workspace, "history") == NULL)
-  //   json_object_set_new(workspace, "history", json_array());
-  // strcpy(buff, PROGNAME);
-  // for (int i = 1; i < argc; i++)
-  // {
-  //   strcat(buff, " ");
-  //   strcat(buff, argv[i]);
-  // }
-  // json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-  // /* write workspace */
-  // json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  // json_decref(workspace);
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+    workspace = json_loads("{\"history\": []}", 0, NULL);
+  if (json_object_get(workspace, "history") == NULL)
+    json_object_set_new(workspace, "history", json_array());
+  strcpy(buff, PROGNAME);
+  for (int i = 1; i < argc; i++)
+  {
+    strcat(buff, " ");
+    strcat(buff, argv[i]);
+  }
+  json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+  /* write workspace */
+  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
   /* ======================================================================== */
 EXIT:
+  if (dbuff != NULL)
+    free(dbuff);
   for (int i = 0; i < MAX_ARG_NUM; i++)
     free(dargs[i]);
+
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;

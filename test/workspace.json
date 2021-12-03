@@ -7,13 +7,6 @@
       ]
     },
     {
-      "name": "freqs",
-      "value": [
-        5000000.0,
-        30000000000.0
-      ]
-    },
-    {
       "name": "waveles",
       "value": [
         59.958491600000002,
@@ -47,13 +40,6 @@
       ]
     },
     {
-      "name": "ans",
-      "value": [
-        299.79245800000001,
-        0.049965409666666669
-      ]
-    },
-    {
       "name": "a",
       "value": [
         1.0
@@ -68,7 +54,47 @@
     {
       "name": "N",
       "value": [
-        5.0
+        5
+      ]
+    },
+    {
+      "name": "numbers",
+      "value": [
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0
+      ]
+    },
+    {
+      "name": "ans",
+      "value": [
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0
+      ]
+    },
+    {
+      "name": "freqs",
+      "value": [
+        1000000000.0,
+        1500000000.0,
+        2000000000.0,
+        2500000000.0,
+        3000000000.0
+      ]
+    },
+    {
+      "name": "wavelenghts",
+      "value": [
+        0.29979245799999998,
+        0.19986163866666667,
+        0.14989622899999999,
+        0.11991698319999999,
+        0.099930819333333337
       ]
     }
   ],
@@ -126,6 +152,10 @@
     "ffdist 1 3E6",
     "ffdist test temp",
     "ffdist wavelens freqs",
-    "ffdist wavelens freqs -h"
+    "ffdist wavelens freqs -h",
+    "linspace a b N",
+    "linspace 1E9 3E9 5 -o freqs",
+    "freq2wavelen freqs -o wavelenghts",
+    "freq2wavelen freqs -o wavelenghts -h"
   ]
 }
