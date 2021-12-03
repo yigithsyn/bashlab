@@ -51,4 +51,4 @@ if(UNIX)
   target_link_libraries(linspace m jansson argtable3_static)
 endif(UNIX)
 
-install(TARGETS freq2wavelen wavelen2freq ffdist CONFIGURATIONS Release)
+install(TARGETS freq2wavelen wavelen2freq ffdist linspace CONFIGURATIONS Release)
