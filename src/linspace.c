@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
   /* the global arg_xxx structs are initialised within the argtable */
   int Nposargs = 3;
-  struct arg_str *posargs[Nposargs];
+  struct arg_str *posargs[3];
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
   posargs[0] = arg_str1(NULL, NULL, "start", "the starting value of the sequence.");
