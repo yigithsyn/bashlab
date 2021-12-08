@@ -96,6 +96,19 @@
         0.11991698319999999,
         0.099930819333333337
       ]
+    },
+    {
+      "name": "var2",
+      "value": [
+        "E6",
+        "e5"
+      ]
+    },
+    {
+      "name": "var1",
+      "value": [
+        5.0000000000000004e-6
+      ]
     }
   ],
   "history": [
@@ -156,6 +169,37 @@
     "linspace a b N",
     "linspace 1E9 3E9 5 -o freqs",
     "freq2wavelen freqs -o wavelenghts",
-    "freq2wavelen freqs -o wavelenghts -h"
+    "freq2wavelen freqs -o wavelenghts -h",
+    "wsset var1 5.0",
+    "wsset var1 5.0",
+    "wsset var1 5.0",
+    "wsset var2 a b",
+    "wsset var1 5.0",
+    "wsset var1 5.0",
+    "wsset var1 5",
+    "wsset var1 5.0",
+    "wsset var1 5",
+    "wsset var1 5E6",
+    "wsset var1 5E6",
+    "wsset var1 5.1E6",
+    "wsset var1 5.1E6 4",
+    "wsset var1 5.1E6 0.4",
+    "wsset var1 5.1E6 0.4E5",
+    "wsset var1 5.1E6 .4E5",
+    "wsset var1 5.1E6 .4.E5",
+    "wsset var1 5.1E6 .4E5",
+    "wsset var1 5E6",
+    "wsset var1 5E6 1e5",
+    "wsset var2 E6 e5",
+    "wsset var1 5E6",
+    "wsset var1 5E+6",
+    "wsset var1 5E6",
+    "wsset var1 5E+6",
+    "wsset var1 5E-6",
+    "wsset var1 5E--6",
+    "wsset var1 +5E-6",
+    "wsset var1 5E6",
+    "wsset var1 +5E-6",
+    "wsset var1 5E-6"
   ]
 }

@@ -1,7 +1,6 @@
 {
   "cmake.debugConfig": {
-    "args": [ "a", "b", "N"
-    ],
+    "args": [ "var1", "5E6"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
@@ -16,6 +15,7 @@
     "istream": "c",
     "limits": "c",
     "numeric": "c",
-    "ffdist.h": "c"
+    "ffdist.h": "c",
+    "linspace.h": "c"
   }
 }
