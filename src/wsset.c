@@ -89,25 +89,12 @@ int main(int argc, char *argv[])
   }
 
   /* If the parser returned any errors then display them and exit */
-  if (nerrors > 0)
+  if (posargs[0]->count == 0)
   {
-    int isnegnumber = 0;
-    for (int i = 2; i < argc - help->count - version->count; ++i)
-    {
-      if (argv[i][0] == 45)
-      {
-        isnegnumber = 1;
-        break;
-      }
-    }
-    if (!isnegnumber)
-    {
-      /* Display the error details contained in the arg_end struct.*/
-      arg_print_errors(stdout, end, PROGNAME);
-      printf("Try '%s --help' for more information.\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
-    }
+    printf("%s: missing option '%s'\n", PROGNAME, PROGPOS0DEF);
+    printf("Try '%s --help' for more information.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
   }
 
   /* ======================================================================== */
@@ -115,6 +102,86 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
 
 INPUT:
+
+  dargs[0] = realloc(dargs[0], sizeof(double) * (argc - 2));
+  Ndargs[0] = argc - 2;
+
+  /* workspace */
+  /* check for file and structure */
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+  {
+    fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
+  // /* search for variable */
+  json_t *dvar, *var_val;
+  ws_vars = json_object_get(workspace, "variables");
+  for (int i = 0; i < Ndargs[0]; ++i)
+  {
+    json_array_foreach(ws_vars, ivar_index, ivar)
+    {
+      if (strcmp(json_string_value(json_object_get(ivar, "name")), argv[2 + i]) == 0)
+        break;
+    }
+    if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
+    {
+      if (!isnumber(argv[2 + i]))
+      {
+        fprintf(stderr, "%s: inconsistent array values.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      dargs[0][i] = atof(argv[2 + i]);
+    }
+    else
+    {
+      var_val = json_object_get(ivar, "value");
+      /* validity check */
+      if (var_val == NULL)
+      {
+        fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      if (json_typeof(var_val) != JSON_ARRAY)
+      {
+        fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      if (json_array_size(var_val) != 1)
+      {
+        fprintf(stderr, "%s: %s should be real single scalar.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+      /* process variable */
+      if (json_typeof(json_array_get(var_val, 0)) == JSON_INTEGER)
+        dargs[0][i] = (double)json_integer_value(json_array_get(var_val, 0));
+      else if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
+        dargs[0][i] = json_real_value(json_array_get(var_val, 0));
+      else
+      {
+        fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        json_decref(workspace);
+        exitcode = EXIT_FAILURE;
+        goto EXIT;
+      }
+    }
+  }
+  json_decref(workspace);
 
 OUTPUT:
 
@@ -138,21 +205,9 @@ OUTPUT_WORKSPACE:
   json_object_set_new(var, "name", json_string(posargs[0]->sval[0]));
   /* assign values */
   var_vals = json_array();
-  int isnum = isnumber(posargs[1]->sval[0]);
-  for (int i = 0; i < posargs[1]->count; ++i)
+  for (int i = 0; i < Ndargs[0]; ++i)
   {
-    if (isnumber(posargs[1]->sval[i]) != isnum)
-    {
-      fprintf(stderr, "%s: inconsistent array values.\n", PROGNAME);
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      json_decref(workspace);
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
-    }
-    if (isnum)
-      json_array_append_new(var_vals, json_real(atof(posargs[1]->sval[i])));
-    else
-      json_array_append_new(var_vals, json_string(posargs[1]->sval[i]));
+    json_array_append_new(var_vals, json_real(dargs[0][i]));
   }
   json_object_set_new(var, "value", var_vals);
   json_array_append_new(ws_vars, var);
