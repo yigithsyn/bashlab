@@ -91,11 +91,23 @@ int main(int argc, char *argv[])
   /* If the parser returned any errors then display them and exit */
   if (nerrors > 0)
   {
-    /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout, end, PROGNAME);
-    printf("Try '%s --help' for more information.\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
+    int isnegnumber = 0;
+    for (int i = 2; i < argc - help->count - version->count; ++i)
+    {
+      if (argv[i][0] == 45)
+      {
+        isnegnumber = 1;
+        break;
+      }
+    }
+    if (!isnegnumber)
+    {
+      /* Display the error details contained in the arg_end struct.*/
+      arg_print_errors(stdout, end, PROGNAME);
+      printf("Try '%s --help' for more information.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
   }
 
   /* ======================================================================== */

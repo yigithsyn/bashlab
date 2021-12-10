@@ -106,9 +106,7 @@
     },
     {
       "name": "var1",
-      "value": [
-        5.0000000000000004e-6
-      ]
+      "value": []
     }
   ],
   "history": [
@@ -200,6 +198,9 @@
     "wsset var1 +5E-6",
     "wsset var1 5E6",
     "wsset var1 +5E-6",
-    "wsset var1 5E-6"
+    "wsset var1 5E-6",
+    "wsset var1 5E6",
+    "wsset var1 5E6",
+    "wsset var1 -5E6"
   ]
 }
