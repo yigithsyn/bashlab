@@ -1,7 +1,7 @@
 
 #define PROGNAME "linspace"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 1
+#define VERSION_MINOR 2
 #define VERSION_PATCH 0
 
 #include <stdio.h>
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
   struct stat stat_buff;
   json_error_t *json_error = NULL;
-  json_t *workspace, *ivar, *ws_vars;
+  json_t *workspace = NULL, *ivar, *ws_vars;
   size_t ivar_index;
 
   /* ======================================================================== */
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
   /* workspace */
   /* check for file and structure */
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error): workspace;
   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
@@ -141,7 +140,6 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
@@ -149,7 +147,6 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: %s should be real single scalar.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
@@ -162,13 +159,11 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
     }
   }
-  json_decref(workspace);
 
   /* ------------------------------------------------------------------------ */
   /* write output                                                             */
@@ -179,12 +174,16 @@ OUTPUT:
 
   /* workspace */
   /* check for file structure */
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error): workspace;
   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
     workspace = json_loads("{\"variables\": []}", 0, NULL);
   /* search for variable */
   json_t *new_var, *new_var_val, *new_var_vals;
   ws_vars = json_object_get(workspace, "variables");
+  if(ws_vars == NULL){
+    json_object_setn_new(workspace,"variables", json_object());
+    ws_vars = json_object_get(workspace, "variables");
+  }
   if (wsout->count)
     strcpy(buff, wsout->sval[0]);
   else
@@ -204,7 +203,6 @@ OUTPUT:
   json_array_append_new(ws_vars, new_var);
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* stdout */
   for (int i = 0; i < MIN((int)dargs[2][0], 3); ++i)
@@ -218,7 +216,7 @@ OUTPUT:
 /* history                                                                     */
 /* ======================================================================== */
 HISTORY:
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error): workspace;
   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
     workspace = json_loads("{\"history\": []}", 0, NULL);
   if (json_object_get(workspace, "history") == NULL)
@@ -232,7 +230,6 @@ HISTORY:
   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
@@ -242,6 +239,8 @@ EXIT:
     free(dbuff);
   for (int i = 0; i < MAX_ARG_NUM; i++)
     free(dargs[i]);
+  if (workspace != NULL)
+    json_decref(workspace);
 
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
@@ -252,4 +251,5 @@ EXIT:
 Version history:
 1.0.0: Initial release
 1.1.0: Support negative range boundaries
+1.2.0: Support negative range boundaries
 */
