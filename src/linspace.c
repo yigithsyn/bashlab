@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
   {
     json_array_foreach(ws_vars, ivar_index, ivar)
     {
-      if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0)
+      if (strcmp(json_string_value(json_object_get(ivar, "name")), argv[i]) == 0)
         break;
     }
     if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
