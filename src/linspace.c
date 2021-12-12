@@ -181,7 +181,7 @@ OUTPUT:
   json_t *new_var, *new_var_val, *new_var_vals;
   ws_vars = json_object_get(workspace, "variables");
   if(ws_vars == NULL){
-    json_object_setn_new(workspace,"variables", json_object());
+    json_object_set_new(workspace,"variables", json_array());
     ws_vars = json_object_get(workspace, "variables");
   }
   if (wsout->count)
@@ -251,5 +251,5 @@ EXIT:
 Version history:
 1.0.0: Initial release
 1.1.0: Support negative range boundaries
-1.2.0: Support negative range boundaries
+1.2.0: Reuse workspace object
 */

@@ -23,7 +23,6 @@
 #include "macros.h"
 #include "wavelen2freq.h"
 
-
 #define WORKSPACE "workspace.json"
 #define MAX_LINE_BUFFER 100
 #define MAX_ERR_BUFF_LEN 250
@@ -164,6 +163,11 @@ OUTPUT:
   /* search for variable */
   json_t *new_var, *new_var_val, *new_var_vals;
   ws_vars = json_object_get(workspace, "variables");
+  if (ws_vars == NULL)
+  {
+    json_object_set_new(workspace, "variables", json_array());
+    ws_vars = json_object_get(workspace, "variables");
+  }
   if (wsout->count)
     strcpy(buff, wsout->sval[0]);
   else
@@ -205,7 +209,8 @@ HISTORY:
   if (json_object_get(workspace, "history") == NULL)
     json_object_set_new(workspace, "history", json_array());
   strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++){
+  for (int i = 1; i < argc; i++)
+  {
     strcat(buff, " ");
     strcat(buff, argv[i]);
   }

@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         goto EXIT;
       }
       /* process variable */
-      dargs[i] = realloc(dargs[i], sizeof(double)*json_array_size(var_val));
+      dargs[i] = realloc(dargs[i], sizeof(double) * json_array_size(var_val));
       for (int j = 0; j < json_array_size(var_val); j++)
         dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, j));
     }
@@ -186,6 +186,11 @@ OUTPUT:
   /* search for variable */
   json_t *new_var, *new_var_val, *new_var_vals;
   ws_vars = json_object_get(workspace, "variables");
+  if (ws_vars == NULL)
+  {
+    json_object_set_new(workspace, "variables", json_array());
+    ws_vars = json_object_get(workspace, "variables");
+  }
   if (wsout->count)
     strcpy(buff, wsout->sval[0]);
   else
