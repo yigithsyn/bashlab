@@ -1,7 +1,7 @@
 
 #define PROGNAME "linspace"
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 #define VERSION_PATCH 0
 
 #include <stdio.h>
@@ -85,16 +85,6 @@ int main(int argc, char *argv[])
     goto EXIT;
   }
 
-  /* If the parser returned any errors then display them and exit */
-  if (nerrors > 0)
-  {
-    /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout, end, PROGNAME);
-    printf("Try '%s --help' for more information.\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
@@ -126,18 +116,15 @@ int main(int argc, char *argv[])
   /* search for variable */
   json_t *dvar, *var_val;
   ws_vars = json_object_get(workspace, "variables");
-  for (int i = 0; i < Nposargs; ++i)
+  for (int i = 1; i < argc; ++i)
   {
     json_array_foreach(ws_vars, ivar_index, ivar)
     {
-      // printf("%d: %s : %s\n", ivar_index, json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]);
       if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs[i]->sval[0]) == 0)
         break;
     }
     if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
-    {
-      dargs[i][Ndargs[i]++] = atof(posargs[i]->sval[0]);
-    }
+      dargs[i-1][Ndargs[i-1]++] = atof(argv[i]);
     else
     {
       var_val = json_object_get(ivar, "value");
@@ -168,9 +155,9 @@ int main(int argc, char *argv[])
       }
       /* process variable */
       if (json_typeof(json_array_get(var_val, 0)) == JSON_INTEGER)
-        dargs[i][Ndargs[i]++] = (double)json_integer_value(json_array_get(var_val, 0));
+        dargs[i-1][Ndargs[i-1]++] = (double)json_integer_value(json_array_get(var_val, 0));
       else if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
-        dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, 0));
+        dargs[i-1][Ndargs[i-1]++] = json_real_value(json_array_get(var_val, 0));
       else
       {
         fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
@@ -182,18 +169,6 @@ int main(int argc, char *argv[])
     }
   }
   json_decref(workspace);
-
-  /* check for array dimensions */
-  // for (int i = 1; i < Nposargs; i++)
-  // {
-  //   if (Ndargs[i] != Ndargs[0])
-  //   {
-  //     fprintf(stderr, "%s: array argument size mismatch.\n", PROGNAME);
-  //     fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //     exitcode = EXIT_FAILURE;
-  //     goto EXIT;
-  //   }
-  // }
 
   /* ------------------------------------------------------------------------ */
   /* write output                                                             */
@@ -276,4 +251,5 @@ EXIT:
 /*
 Version history:
 1.0.0: Initial release
+1.1.0: Support negative range boundaries
 */
