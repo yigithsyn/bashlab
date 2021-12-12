@@ -5,7 +5,7 @@
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
-#define VERSION_PATCH 0
+#define VERSION_PATCH 1
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -115,20 +115,20 @@ HISTORY:
       json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
       goto EXIT;
     }
+    if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+      workspace = json_loads("{\"history\": []}", 0, NULL);
+    if (json_object_get(workspace, "history") == NULL)
+      json_object_set_new(workspace, "history", json_array());
+    strcpy(buff, PROGNAME);
+    for (int i = 1; i < argc; i++)
+    {
+      strcat(buff, " ");
+      strcat(buff, argv[i]);
+    }
+    json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+    /* write workspace */
+    json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
   }
-  if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-    workspace = json_loads("{\"history\": []}", 0, NULL);
-  if (json_object_get(workspace, "history") == NULL)
-    json_object_set_new(workspace, "history", json_array());
-  strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++)
-  {
-    strcat(buff, " ");
-    strcat(buff, argv[i]);
-  }
-  json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-  /* write workspace */
-  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
 
   /* ======================================================================== */
   /* exit                                                                     */
@@ -149,4 +149,5 @@ EXIT:
 /*
 Version history:
 1.0.0: Initial release
+1.0.1: Fix for non-existing file case
 */

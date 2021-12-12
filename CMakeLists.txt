@@ -45,6 +45,7 @@ add_executable(linspace src/linspace.c ${SOURCES} ${COMMONS})
 target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS})
 
+# re-use loaded workspace
 file(GLOB SOURCES "src/impl/no_impl*")
 add_executable(wsset src/wsset.c ${SOURCES} ${COMMONS})
 target_link_libraries(wsset ${COMMON_LINK_LIBS})
