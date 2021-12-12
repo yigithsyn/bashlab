@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
   struct stat stat_buff;
   json_error_t *json_error = NULL;
-  json_t *workspace, *ivar, *ws_vars;
+  json_t *workspace = NULL, *ivar, *ws_vars;
   size_t ivar_index;
 
   /* ======================================================================== */
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
   /* workspace */
   /* check for file and structure */
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
@@ -150,7 +149,6 @@ int main(int argc, char *argv[])
       {
         fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        json_decref(workspace);
         exitcode = EXIT_FAILURE;
         goto EXIT;
       }
@@ -160,7 +158,6 @@ int main(int argc, char *argv[])
         dargs[i][Ndargs[i]++] = json_real_value(json_array_get(var_val, j));
     }
   }
-  json_decref(workspace);
   /* check for array dimensions */
   for (int i = 1; i < Nposargs; i++)
   {
@@ -180,7 +177,7 @@ int main(int argc, char *argv[])
 OUTPUT:
   /* workspace */
   /* check for file structure */
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
     workspace = json_loads("{\"variables\": []}", 0, NULL);
   /* search for variable */
@@ -210,7 +207,6 @@ OUTPUT:
   json_array_append_new(ws_vars, new_var);
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* stdout */
   /* stdout */
@@ -241,7 +237,6 @@ HISTORY:
   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
@@ -249,6 +244,8 @@ HISTORY:
 EXIT:
   for (int i = 0; i < MAX_ARG_NUM; i++)
     free(dargs[i]);
+  if (workspace != NULL)
+    json_decref(workspace);
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;

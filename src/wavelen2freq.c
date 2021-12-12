@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   double *darr = (double *)calloc(0, sizeof(double));
   struct stat stat_buff;
   json_error_t *json_error = NULL;
-  json_t *workspace, *ivar, *ws_vars;
+  json_t *workspace=NULL, *ivar, *ws_vars;
   size_t ivar_index;
 
   /* ======================================================================== */
@@ -117,7 +117,6 @@ int main(int argc, char *argv[])
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), posargs->sval[0]) == 0) break;
   if (ivar_index == json_array_size(json_object_get(workspace, "variables")))
   {
-    json_decref(workspace);
     goto ARGASVAL;
   }
   var_val = json_object_get(ivar, "value");
@@ -126,7 +125,6 @@ int main(int argc, char *argv[])
   {
     fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
     fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    json_decref(workspace);
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
@@ -134,7 +132,6 @@ int main(int argc, char *argv[])
   {
     fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
     fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    json_decref(workspace);
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
@@ -148,7 +145,6 @@ int main(int argc, char *argv[])
     }
     darr[N++] = json_real_value(dvar);
   }
-  json_decref(workspace);
   goto OUTPUT;
 
   /* ------------------------------------------------------------------------ */
@@ -187,7 +183,6 @@ OUTPUT:
   json_array_append_new(ws_vars, new_var);
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* stdout */
   for (int i = 0; i < MIN(N, 3); ++i)
@@ -217,12 +212,13 @@ HISTORY:
   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
   /* write workspace */
   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  json_decref(workspace);
 
   /* ======================================================================== */
   /* exit                                                                     */
   /* ======================================================================== */
 EXIT:
+ if (workspace != NULL)
+    json_decref(workspace);
   /* deallocate each non-null entry in argtable[] */
   free(darr);
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
