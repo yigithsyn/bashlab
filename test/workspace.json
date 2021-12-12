@@ -1,12 +1,6 @@
 {
   "variables": [
     {
-      "name": "a",
-      "value": [
-        1.0
-      ]
-    },
-    {
       "name": "b",
       "value": [
         2.0
@@ -18,6 +12,19 @@
         2.0,
         1.0,
         2.0
+      ]
+    },
+    {
+      "name": "a",
+      "value": [
+        -3.1000000000000001e-5
+      ]
+    },
+    {
+      "name": "var1",
+      "value": [
+        -5000000.0,
+        250000.0
       ]
     }
   ],
@@ -122,6 +129,21 @@
     "wsset var1 -5E6 b",
     "wsset a 1",
     "wsset b 2",
-    "wsset c 2 a b"
+    "wsset c 2 a b",
+    "wsset a -3.1e-9",
+    "wsset a -3.1e-2",
+    "wsset a -3.1e-6",
+    "wsset a -3.1e-5",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 var1",
+    "wsset var1 var1 -5E6 var1",
+    "wsset var1 var1 -5E6 var1 c",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 b",
+    "wsset var1 -5E6 var1",
+    "wsset var1 -5E6 2.5E5"
   ]
 }

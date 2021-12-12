@@ -28,7 +28,7 @@ if(UNIX)
   set(COMMON_LINK_LIBS m jansson argtable3_static)
 endif(UNIX)
 
-set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace)
+set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset)
 
 file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/wavelen2freq_impl.c")
 add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
