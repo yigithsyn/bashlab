@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
   /* main operation                                                           */
   /* ======================================================================== */
 
-INPUT:
+INPUT: ;
   int Nmax = 1;
   dargs[0] = realloc(dargs[0], sizeof(double) * Nmax);
   Ndargs[0] = 0;
