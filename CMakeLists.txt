@@ -28,7 +28,7 @@ if(UNIX)
   set(COMMON_LINK_LIBS m jansson argtable3_static)
 endif(UNIX)
 
-set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr)
+set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr s11toswr)
 
 file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/wavelen2freq_impl.c")
 add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
@@ -45,7 +45,6 @@ add_executable(linspace src/linspace.c ${SOURCES} ${COMMONS})
 target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS})
 
-# re-use loaded workspace
 file(GLOB SOURCES "src/impl/no_impl*")
 add_executable(wsset src/wsset.c ${SOURCES} ${COMMONS})
 target_link_libraries(wsset ${COMMON_LINK_LIBS})
@@ -54,4 +53,8 @@ file(GLOB SOURCES "src/impl/no_impl*")
 add_executable(wsclr src/wsclr.c ${SOURCES} ${COMMONS})
 target_link_libraries(wsclr ${COMMON_LINK_LIBS})
 
-install(TARGETS ${ALL_TARGETS} CONFIGURATIONS Release)
+file(GLOB SOURCES "src/impl/no_impl*")
+add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
+target_link_libraries(s11toswr ${COMMON_LINK_LIBS})
+
+install(TARGETS ${ALL_TARGETS} CONFIGURATIONS Release) 
