@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
       argv[i][0] = 95; // '-' to '_' avoiding argtable literal behaviour
     }
     else
-      continue;
+      break;
   }
 
   /* positional arg structs*/
