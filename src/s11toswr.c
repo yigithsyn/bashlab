@@ -3,13 +3,13 @@
 #include <stdio.h>
 // #include <stdlib.h>
 #include <sys/stat.h>
-// #if defined(_WIN32)
-// #include <io.h>
-// #else
-// #include <sys/io.h>
-// #include <unistd.h>
-// #include <errno.h>
-// #endif
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <sys/io.h>
+#include <unistd.h>
+#include <errno.h>
+#endif
 
 #include "argtable3.h"
 #include "jansson.h"
@@ -19,31 +19,35 @@
 #include "macros.h"
 #include "utility.h"
 
+static struct stat statb; // file stat buffer
+static json_error_t *json_error;
+static json_t *ivar;
+static size_t ivar_index;
+static FILE *fin;
+static FILE *fout;
+static char buff[250];
+#define MAX_BUFF_LEN 50
+
 int main(int argc, char *argv[])
 {
-  char buff[MAX_LINE_BUFFER];
-  char err_buff[MAX_ERR_BUFF_LEN];
-  FILE *fin = NULL, *fout = stdout;
   int exitcode = EXIT_SUCCESS;
-  double *dbuff = NULL;
-  double *dargs[MAX_ARG_NUM];
-  int Ndargs[MAX_ARG_NUM];
-  for (int i = 0; i < MAX_ARG_NUM; ++i)
+
+  /* buffer variables */
+  json_t *workspace = NULL, *program_list = NULL;
+  void *argtable[MAX_ARG_NUM_ALL];
+
+  double *dbuff[MAX_BUFF_LEN];
+  int Ndargs[MAX_BUFF_LEN];
+  for (int i = 0; i < MAX_BUFF_LEN; ++i)
   {
-    dargs[i] = (double *)calloc(0, sizeof(double));
+    dbuff[i] = (double *)calloc(0, sizeof(double));
     Ndargs[i] = 0;
   }
-
-  struct stat stat_buff;
-  json_error_t *json_error = NULL;
-  json_t *workspace = NULL;
-  json_t *ivar, *ws_vars, *var, *var_vals;
-  size_t ivar_index;
 
   /* ======================================================================== */
   /* fetch program definitions                                                */
   /* ======================================================================== */
-  json_t *program_list = json_loads(programs, 0, json_error);
+  program_list = json_loads(programs, 0, json_error);
   json_array_foreach(program_list, ivar_index, ivar)
   {
     if (strcmp(PROGNAME, json_string_value(json_object_get(ivar, "name"))))
@@ -54,27 +58,27 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* argument parse                                                           */
   /* ======================================================================== */
-  void *argtable[MAX_ARG_NUM_ALL];
   int argcount = 0;
 
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
   {
-    const char *name = json_string_value(json_object_get(ivar,"name"));
-    const char *desc = json_string_value(json_object_get(ivar,"desc"));
-    argtable[argcount++] = arg_str1(NULL, NULL, name, desc);;
+    const char *name = json_string_value(json_object_get(ivar, "name"));
+    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    argtable[argcount++] = arg_str1(NULL, NULL, name, desc);
+    ;
   }
- 
+
   /* optional arg structs*/
   json_t *oargs = json_object_get(program, "oargs");
   json_array_foreach(oargs, ivar_index, ivar)
   {
-    const char *sh = json_string_value(json_object_get(ivar,"short"));
-    const char *ln = json_string_value(json_object_get(ivar,"long"));
-    int minc = json_integer_value(json_object_get(ivar,"minc"));
-    int maxc = json_integer_value(json_object_get(ivar,"maxc"));
-    const char *desc = json_string_value(json_object_get(ivar,"desc"));
+    const char *sh = json_string_value(json_object_get(ivar, "short"));
+    const char *ln = json_string_value(json_object_get(ivar, "long"));
+    int minc = json_integer_value(json_object_get(ivar, "minc"));
+    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
+    const char *desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_litn(sh, ln, minc, maxc, desc);
   }
 
@@ -131,9 +135,13 @@ int main(int argc, char *argv[])
     goto EXIT;
   }
 
-//   /* ======================================================================== */
-//   /* main operation                                                           */
-//   /* ======================================================================== */
+  /* ======================================================================== */
+  /* workspace                                                                */
+  /* ======================================================================== */
+
+  /* ======================================================================== */
+  /* main operation                                                           */
+  /* ======================================================================== */
 
 // INPUT:
 
@@ -173,10 +181,9 @@ int main(int argc, char *argv[])
 //   /* exit                                                                     */
 //   /* ======================================================================== */
 EXIT:
-  if (dbuff != NULL)
-    free(dbuff);
-  for (int i = 0; i < MAX_ARG_NUM; i++)
-    free(dargs[i]);
+
+  for (int i = 0; i < MAX_BUFF_LEN; i++)
+    free(dbuff[i]);
 
   /* dereference json objects */
   if (workspace != NULL)
