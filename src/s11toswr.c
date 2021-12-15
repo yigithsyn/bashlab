@@ -1,16 +1,7 @@
 
-#define PROGDESC "Clear workspace"
-#define PROGPOSA 0 // positional argument count
 
-#define VERSION_MAJOR 1
-#define VERSION_MINOR 0
-#define VERSION_PATCH 1
-
-// #include <stdio.h>
-// #include <stdbool.h>
+#include <stdio.h>
 // #include <stdlib.h>
-#include <string.h>
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #include <sys/stat.h>
 // #if defined(_WIN32)
 // #include <io.h>
@@ -23,14 +14,10 @@
 #include "argtable3.h"
 #include "jansson.h"
 
-#include "commands.h"
+#include "configs.h"
+#include "programs.h"
 #include "macros.h"
 #include "utility.h"
-
-#define WORKSPACE "workspace.json"
-#define MAX_ARG_NUM 5
-#define MAX_LINE_BUFFER 100
-#define MAX_ERR_BUFF_LEN 250
 
 int main(int argc, char *argv[])
 {
@@ -49,114 +36,155 @@ int main(int argc, char *argv[])
 
   struct stat stat_buff;
   json_error_t *json_error = NULL;
-  json_t *workspace = NULL, *ivar, *ws_vars, *var, *var_vals;
+  json_t *workspace = NULL;
+  json_t *ivar, *ws_vars, *var, *var_vals;
   size_t ivar_index;
 
   /* ======================================================================== */
   /* fetch program definitions                                                */
   /* ======================================================================== */
-  printf("%s\n", __FILE__);
-  printf("%s\n", SOURCE_FILENAME);
-  printf("%s\n", PROGNAME);
+  json_t *program_list = json_loads(programs, 0, json_error);
+  json_array_foreach(program_list, ivar_index, ivar)
+  {
+    if (strcmp(PROGNAME, json_string_value(json_object_get(ivar, "name"))))
+      break;
+  }
+  json_t *program = ivar;
 
   /* ======================================================================== */
   /* argument parse                                                           */
   /* ======================================================================== */
+  void *argtable[MAX_ARG_NUM_ALL];
+  int argcount = 0;
 
-  //   /* the global arg_xxx structs are initialised within the argtable */
-  //   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
-  //   struct arg_lit *version = arg_lit0(NULL, "version", "display version info and exit");
-  //   struct arg_lit *history = arg_lit0("h", NULL, "clear history also");
-  //   struct arg_end *end = arg_end(20);
-  //   void *argtable[] = {help, history, version, end};
+  /* positional arg structs*/
+  json_t *pargs = json_object_get(program, "pargs");
+  json_array_foreach(pargs, ivar_index, ivar)
+  {
+    const char *name = json_string_value(json_object_get(ivar,"name"));
+    const char *desc = json_string_value(json_object_get(ivar,"desc"));
+    argtable[argcount++] = arg_str1(NULL, NULL, name, desc);;
+  }
+ 
+  /* optional arg structs*/
+  json_t *oargs = json_object_get(program, "oargs");
+  json_array_foreach(oargs, ivar_index, ivar)
+  {
+    const char *sh = json_string_value(json_object_get(ivar,"short"));
+    const char *ln = json_string_value(json_object_get(ivar,"long"));
+    int minc = json_integer_value(json_object_get(ivar,"minc"));
+    int maxc = json_integer_value(json_object_get(ivar,"maxc"));
+    const char *desc = json_string_value(json_object_get(ivar,"desc"));
+    argtable[argcount++] = arg_litn(sh, ln, minc, maxc, desc);
+  }
 
-  //   int nerrors;
-  //   nerrors = arg_parse(argc, argv, argtable);
+  /* commong arg structs */
+  struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit *version = arg_lit0(NULL, "version", "display version number and exit");
+  struct arg_lit *versions = arg_lit0(NULL, "versions", "display all version infos and exit");
+  struct arg_end *end = arg_end(20);
+  argtable[argcount++] = help;
+  argtable[argcount++] = version;
+  argtable[argcount++] = versions;
+  argtable[argcount] = end;
 
-  //   /* special case: '--help' takes precedence over error reporting */
-  //   if (help->count > 0)
-  //   {
-  //   HELP:
-  //     printf("%s: %s.\n\n", PROGNAME, PROGDESC);
-  //     printf("Usage: %s", PROGNAME);
-  //     arg_print_syntaxv(stdout, argtable, "\n\n");
-  //     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
-  //     goto EXIT;
-  //   }
+  int arg_errors;
+  arg_errors = arg_parse(argc, argv, argtable);
 
-  //   /* special case: '--version' takes precedence over error reporting */
-  //   if (version->count > 0)
-  //   {
-  //     printf("%d.%d.%d\n", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-  //     goto EXIT;
-  //   }
+  /* special case: '--help' takes precedence over error reporting */
+  if (help->count > 0)
+  {
+    printf("%s: %s.\n\n", PROGNAME, json_string_value(json_object_get(program, "desc")));
+    printf("Usage: %s", PROGNAME);
+    arg_print_syntaxv(stdout, argtable, "\n\n");
+    arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+    goto EXIT;
+  }
 
-  //   /* If the parser returned any errors then display them and exit */
-  //   if (nerrors > 0)
-  //   {
-  //     /* Display the error details contained in the arg_end struct.*/
-  //     arg_print_errors(stdout, end, PROGNAME);
-  //     printf("Try '%s --help' for more information.\n", PROGNAME);
-  //     exitcode = EXIT_FAILURE;
-  //     goto EXIT;
-  //   }
+  /* special case: '--version' takes precedence over error reporting */
+  if (version->count > 0)
+  {
+    json_t *vers = json_object_get(program, "vers");
+    json_t *last_ver = json_array_get(vers, json_array_size(vers) - 1);
+    printf("%s\n", json_string_value(json_object_get(last_ver, "num")));
+    goto EXIT;
+  }
 
-  //   /* ======================================================================== */
-  //   /* main operation                                                           */
-  //   /* ======================================================================== */
+  /* special case: '--versions' takes precedence over error reporting */
+  if (versions->count > 0)
+  {
+    json_t *vers = json_object_get(program, "vers");
+    json_array_foreach(vers, ivar_index, ivar)
+    {
+      printf("%s: %s\n", json_string_value(json_object_get(ivar, "num")), json_string_value(json_object_get(ivar, "msg")));
+    }
+    goto EXIT;
+  }
 
-  // INPUT:
+  /* If the parser returned any errors then display them and exit */
+  if (arg_errors > 0)
+  {
+    /* Display the error details contained in the arg_end struct.*/
+    arg_print_errors(stdout, end, PROGNAME);
+    printf("Try '%s --help' for more information.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
 
-  // OUTPUT:
+//   /* ======================================================================== */
+//   /* main operation                                                           */
+//   /* ======================================================================== */
 
-  //   /* check for file structure */
-  //   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
-  //   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
-  //     json_object_del(workspace, "variables");
+// INPUT:
 
-  // HISTORY:
-  //   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
-  //   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
-  //   {
-  //     if (history->count > 0)
-  //     {
-  //       json_object_del(workspace, "history");
-  //       json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  //       goto EXIT;
-  //     }
-  //     if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-  //       workspace = json_loads("{\"history\": []}", 0, NULL);
-  //     if (json_object_get(workspace, "history") == NULL)
-  //       json_object_set_new(workspace, "history", json_array());
-  //     strcpy(buff, PROGNAME);
-  //     for (int i = 1; i < argc; i++)
-  //     {
-  //       strcat(buff, " ");
-  //       strcat(buff, argv[i]);
-  //     }
-  //     json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-  //     /* write workspace */
-  //     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-  //   }
+// OUTPUT:
 
-  //   /* ======================================================================== */
-  //   /* exit                                                                     */
-  //   /* ======================================================================== */
-  // EXIT:
-  //   if (dbuff != NULL)
-  //     free(dbuff);
-  //   for (int i = 0; i < MAX_ARG_NUM; i++)
-  //     free(dargs[i]);
-  //   if (workspace != NULL)
-  //     json_decref(workspace);
+//   /* check for file structure */
+//   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
+//   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
+//     json_object_del(workspace, "variables");
 
-  //   /* deallocate each non-null entry in argtable[] */
-  //   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+// HISTORY:
+//   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
+//   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
+//   {
+//     if (history->count > 0)
+//     {
+//       json_object_del(workspace, "history");
+//       json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+//       goto EXIT;
+//     }
+//     if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+//       workspace = json_loads("{\"history\": []}", 0, NULL);
+//     if (json_object_get(workspace, "history") == NULL)
+//       json_object_set_new(workspace, "history", json_array());
+//     strcpy(buff, PROGNAME);
+//     for (int i = 1; i < argc; i++)
+//     {
+//       strcat(buff, " ");
+//       strcat(buff, argv[i]);
+//     }
+//     json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+//     /* write workspace */
+//     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+//   }
+
+//   /* ======================================================================== */
+//   /* exit                                                                     */
+//   /* ======================================================================== */
+EXIT:
+  if (dbuff != NULL)
+    free(dbuff);
+  for (int i = 0; i < MAX_ARG_NUM; i++)
+    free(dargs[i]);
+
+  /* dereference json objects */
+  if (workspace != NULL)
+    json_decref(workspace);
+  if (program_list != NULL)
+    json_decref(program_list);
+
+  /* deallocate each non-null entry in argtable[] */
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
   return exitcode;
 }
-
-/*
-Version history:
-1.0.0: Initial release
-1.0.1: Fix for non-existing file case
-*/
