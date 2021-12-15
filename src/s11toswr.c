@@ -21,7 +21,7 @@
 
 static struct stat statb; // file stat buffer
 static json_error_t *json_error;
-static json_t *ivar;
+static json_t *ivar, *ws_vars, *ws_hist;
 static size_t ivar_index;
 static FILE *fin;
 static FILE *fout;
@@ -138,7 +138,43 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-
+  if (stat(WORKSPACE, &statb) == 0)
+  {
+    workspace = json_load_file(WORKSPACE, 0, json_error);
+    if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
+    {
+      fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    ws_vars = json_object_get(workspace, "variables");
+    if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
+    {
+      fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    if (ws_vars == NULL)
+    {
+      json_object_set_new(workspace, "variables", json_array());
+      ws_vars = json_object_get(workspace, "variables");
+    }
+    ws_hist = json_object_get(workspace, "history");
+    if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
+    {
+      fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT;
+    }
+    if (ws_hist == NULL)
+    {
+      json_object_set_new(workspace, "history", json_array());
+      ws_hist = json_object_get(workspace, "history");
+    }
+  }
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
@@ -152,36 +188,37 @@ int main(int argc, char *argv[])
 //   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
 //     json_object_del(workspace, "variables");
 
-// HISTORY:
-//   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
-//   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
-//   {
-//     if (history->count > 0)
-//     {
-//       json_object_del(workspace, "history");
-//       json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-//       goto EXIT;
-//     }
-//     if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
-//       workspace = json_loads("{\"history\": []}", 0, NULL);
-//     if (json_object_get(workspace, "history") == NULL)
-//       json_object_set_new(workspace, "history", json_array());
-//     strcpy(buff, PROGNAME);
-//     for (int i = 1; i < argc; i++)
-//     {
-//       strcat(buff, " ");
-//       strcat(buff, argv[i]);
-//     }
-//     json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
-//     /* write workspace */
-//     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
-//   }
+HISTORY:
+  // workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
+  // if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
+  // {
+  //   if (history->count > 0)
+  //   {
+  //     json_object_del(workspace, "history");
+  //     json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  //     goto EXIT;
+  //   }
+  //   if (workspace == NULL || json_typeof(workspace) != JSON_OBJECT)
+  //     workspace = json_loads("{\"history\": []}", 0, NULL);
+  //   if (json_object_get(workspace, "history") == NULL)
+  //     json_object_set_new(workspace, "history", json_array());
+  //   strcpy(buff, PROGNAME);
+  //   for (int i = 1; i < argc; i++)
+  //   {
+  //     strcat(buff, " ");
+  //     strcat(buff, argv[i]);
+  //   }
+  //   json_array_append_new(json_object_get(workspace, "history"), json_string(buff));
+  //   /* write workspace */
+  //   json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  // }
 
-//   /* ======================================================================== */
-//   /* exit                                                                     */
-//   /* ======================================================================== */
+  /* ======================================================================== */
+  /* exit                                                                     */
+  /* ======================================================================== */
 EXIT:
 
+  /* release buffers */
   for (int i = 0; i < MAX_BUFF_LEN; i++)
     free(dbuff[i]);
 
