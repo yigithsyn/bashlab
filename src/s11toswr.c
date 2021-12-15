@@ -26,7 +26,7 @@ static size_t ivar_index;
 static FILE *fin;
 static FILE *fout;
 static char buff[250];
-#define MAX_BUFF_LEN 50
+#define MAX_BUFF_ARR_LEN 50
 
 int main(int argc, char *argv[])
 {
@@ -36,9 +36,9 @@ int main(int argc, char *argv[])
   json_t *workspace = NULL, *program_list = NULL;
   void *argtable[MAX_ARG_NUM_ALL];
 
-  double *dbuff[MAX_BUFF_LEN];
-  int Ndargs[MAX_BUFF_LEN];
-  for (int i = 0; i < MAX_BUFF_LEN; ++i)
+  double *dbuff[MAX_BUFF_ARR_LEN];
+  int Ndargs[MAX_BUFF_ARR_LEN];
+  for (int i = 0; i < MAX_BUFF_ARR_LEN; ++i)
   {
     dbuff[i] = (double *)calloc(0, sizeof(double));
     Ndargs[i] = 0;
@@ -219,7 +219,7 @@ HISTORY:
 EXIT:
 
   /* release buffers */
-  for (int i = 0; i < MAX_BUFF_LEN; i++)
+  for (int i = 0; i < MAX_BUFF_ARR_LEN; i++)
     free(dbuff[i]);
 
   /* dereference json objects */
