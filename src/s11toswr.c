@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     else if (isnumber(argv[i]))
     {
       strcpy(posargs[Nposargs++], argv[i]);
-      argv[i][0] = 95; // '-' to '_' avoiding argtable literal behaviour
+      argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
     }
     else
       break;
