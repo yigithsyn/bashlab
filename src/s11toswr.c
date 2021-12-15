@@ -1,4 +1,4 @@
-
+#define PROGNAME "s11toswr"
 
 #include <stdio.h>
 // #include <stdlib.h>
@@ -25,6 +25,10 @@ static json_t *ivar, *ws_vars, *ws_hist;
 static size_t ivar_index;
 static FILE *fin;
 static FILE *fout;
+static char posargs[MAX_ARG_NUM][25];
+static int Nposargs = 0;
+static int argcount = 0;
+
 static char buff[250];
 #define MAX_BUFF_ARR_LEN 50
 
@@ -50,7 +54,7 @@ int main(int argc, char *argv[])
   program_list = json_loads(programs, 0, json_error);
   json_array_foreach(program_list, ivar_index, ivar)
   {
-    if (strcmp(PROGNAME, json_string_value(json_object_get(ivar, "name"))))
+    if (strcmp(PROGNAME, json_string_value(json_object_get(ivar, "name"))) == 0)
       break;
   }
   json_t *program = ivar;
@@ -58,15 +62,29 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* argument parse                                                           */
   /* ======================================================================== */
-  int argcount = 0;
+  /* copy positional args */
+  for (int i = 1; i < argc; i++)
+  {
+    if (argv[i][0] != 45)
+      strcpy(posargs[Nposargs++], argv[i]);
+    else if (isnumber(argv[i]))
+    {
+      strcpy(posargs[Nposargs++], argv[i]);
+      argv[i][0] = 95; // '-' to '_' avoiding argtable literal behaviour
+    }
+    else
+      continue;
+  }
 
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
   {
     const char *name = json_string_value(json_object_get(ivar, "name"));
+    int minc = json_integer_value(json_object_get(ivar, "minc"));
+    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
     const char *desc = json_string_value(json_object_get(ivar, "desc"));
-    argtable[argcount++] = arg_str1(NULL, NULL, name, desc);
+    argtable[argcount++] = arg_strn(NULL, NULL, name, minc, maxc, desc);
     ;
   }
 
@@ -178,15 +196,16 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
+  struct arg_str *aarg = (struct arg_str *)argtable[0];
+  printf("%s\n", aarg->sval[0]);
+  // INPUT:
 
-// INPUT:
+  // OUTPUT:
 
-// OUTPUT:
-
-//   /* check for file structure */
-//   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
-//   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
-//     json_object_del(workspace, "variables");
+  //   /* check for file structure */
+  //   workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
+  //   if (!(workspace == NULL || json_typeof(workspace) != JSON_OBJECT))
+  //     json_object_del(workspace, "variables");
 
 HISTORY:
   // workspace = (workspace == NULL) ? json_load_file(WORKSPACE, 0, json_error) : workspace;
@@ -229,6 +248,6 @@ EXIT:
     json_decref(program_list);
 
   /* deallocate each non-null entry in argtable[] */
-  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+  arg_freetable(argtable, argcount);
   return exitcode;
 }

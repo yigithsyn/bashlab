@@ -10,6 +10,5 @@
 #else
 #define SOURCE_FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
-#define PROGNAME (strtok(SOURCE_FILENAME, "."))
 
 #endif

@@ -10,10 +10,10 @@ static const char *programs =
     /*        */"{\"num\":\"1.0.0\", \"msg\":\"Initial release\"}"
     /*      */"],"
     "\"pargs\": ["
-    /*        */"{\"name\":\"s11\", \"desc\":\"Reflection coefficient (S11) value(s)\"}"
+    /*        */"{\"name\":\"s11\", \"minc\":1, \"maxc\":1, \"desc\":\"Reflection coefficient (S11) value(s)\"}"
     /*       */"],"
     "\"oargs\": ["
-    /*        */"{\"desc\":\"Parse S11 value(s) in decibel [dB]\", \"short\":\"d\", \"long\":\"db\", \"minc\":0, \"maxc\":1}"
+    /*        */"{\"short\":\"d\", \"long\":\"db\", \"minc\":0, \"maxc\":1, \"desc\":\"Parse S11 value(s) in decibel [dB]\"}"
     /*       */"]"
     "}"
     "]";

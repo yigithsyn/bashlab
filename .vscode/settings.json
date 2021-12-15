@@ -1,6 +1,6 @@
 {
   "cmake.debugConfig": {
-    "args": [ "--help"],
+    "args": [ "-9.23E-6"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
