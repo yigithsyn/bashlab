@@ -11,6 +11,9 @@
     "linspace -1 -3 101",
     "wsset ans ans ans",
     "wsset ans ans 5",
-    "wsset ans 5"
+    "wsset ans 5",
+    "s11toswr ans",
+    "s11toswr +9.23E-6",
+    "s11toswr -9.23E-6"
   ]
 }
