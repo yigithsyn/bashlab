@@ -22,6 +22,10 @@
     "ffdist 0.1 400E8",
     "ffdist 0.5 400E8",
     "ffdist 0.5 400E8 -h",
-    "ffdist 0.5 400E6 -h"
+    "ffdist 0.5 400E6 -h",
+    "s11toswr 1e6 3e4",
+    "s11toswr -1e6 3e4",
+    "s11toswr 3e4",
+    "s11toswr 4 3e4"
   ]
 }
