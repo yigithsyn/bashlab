@@ -3,7 +3,7 @@
     {
       "name": "ans",
       "value": [
-        5.0
+        2.5
       ]
     }
   ],
@@ -14,6 +14,14 @@
     "wsset ans 5",
     "s11toswr ans",
     "s11toswr +9.23E-6",
-    "s11toswr -9.23E-6"
+    "s11toswr -9.23E-6",
+    "ffdist 0.6 4E6",
+    "ffdist 0.6 4E8",
+    "ffdist 0.6 4E8 -h",
+    "ffdist 0.1 400E9",
+    "ffdist 0.1 400E8",
+    "ffdist 0.5 400E8",
+    "ffdist 0.5 400E8 -h",
+    "ffdist 0.5 400E6 -h"
   ]
 }

@@ -70,7 +70,6 @@ int main(int argc, char *argv[])
   /* special case: '--help' takes precedence over error reporting */
   if (help->count > 0)
   {
-  HELP:
     printf("%s: Far-field (Fraunhofer) distance of an aperture.\n\n", PROGNAME);
     printf("Usage: %s", PROGNAME);
     arg_print_syntaxv(stdout, argtable, "\n\n");
