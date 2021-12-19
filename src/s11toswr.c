@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
-INPUT:
+INPUT: ;
   /* s11 */
   struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
   // struct arg_lit *arg_db = (struct arg_lit *)argtable[0];
@@ -248,7 +248,7 @@ INPUT:
     }
   }
 
-OUTPUT:
+OUTPUT: ;
   double *swr = (double *)calloc(0, sizeof(double) * Ns11);
   for (int i = 0; i < Ns11; i++)
   {

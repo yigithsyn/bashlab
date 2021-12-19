@@ -26,6 +26,8 @@
     "s11toswr 1e6 3e4",
     "s11toswr -1e6 3e4",
     "s11toswr 3e4",
-    "s11toswr 4 3e4"
+    "s11toswr 4 3e4",
+    "s11toswr 3 4",
+    "s11toswr 3e4 4e3"
   ]
 }
