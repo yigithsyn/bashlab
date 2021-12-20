@@ -37,14 +37,6 @@ int main(int argc, char *argv[])
   json_t *workspace = NULL, *program_list = NULL;
   void *argtable[MAX_ARG_NUM_ALL];
 
-  double *dbuff[MAX_BUFF_ARR_LEN];
-  int Ndargs[MAX_BUFF_ARR_LEN];
-  for (int i = 0; i < MAX_BUFF_ARR_LEN; ++i)
-  {
-    dbuff[i] = (double *)calloc(0, sizeof(double));
-    Ndargs[i] = 0;
-  }
-
   /* ======================================================================== */
   /* fetch program definitions                                                */
   /* ======================================================================== */
@@ -188,12 +180,12 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
-INPUT: ;
+INPUT:;
   /* s11 */
   struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
   // struct arg_lit *arg_db = (struct arg_lit *)argtable[0];
   int Ns11 = 0, Nmaxs11 = 1;
-  double *s11 = (double *)calloc(0, sizeof(double));
+  double *s11 = (double *)calloc(Nmaxs11, sizeof(double));
   for (int i = 0; i < arg_s11->count; ++i)
   {
     json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_s11->sval[i]) == 0) break;
@@ -202,7 +194,7 @@ INPUT: ;
       if (Ns11 >= Nmaxs11)
       {
         Nmaxs11 *= 2;
-        s11 = realloc(s11, sizeof(double) * Nmaxs11);
+        s11 = (double *)realloc(s11, sizeof(double) * Nmaxs11);
       }
       s11[Ns11++] = atof(arg_s11->sval[i]);
     }
@@ -215,14 +207,21 @@ INPUT: ;
         fprintf(stderr, "%s: variable value not found.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
         exitcode = EXIT_FAILURE;
-        goto EXIT;
+        goto EXIT_INPUT;
       }
       if (json_typeof(var_val) != JSON_ARRAY)
       {
         fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
         exitcode = EXIT_FAILURE;
-        goto EXIT;
+        goto EXIT_INPUT;
+      }
+      if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
+      {
+        fprintf(stderr, "%s: %s should be all number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_INPUT;
       }
       /* process variable */
       for (int j = 0; j < json_array_size(var_val); ++j)
@@ -230,26 +229,15 @@ INPUT: ;
         if (Ns11 >= Nmaxs11)
         {
           Nmaxs11 *= 2;
-          s11 = realloc(s11, sizeof(double) * Nmaxs11);
+          s11 = (double *)realloc(s11, sizeof(double) * Nmaxs11);
         }
-        if (json_typeof(json_array_get(var_val, j)) == JSON_INTEGER)
-          s11[Ns11++] = (double)json_integer_value(json_array_get(var_val, j));
-        else if (json_typeof(json_array_get(var_val, j)) == JSON_REAL)
-          s11[Ns11++] = json_real_value(json_array_get(var_val, j));
-        else
-        {
-          fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
-          fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-          json_decref(workspace);
-          exitcode = EXIT_FAILURE;
-          goto EXIT;
-        }
+        s11[Ns11++] = json_real_value(json_array_get(var_val, j));
       }
     }
   }
 
-OUTPUT: ;
-  double *swr = (double *)calloc(0, sizeof(double) * Ns11);
+OUTPUT:;
+  double *swr = (double *)calloc(Ns11, sizeof(double));
   for (int i = 0; i < Ns11; i++)
   {
     printf("%.16f\n", s11[i]);
@@ -268,11 +256,13 @@ HISTORY:
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
-EXIT:
-  /* release buffers */
-  for (int i = 0; i < MAX_BUFF_ARR_LEN; i++)
-    free(dbuff[i]);
+EXIT_OUTPUT: ;
+  free(swr);
 
+EXIT_INPUT: ;
+  free(s11);
+
+EXIT:
   /* dereference json objects */
   if (workspace != NULL)
     json_decref(workspace);
