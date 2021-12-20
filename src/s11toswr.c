@@ -57,16 +57,6 @@ int main(int argc, char *argv[])
     if (argv[i][0] == 45 && isnumber(argv[i]))
       argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
  
-  /* option arg structs*/
-  json_t *opts = json_object_get(program, "opts");
-  json_array_foreach(opts, ivar_index, ivar)
-  {
-    const char *sh = json_string_value(json_object_get(ivar, "short"));
-    const char *ln = json_string_value(json_object_get(ivar, "long"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
-    argtable[argcount++] = arg_lit0(sh, ln, desc);
-  }
-
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
@@ -91,11 +81,24 @@ int main(int argc, char *argv[])
     argtable[argcount++] = arg_strn(sh, ln, name, minc, maxc, desc);
   }
 
+  /* option arg structs*/
+  json_t *opts = json_object_get(program, "opts");
+  json_array_foreach(opts, ivar_index, ivar)
+  {
+    const char *sh = json_string_value(json_object_get(ivar, "short"));
+    const char *ln = json_string_value(json_object_get(ivar, "long"));
+    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    argtable[argcount++] = arg_lit0(sh, ln, desc);
+  }
+
+
   /* commong arg structs */
+  struct arg_str *ws_out = arg_str0(NULL, "wsout", "name", "workspace output variable name");
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version number and exit");
   struct arg_lit *versions = arg_lit0(NULL, "versions", "display all version infos and exit");
   struct arg_end *end = arg_end(20);
+  argtable[argcount++] = ws_out;
   argtable[argcount++] = help;
   argtable[argcount++] = version;
   argtable[argcount++] = versions;
@@ -192,9 +195,8 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
-  struct arg_lit *arg_db = (struct arg_lit *)argtable[0];
-  struct arg_str *arg_s11 = (struct arg_str *)argtable[json_array_size(opts)];
-  struct arg_str *arg_wso = (struct arg_str *)argtable[json_array_size(opts)+json_array_size(pargs)];
+  struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
+  struct arg_lit *arg_db = (struct arg_lit *)argtable[json_array_size(pargs)+json_array_size(oargs)];
 
 INPUT:;
   /* s11 */
@@ -260,8 +262,8 @@ OPERATION:;
 
 OUTPUT:
   /* workspace */
-  if (arg_wso->count)
-    strcpy(buff, arg_wso->sval[0]);
+  if (ws_out->count)
+    strcpy(buff, ws_out->sval[0]);
   else
     strcpy(buff, "ans");
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
