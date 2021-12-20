@@ -28,7 +28,6 @@ static FILE *fin;
 static FILE *fout;
 static int argcount = 0;
 static char buff[250];
-#define MAX_BUFF_ARR_LEN 50
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +35,7 @@ int main(int argc, char *argv[])
   fout = stdout;
   /* buffer variables */
   json_t *workspace = NULL, *program_list = NULL;
-  void *argtable[MAX_ARG_NUM_ALL];
+  void *argtable[100];
 
   /* ======================================================================== */
   /* fetch program definitions                                                */
