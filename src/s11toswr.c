@@ -1,4 +1,5 @@
 #define PROGNAME "s11toswr"
+#include "s11toswr.h"
 
 #include <stdio.h>
 // #include <stdlib.h>
@@ -21,7 +22,7 @@
 
 static struct stat statb; // file stat buffer
 static json_error_t *json_error;
-static json_t *ivar, *ws_vars, *ws_hist, *var_val;
+static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val;
 static size_t ivar_index;
 static FILE *fin;
 static FILE *fout;
@@ -32,7 +33,7 @@ static char buff[250];
 int main(int argc, char *argv[])
 {
   int exitcode = EXIT_SUCCESS;
-
+  fout = stdout;
   /* buffer variables */
   json_t *workspace = NULL, *program_list = NULL;
   void *argtable[MAX_ARG_NUM_ALL];
@@ -55,6 +56,16 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
     if (argv[i][0] == 45 && isnumber(argv[i]))
       argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
+ 
+  /* option arg structs*/
+  json_t *opts = json_object_get(program, "opts");
+  json_array_foreach(opts, ivar_index, ivar)
+  {
+    const char *sh = json_string_value(json_object_get(ivar, "short"));
+    const char *ln = json_string_value(json_object_get(ivar, "long"));
+    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    argtable[argcount++] = arg_lit0(sh, ln, desc);
+  }
 
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
@@ -73,10 +84,11 @@ int main(int argc, char *argv[])
   {
     const char *sh = json_string_value(json_object_get(ivar, "short"));
     const char *ln = json_string_value(json_object_get(ivar, "long"));
+    const char *name = json_string_value(json_object_get(ivar, "name"));
     int minc = json_integer_value(json_object_get(ivar, "minc"));
     int maxc = json_integer_value(json_object_get(ivar, "maxc"));
     const char *desc = json_string_value(json_object_get(ivar, "desc"));
-    argtable[argcount++] = arg_litn(sh, ln, minc, maxc, desc);
+    argtable[argcount++] = arg_strn(sh, ln, name, minc, maxc, desc);
   }
 
   /* commong arg structs */
@@ -180,10 +192,12 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
+  struct arg_lit *arg_db = (struct arg_lit *)argtable[0];
+  struct arg_str *arg_s11 = (struct arg_str *)argtable[json_array_size(opts)];
+  struct arg_str *arg_wso = (struct arg_str *)argtable[json_array_size(opts)+json_array_size(pargs)];
+
 INPUT:;
   /* s11 */
-  struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
-  // struct arg_lit *arg_db = (struct arg_lit *)argtable[0];
   int Ns11 = 0, Nmaxs11 = 1;
   double *s11 = (double *)calloc(Nmaxs11, sizeof(double));
   for (int i = 0; i < arg_s11->count; ++i)
@@ -236,12 +250,41 @@ INPUT:;
     }
   }
 
-OUTPUT:;
+OPERATION:;
   double *swr = (double *)calloc(Ns11, sizeof(double));
   for (int i = 0; i < Ns11; i++)
-  {
-    printf("%.16f\n", s11[i]);
-  }
+    if (arg_db->count > 0)
+      swr[i] = s11toswr_db(s11[i]);
+    else
+      swr[i] = s11toswr(s11[i]);
+
+OUTPUT:
+  /* workspace */
+  if (arg_wso->count)
+    strcpy(buff, arg_wso->sval[0]);
+  else
+    strcpy(buff, "ans");
+  json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
+  /* delete existing */
+  if (ivar_index != json_array_size(ws_vars))
+    json_array_remove(ws_vars, ivar_index);
+  /* create new */
+  var = json_object();
+  json_object_set_new(var, "name", json_string(buff));
+  var_val = json_array();
+  /* append results */
+  for (int i = 0; i < Ns11; ++i)
+    json_array_append_new(var_val, json_real(swr[i]));
+  json_object_set_new(var, "value", var_val);
+  json_array_append_new(ws_vars, var);
+
+  /* stream */
+  for (int i = 0; i < MIN(Ns11, 3); ++i)
+    fprintf(fout, "%f\n", swr[i]);
+  if (Ns11 > 5)
+    fprintf(fout, "...\n");
+  for (int i = MAX(MIN(Ns11, 3), Ns11 - 2); i < Ns11; ++i)
+    fprintf(fout, "%f\n", swr[i]);
 
 HISTORY:
   strcpy(buff, PROGNAME);
@@ -256,10 +299,10 @@ HISTORY:
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
-EXIT_OUTPUT: ;
+EXIT_OPERATION:;
   free(swr);
 
-EXIT_INPUT: ;
+EXIT_INPUT:;
   free(s11);
 
 EXIT:

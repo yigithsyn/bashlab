@@ -53,7 +53,7 @@ file(GLOB SOURCES "src/impl/no_impl*")
 add_executable(wsclr src/wsclr.c ${SOURCES} ${COMMONS})
 target_link_libraries(wsclr ${COMMON_LINK_LIBS})
 
-file(GLOB SOURCES "src/impl/no_impl*")
+file(GLOB SOURCES "src/impl/s11toswr_impl.c") 
 add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
 target_link_libraries(s11toswr ${COMMON_LINK_LIBS})
 
