@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
     if (argv[i][0] == 45 && isnumber(argv[i]))
       argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
- 
+
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
@@ -90,7 +90,6 @@ int main(int argc, char *argv[])
     const char *desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_lit0(sh, ln, desc);
   }
-
 
   /* commong arg structs */
   struct arg_str *ws_out = arg_str0(NULL, "wsout", "name", "workspace output variable name");
@@ -155,48 +154,50 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  if (stat(WORKSPACE, &statb) == 0)
+  workspace = json_load_file(WORKSPACE, 0, json_error);
+  if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
   {
-    workspace = json_load_file(WORKSPACE, 0, json_error);
-    if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
-    {
-      fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
-    }
-    ws_vars = json_object_get(workspace, "variables");
-    if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
-    {
-      fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
-    }
-    if (ws_vars == NULL)
-    {
-      json_object_set_new(workspace, "variables", json_array());
-      ws_vars = json_object_get(workspace, "variables");
-    }
-    ws_hist = json_object_get(workspace, "history");
-    if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
-    {
-      fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT;
-    }
-    if (ws_hist == NULL)
-    {
-      json_object_set_new(workspace, "history", json_array());
-      ws_hist = json_object_get(workspace, "history");
-    }
+    fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
   }
+  if (workspace == NULL)
+  {
+    workspace = json_object();
+  }
+  ws_vars = json_object_get(workspace, "variables");
+  if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
+  {
+    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
+  if (ws_vars == NULL)
+  {
+    json_object_set_new(workspace, "variables", json_array());
+    ws_vars = json_object_get(workspace, "variables");
+  }
+  ws_hist = json_object_get(workspace, "history");
+  if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
+  {
+    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
+  if (ws_hist == NULL)
+  {
+    json_object_set_new(workspace, "history", json_array());
+    ws_hist = json_object_get(workspace, "history");
+  }
+
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
   struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
-  struct arg_lit *arg_db = (struct arg_lit *)argtable[json_array_size(pargs)+json_array_size(oargs)];
+  struct arg_lit *arg_db = (struct arg_lit *)argtable[json_array_size(pargs) + json_array_size(oargs)];
 
 INPUT:;
   /* s11 */
@@ -296,7 +297,7 @@ HISTORY:
     strcat(buff, argv[i]);
   }
   json_array_append_new(ws_hist, json_string(buff));
-  json_dump_file(workspace, WORKSPACE, JSON_INDENT(2));
+  json_dump_file(workspace, WORKSPACE, JSON_COMPACT);
 
 /* ======================================================================== */
 /* exit                                                                     */
