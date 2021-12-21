@@ -1,17 +1,6 @@
 #define PROGNAME "s11toswr"
 #include "s11toswr.h"
 
-#include <stdio.h>
-// #include <stdlib.h>
-#include <sys/stat.h>
-#if defined(_WIN32)
-#include <io.h>
-#else
-#include <sys/io.h>
-#include <unistd.h>
-#include <errno.h>
-#endif
-
 #include "argtable3.h"
 #include "jansson.h"
 
@@ -20,13 +9,15 @@
 #include "macros.h"
 #include "utility.h"
 
-static struct stat statb; // file stat buffer
+#include <stdio.h>
+#include <stdlib.h>
+
 static json_error_t *json_error;
 static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val;
 static size_t ivar_index;
 static FILE *fin;
 static FILE *fout;
-static int argcount = 0;
+static size_t argcount = 0;
 static char buff[250];
 
 int main(int argc, char *argv[])
@@ -52,7 +43,7 @@ int main(int argc, char *argv[])
   /* argument parse                                                           */
   /* ======================================================================== */
   /* copy positional args */
-  for (int i = 1; i < argc; i++)
+  for (size_t i = 1; i < argc; i++)
     if (argv[i][0] == 45 && isnumber(argv[i]))
       argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
 
@@ -91,7 +82,7 @@ int main(int argc, char *argv[])
   }
 
   /* commong arg structs */
-  struct arg_str *ws_out = arg_str0(NULL, "wsout", "name", "workspace output variable name");
+  struct arg_str *ws_out = arg_str0("o", "out", "name", "workspace output variable name");
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *version = arg_lit0(NULL, "version", "display version number and exit");
   struct arg_lit *versions = arg_lit0(NULL, "versions", "display all version infos and exit");
@@ -146,7 +137,7 @@ int main(int argc, char *argv[])
   }
 
   /* minus number back in positional args */
-  for (int i = 1; i < argc; i++)
+  for (size_t i = 1; i < argc; i++)
     if (argv[i][0] == 126)
       argv[i][0] = 45; // '~' to '-'
 
@@ -200,9 +191,9 @@ int main(int argc, char *argv[])
 
 INPUT:;
   /* s11 */
-  int Ns11 = 0, Nmaxs11 = 1;
+  size_t Ns11 = 0, Nmaxs11 = 1;
   double *s11 = (double *)calloc(Nmaxs11, sizeof(double));
-  for (int i = 0; i < arg_s11->count; ++i)
+  for (size_t i = 0; i < arg_s11->count; ++i)
   {
     json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_s11->sval[i]) == 0) break;
     if (ivar_index == json_array_size(ws_vars))
@@ -240,7 +231,7 @@ INPUT:;
         goto EXIT_INPUT;
       }
       /* process variable */
-      for (int j = 0; j < json_array_size(var_val); ++j)
+      for (size_t j = 0; j < json_array_size(var_val); ++j)
       {
         if (Ns11 >= Nmaxs11)
         {
@@ -254,7 +245,7 @@ INPUT:;
 
 OPERATION:;
   double *swr = (double *)calloc(Ns11, sizeof(double));
-  for (int i = 0; i < Ns11; i++)
+  for (size_t i = 0; i < Ns11; i++)
     if (arg_db->count > 0)
       swr[i] = s11toswr_db(s11[i]);
     else
@@ -275,22 +266,22 @@ OUTPUT:
   json_object_set_new(var, "name", json_string(buff));
   var_val = json_array();
   /* append results */
-  for (int i = 0; i < Ns11; ++i)
+  for (size_t i = 0; i < Ns11; ++i)
     json_array_append_new(var_val, json_real(swr[i]));
   json_object_set_new(var, "value", var_val);
   json_array_append_new(ws_vars, var);
 
   /* stream */
-  for (int i = 0; i < MIN(Ns11, 3); ++i)
+  for (size_t i = 0; i < MIN(Ns11, 3); ++i)
     fprintf(fout, "%G\n", swr[i]);
   if (Ns11 > 5)
     fprintf(fout, "...\n");
-  for (int i = MAX(MIN(Ns11, 3), Ns11 - 2); i < Ns11; ++i)
+  for (size_t i = MAX(MIN(Ns11, 3), Ns11 - 2); i < Ns11; ++i)
     fprintf(fout, "%G\n", swr[i]);
 
 HISTORY:
   strcpy(buff, PROGNAME);
-  for (int i = 1; i < argc; i++)
+  for (size_t i = 1; i < argc; i++)
   {
     strcat(buff, " ");
     strcat(buff, argv[i]);
