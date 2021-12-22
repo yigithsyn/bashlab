@@ -8,7 +8,7 @@ static const char *programs =
         "\"desc\": \"convert microwave/rf S11 parameters to standing wave ratio (SWR)\","
         "\"vers\": ["
         /*        */"{\"num\":\"1.0.0\", \"msg\":\"initial release\"},"
-        /*        */"{\"num\":\"1.1.0\", \"msg\":\"irint formatting in shortest way\"}"
+        /*        */"{\"num\":\"1.1.0\", \"msg\":\"print formatting in shortest way\"}"
         /*      */"],"
         "\"pargs\": ["
         /*        */"{\"name\":\"s11\", \"minc\":1, \"maxc\":100, \"desc\":\"reflection coefficient (S11) value(s)\"}"
