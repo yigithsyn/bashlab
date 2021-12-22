@@ -210,17 +210,25 @@ OUTPUT:;
       }
       if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
       {
-        if (json_array_size(var_val) == 1)
-          fprintf(fout, ": %G\n", json_real_value(json_array_get(var_val, 0)));
-        else
-          fprintf(fout, ": number[%zu]\n", json_array_size(var_val));
+        fprintf(fout, ": number[%zu] ", json_array_size(var_val));
+        for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
+          fprintf(fout, "%G ", json_real_value(json_array_get(var_val, i)));
+        if (json_array_size(var_val) > 5)
+          fprintf(fout, "... ");
+        for (size_t i = MAX(MIN(json_array_size(var_val), 3), json_array_size(var_val) - 2); i < json_array_size(var_val); ++i)
+          fprintf(fout, "%G ", json_real_value(json_array_get(var_val, i)));
+        fprintf(fout, "\n");
       }
       else if (json_typeof(json_array_get(var_val, 0)) == JSON_STRING)
       {
-        if (json_array_size(var_val) == 1)
-          fprintf(fout, ": %s\n", json_string_value(json_array_get(var_val, 0)));
-        else
-          fprintf(fout, ": string[%zu]\n", json_array_size(var_val));
+        fprintf(fout, ": string[%zu] ", json_array_size(var_val));
+        for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
+          fprintf(fout, "\"%s\" ", json_string_value(json_array_get(var_val, i)));
+        if (json_array_size(var_val) > 5)
+          fprintf(fout, "... ");
+        for (size_t i = MAX(MIN(json_array_size(var_val), 3), json_array_size(var_val) - 2); i < json_array_size(var_val); ++i)
+          fprintf(fout, "\"%s\" ", json_string_value(json_array_get(var_val, i)));
+        fprintf(fout, "\n");
       }
       else
       {
