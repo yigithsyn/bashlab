@@ -184,7 +184,6 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
-  // struct arg_str *arg_s11 = (struct arg_str *)argtable[0];
   struct arg_lit *arg_hist = (struct arg_lit *)argtable[json_array_size(pargs) + json_array_size(oargs)];
 
 INPUT:;
