@@ -273,11 +273,12 @@ OUTPUT:
 
   /* stream */
   for (size_t i = 0; i < MIN(Ns11, 3); ++i)
-    fprintf(fout, "%G\n", swr[i]);
+    fprintf(fout, "%G ", swr[i]);
   if (Ns11 > 5)
-    fprintf(fout, "...\n");
+    fprintf(fout, "... ");
   for (size_t i = MAX(MIN(Ns11, 3), Ns11 - 2); i < Ns11; ++i)
-    fprintf(fout, "%G\n", swr[i]);
+    fprintf(fout, "%G ", swr[i]);
+  fprintf(fout, "\n");
 
 HISTORY:
   strcpy(buff, PROGNAME);
