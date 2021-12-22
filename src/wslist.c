@@ -210,9 +210,19 @@ OUTPUT:;
         goto EXIT_INPUT;
       }
       if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
-        fprintf(fout, ": number[%zu]\n", json_array_size(var_val));
+      {
+        if (json_array_size(var_val) == 1)
+          fprintf(fout, ": %G\n", json_real_value(json_array_get(var_val, 0)));
+        else
+          fprintf(fout, ": number[%zu]\n", json_array_size(var_val));
+      }
       else if (json_typeof(json_array_get(var_val, 0)) == JSON_STRING)
-        fprintf(fout, ": string[%zu]\n", json_array_size(var_val));
+      {
+        if (json_array_size(var_val) == 1)
+          fprintf(fout, ": %s\n", json_string_value(json_array_get(var_val, 0)));
+        else
+          fprintf(fout, ": string[%zu]\n", json_array_size(var_val));
+      }
       else
       {
         fprintf(stderr, "%s: unsupported variable value.\n", PROGNAME);
@@ -222,9 +232,10 @@ OUTPUT:;
       }
     }
   }
-  else{
+  else
+  {
     for (size_t i = 0; i < json_array_size(ws_hist); ++i)
-      fprintf(fout, "%s\n", json_string_value(json_array_get(ws_hist,i)));
+      fprintf(fout, "%s\n", json_string_value(json_array_get(ws_hist, i)));
   }
 
 HISTORY:
