@@ -34,6 +34,15 @@ if [ "$1" != "build" ]; then
   echo "algo: Simple algorithms"
   git clone https://github.com/ntessore/algo.git libs/algo
 
+  echo ============================
+  echo "[INFO] Dependecies: Civetweb: BuEmbedded C/C++ web server"
+  echo ============================
+  curl -L https://github.com/civetweb/civetweb/archive/refs/tags/v1.15.tar.gz --output libs/civetweb-1.15.tar.gz --silent
+  tar -xvf libs/civetweb-1.15.tar.gz --directory libs/
+  cd libs/civetweb-1.15
+  make clean slib COPT='-DNO_SSL -DNO_CGI -DUSE_WEBSOCKET -DNDEBUG'
+  cd ../..
+
 fi
 
 rm -rf build && mkdir build && cd build
