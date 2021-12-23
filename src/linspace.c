@@ -317,9 +317,9 @@ INPUT:;
     /* process variable */
     N = (size_t)json_real_value(json_array_get(var_val, 0));
   }
-  if (N < 1)
+  if (N < 2)
   {
-    fprintf(stderr, "%s: N should be at least 1.\n", PROGNAME);
+    fprintf(stderr, "%s: N should be at least 2.\n", PROGNAME);
     fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT_INPUT;
