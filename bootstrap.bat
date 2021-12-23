@@ -53,10 +53,10 @@ ECHO Civetweb: Embedded C/C++ web server
 curl -L https://github.com/civetweb/civetweb/archive/refs/tags/v1.15.tar.gz --output libs\civetweb-1.15.tar.gz --silent
 tar -xvf libs\civetweb-1.15.tar.gz --directory libs\
 CD libs\civetweb-1.15
-MKDIR build
-CD build
-@REM "%cmake_path%" -DJANSSON_BUILD_DOCS=OFF ..
-@REM "%cmake_path%" --build . --config Release
+MKDIR build_dir
+CD build_dir
+"%cmake_path%" -DCIVETWEB_ENABLE_SSL=0 -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=0 -DCIVETWEB_ENABLE_DEBUG_TOOLS=0 -DCIVETWEB_BUILD_TESTING=0 -DBUILD_TESTING=0 -DCIVETWEB_ENABLE_WEBSOCKETS=1 -DBUILD_SHARED_LIBS=1 ..
+"%cmake_path%" --build . --config Release
 CD ../../..
 
 RMDIR /Q /S build > nul 2>&1
