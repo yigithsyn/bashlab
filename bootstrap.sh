@@ -40,8 +40,11 @@ if [ "$1" != "build" ]; then
   curl -L https://github.com/civetweb/civetweb/archive/refs/tags/v1.15.tar.gz --output libs/civetweb-1.15.tar.gz --silent
   tar -xvf libs/civetweb-1.15.tar.gz --directory libs/
   cd libs/civetweb-1.15
-  make clean slib COPT='-DNO_SSL -DNO_CGI -DUSE_WEBSOCKET -DNDEBUG'
-  cd ../..
+  mkdir build_dir
+  cd build_dir
+  cmake -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON ..
+  cmake --build . --config Release
+  cd ../../..
 
 fi
 
