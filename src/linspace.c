@@ -330,7 +330,7 @@ OPERATION:;
   linspace(a,b,N,arr);
 
 
-OUTPUT:
+OUTPUT:;
 size_t Nans = N;
 double *ans = arr;
   /* workspace */
