@@ -39,15 +39,25 @@ CD ../../..
 ECHO Jansson: C library for encoding, decoding and manipulating JSON data
 curl -L https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.gz --output libs\jansson-2.14.tar.gz --silent
 tar -xvf libs\jansson-2.14.tar.gz --directory libs\
+CD libs\civetweb-1.15
+MKDIR build
+CD build
+@REM "%cmake_path%" -DJANSSON_BUILD_DOCS=OFF ..
+@REM "%cmake_path%" --build . --config Release
+CD ../../..
+
+ECHO algo: Simple algorithms
+git clone https://github.com/ntessore/algo.git libs/algo
+
+ECHO Civetweb: Embedded C/C++ web server
+curl -L https://github.com/civetweb/civetweb/archive/refs/tags/v1.15.tar.gz --output libs\civetweb-1.15.tar.gz --silent
+tar -xvf libs\jansson-2.14.tar.gz --directory libs\
 CD libs\jansson-2.14
 MKDIR build
 CD build
 "%cmake_path%" -DJANSSON_BUILD_DOCS=OFF ..
 "%cmake_path%" --build . --config Release
 CD ../../..
-
-ECHO "algo: Simple algorithms"
-git clone https://github.com/ntessore/algo.git libs/algo
 
 RMDIR /Q /S build > nul 2>&1
 MKDIR build
