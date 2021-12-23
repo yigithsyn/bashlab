@@ -39,7 +39,7 @@ CD ../../..
 ECHO Jansson: C library for encoding, decoding and manipulating JSON data
 curl -L https://github.com/akheron/jansson/releases/download/v2.14/jansson-2.14.tar.gz --output libs\jansson-2.14.tar.gz --silent
 tar -xvf libs\jansson-2.14.tar.gz --directory libs\
-CD libs\civetweb-1.15
+CD libs\jansson-2.14
 MKDIR build
 CD build
 "%cmake_path%" -DJANSSON_BUILD_DOCS=OFF ..
