@@ -199,7 +199,7 @@ OUTPUT:;
     {
       var = json_array_get(ws_vars, i);
       var_val = json_object_get(var, "name");
-      fprintf(fout, "%s\t\t", json_string_value(var_val));
+      fprintf(fout, "%-10s: ", json_string_value(var_val));
       var_val = json_object_get(var, "value");
       if (json_typeof(var_val) != JSON_ARRAY)
       {
@@ -210,7 +210,8 @@ OUTPUT:;
       }
       if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
       {
-        fprintf(fout, ": number[%zu] ", json_array_size(var_val));
+        sprintf(buff, "number[%zu]", json_array_size(var_val));
+        fprintf(fout, "%-15s: ", buff);
         for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
           fprintf(fout, "%G ", json_real_value(json_array_get(var_val, i)));
         if (json_array_size(var_val) > 5)
@@ -221,7 +222,8 @@ OUTPUT:;
       }
       else if (json_typeof(json_array_get(var_val, 0)) == JSON_STRING)
       {
-        fprintf(fout, ": string[%zu] ", json_array_size(var_val));
+        sprintf(buff, "string[%zu] ", json_array_size(var_val));
+        fprintf(fout, "%-15s: ", buff);
         for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
           fprintf(fout, "\"%s\" ", json_string_value(json_array_get(var_val, i)));
         if (json_array_size(var_val) > 5)

@@ -61,4 +61,4 @@ file(GLOB SOURCES "src/impl/s11toswr_impl.c")
 add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
 target_link_libraries(s11toswr ${COMMON_LINK_LIBS})
 
-install(TARGETS ${ALL_TARGETS} CONFIGURATIONS Release)  
+install(TARGETS ${ALL_TARGETS} CONFIGURATIONS Release) 
