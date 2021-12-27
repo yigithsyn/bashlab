@@ -1,11 +1,11 @@
 #define PROGNAME "linspace"
 #include "linspace.h"
-#include "inttypes.h"
 
 #include "argtable3.h"
 #include "jansson.h"
 
-#include "configs.h"
+#include "typedefs.h"
+#include "definitions.h"
 #include "programs.h"
 #include "macros.h"
 #include "utility.h"
@@ -21,9 +21,9 @@ static FILE *fout;
 static size_t argcount = 0;
 static char buff[250];
 
-int main(int argc, char *argv[])
+int_t main(int_t argc, string_t argv[])
 {
-  int exitcode = EXIT_SUCCESS;
+  int_t exitcode = EXIT_SUCCESS;
   fout = stdout;
   /* buffer variables */
   json_t *workspace = NULL, *program_list = NULL;
@@ -52,10 +52,10 @@ int main(int argc, char *argv[])
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
   {
-    const char *name = json_string_value(json_object_get(ivar, "name"));
-    int minc = json_integer_value(json_object_get(ivar, "minc"));
-    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t name = json_string_value(json_object_get(ivar, "name"));
+    int_t minc = json_integer_value(json_object_get(ivar, "minc"));
+    int_t maxc = json_integer_value(json_object_get(ivar, "maxc"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_strn(NULL, NULL, name, minc, maxc, desc);
   }
 
@@ -63,12 +63,12 @@ int main(int argc, char *argv[])
   json_t *oargs = json_object_get(program, "oargs");
   json_array_foreach(oargs, ivar_index, ivar)
   {
-    const char *sh = json_string_value(json_object_get(ivar, "short"));
-    const char *ln = json_string_value(json_object_get(ivar, "long"));
-    const char *name = json_string_value(json_object_get(ivar, "name"));
-    int minc = json_integer_value(json_object_get(ivar, "minc"));
-    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t sh = json_string_value(json_object_get(ivar, "short"));
+    const_string_t ln = json_string_value(json_object_get(ivar, "long"));
+    const_string_t name = json_string_value(json_object_get(ivar, "name"));
+    int_t minc = json_integer_value(json_object_get(ivar, "minc"));
+    int_t maxc = json_integer_value(json_object_get(ivar, "maxc"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_strn(sh, ln, name, minc, maxc, desc);
   }
 
@@ -76,16 +76,16 @@ int main(int argc, char *argv[])
   json_t *opts = json_object_get(program, "opts");
   json_array_foreach(opts, ivar_index, ivar)
   {
-    const char *sh = json_string_value(json_object_get(ivar, "short"));
-    const char *ln = json_string_value(json_object_get(ivar, "long"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t sh = json_string_value(json_object_get(ivar, "short"));
+    const_string_t ln = json_string_value(json_object_get(ivar, "long"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_lit0(sh, ln, desc);
   }
 
   /* commong arg structs */
   struct arg_str *ws_out = arg_str0("o", "out", "name", "workspace output variable name");
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
-  struct arg_lit *version = arg_lit0(NULL, "version", "display version number and exit");
+  struct arg_lit *version = arg_lit0(NULL, "version", "display version number_t and exit");
   struct arg_lit *versions = arg_lit0(NULL, "versions", "display all version infos and exit");
   struct arg_end *end = arg_end(20);
   argtable[argcount++] = ws_out;
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
   argtable[argcount++] = versions;
   argtable[argcount] = end;
 
-  int arg_errors;
+  int_t arg_errors;
   arg_errors = arg_parse(argc, argv, argtable);
 
   /* special case: '--help' takes precedence over error reporting */
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     goto EXIT;
   }
 
-  /* minus number back in positional args */
+  /* minus number_t back in positional args */
   for (size_t i = 1; i < argc; i++)
     if (argv[i][0] == 126)
       argv[i][0] = 45; // '~' to '-'
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(WORKSPACE, 0, json_error);
+  workspace = json_load_file(BLAB_WS, 0, json_error);
   if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
 INPUT:;
   /* a */
-  double a;
+  number_t a;
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_a->sval[0]) == 0) break;
   if (ivar_index == json_array_size(ws_vars))
     a = atof(arg_a->sval[0]);
@@ -224,7 +224,7 @@ INPUT:;
     }
     if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
     {
-      fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+      fprintf(stderr, "%s: %s should be number_t.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT_INPUT;
@@ -234,7 +234,7 @@ INPUT:;
   }
 
   /* b */
-  double b;
+  number_t b;
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_b->sval[0]) == 0) break;
   if (ivar_index == json_array_size(ws_vars))
     b = atof(arg_b->sval[0]);
@@ -279,7 +279,7 @@ INPUT:;
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_N->sval[0]) == 0) break;
   if (ivar_index == json_array_size(ws_vars))
   {
-    char *endptr;
+    string_t endptr;
     N = strtoumax(arg_N->sval[0], &endptr, 10);
   }
   else
@@ -326,13 +326,12 @@ INPUT:;
   }
 
 OPERATION:;
-  double *arr = (double *)calloc(N, sizeof(double));
-  linspace(a,b,N,arr);
-
+  number_t *arr = (number_t *)calloc(N, sizeof(number_t));
+  linspace(a, b, N, arr);
 
 OUTPUT:;
-size_t Nans = N;
-double *ans = arr;
+  size_t Nans = N;
+  number_t *ans = arr;
   /* workspace */
   if (ws_out->count)
     strcpy(buff, ws_out->sval[0]);
@@ -349,6 +348,26 @@ double *ans = arr;
   /* append results */
   for (size_t i = 0; i < Nans; ++i)
     json_array_append_new(var_val, json_real(ans[i]));
+  sprintf(buff, "%s_%s.json", BLAB_WS, json_string_value(json_object_get(var, "name")));
+  if (Nans > BLAB_WS_ARR_LIM)
+  {
+    json_dump_file(var_val, buff, JSON_COMPACT);
+    json_array_clear(var_val);
+    for (size_t i = 0; i < BLAB_WS_ARR_LIM - 2; ++i)
+      json_array_append_new(var_val, json_real(ans[i]));
+    for (size_t i = BLAB_WS_ARR_LIM - 2; i < BLAB_WS_ARR_LIM; ++i)
+      json_array_append_new(var_val, json_real(ans[i]));
+  }
+  else
+  {
+    int_t errnum = remove(buff);
+    if (errnum != 0 && errnum == ENOENT)
+    {
+      fprintf(stderr, "%s: Error in deleting worskpace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
+      exitcode = EXIT_FAILURE;
+      goto EXIT_OUTPUT;
+    }
+  }
   json_object_set_new(var, "value", var_val);
   json_array_append_new(ws_vars, var);
 
@@ -369,11 +388,14 @@ HISTORY:
     strcat(buff, argv[i]);
   }
   json_array_append_new(ws_hist, json_string(buff));
-  json_dump_file(workspace, WORKSPACE, JSON_COMPACT);
+  json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
 
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
+EXIT_OUTPUT:;
+  // free(ans);
+
 EXIT_OPERATION:;
   free(arr);
 

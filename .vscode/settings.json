@@ -2,7 +2,7 @@
   "cmake.debugConfig": {
     // "args": [ "-5", "-10", "-20" , "-d"],
     // "args": [ ],
-    "args": [ "-5", "-10", "6"],
+    "args": [ "-5", "-10", "5"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
@@ -18,6 +18,8 @@
     "limits": "c",
     "numeric": "c",
     "ffdist.h": "c",
-    "linspace.h": "c"
+    "linspace.h": "c",
+    "inttypes.h": "c",
+    "configs.h": "c"
   }
 }
