@@ -15,7 +15,8 @@
 #include <errno.h>
 #include <inttypes.h>
 #if defined(_WIN32)
-#include <io.h>
+// #include <sys/types.h>
+#include <sys/stat.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
