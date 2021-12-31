@@ -386,7 +386,7 @@ OUTPUT:;
   for (size_t i = 1; i < MIN(Nans, 3); ++i)
     fprintf(fout, ", %G", ans[i]);
   if (Nans > 5)
-    fprintf(fout, "... ");
+    fprintf(fout, ", ...");
   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
     fprintf(fout, ", %G", ans[i]);
   fprintf(fout, "\n");

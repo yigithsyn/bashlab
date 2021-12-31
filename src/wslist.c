@@ -212,24 +212,13 @@ OUTPUT:;
       {
         sprintf(buff, "number[%zu]", json_array_size(var_val));
         fprintf(fout, "%-15s: ", buff);
-        for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
-          fprintf(fout, "%G ", json_real_value(json_array_get(var_val, i)));
+        fprintf(fout, "%G", json_real_value(json_array_get(var_val, 0)));
+        for (size_t i = 1; i < MIN(json_array_size(var_val), 3); ++i)
+          fprintf(fout, ", %G", json_real_value(json_array_get(var_val, i)));
         if (json_array_size(var_val) > 5)
-          fprintf(fout, "... ");
+          fprintf(fout, ", ...");
         for (size_t i = MAX(MIN(json_array_size(var_val), 3), json_array_size(var_val) - 2); i < json_array_size(var_val); ++i)
-          fprintf(fout, "%G ", json_real_value(json_array_get(var_val, i)));
-        fprintf(fout, "\n");
-      }
-      else if (json_typeof(json_array_get(var_val, 0)) == JSON_STRING)
-      {
-        sprintf(buff, "string[%zu] ", json_array_size(var_val));
-        fprintf(fout, "%-15s: ", buff);
-        for (size_t i = 0; i < MIN(json_array_size(var_val), 3); ++i)
-          fprintf(fout, "\"%s\" ", json_string_value(json_array_get(var_val, i)));
-        if (json_array_size(var_val) > 5)
-          fprintf(fout, "... ");
-        for (size_t i = MAX(MIN(json_array_size(var_val), 3), json_array_size(var_val) - 2); i < json_array_size(var_val); ++i)
-          fprintf(fout, "\"%s\" ", json_string_value(json_array_get(var_val, i)));
+          fprintf(fout, ", %G", json_real_value(json_array_get(var_val, i)));
         fprintf(fout, "\n");
       }
       else
