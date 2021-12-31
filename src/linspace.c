@@ -12,7 +12,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <inttypes.h>
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
+static struct stat stat_buff;
 static json_error_t *json_error;
 static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val;
 static size_t ivar_index;
@@ -21,9 +30,9 @@ static FILE *fout;
 static size_t argcount = 0;
 static char buff[250];
 
-int_t main(int_t argc, string_t argv[])
+int main(int argc, char* argv[])
 {
-  int_t exitcode = EXIT_SUCCESS;
+  int exitcode = EXIT_SUCCESS;
   fout = stdout;
   /* buffer variables */
   json_t *workspace = NULL, *program_list = NULL;
@@ -94,8 +103,7 @@ int_t main(int_t argc, string_t argv[])
   argtable[argcount++] = versions;
   argtable[argcount] = end;
 
-  int_t arg_errors;
-  arg_errors = arg_parse(argc, argv, argtable);
+  int arg_errors = arg_parse(argc, argv, argtable);
 
   /* special case: '--help' takes precedence over error reporting */
   if (help->count > 0)
@@ -327,7 +335,7 @@ INPUT:;
 
 OPERATION:;
   number_t *arr = (number_t *)calloc(N, sizeof(number_t));
-  linspace(a, b, N, arr);
+  linspace(a, b, (int)N, arr);
 
 OUTPUT:;
   size_t Nans = N;
@@ -353,31 +361,34 @@ OUTPUT:;
   {
     json_dump_file(var_val, buff, JSON_COMPACT);
     json_array_clear(var_val);
-    for (size_t i = 0; i < BLAB_WS_ARR_LIM - 2; ++i)
+    for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
     for (size_t i = BLAB_WS_ARR_LIM - 2; i < BLAB_WS_ARR_LIM; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
   }
   else
   {
-    int_t errnum = remove(buff);
-    if (errnum != 0 && errnum == ENOENT)
+    if (stat(buff, &stat_buff) == 0)
     {
-      fprintf(stderr, "%s: Error in deleting worskpace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
-      exitcode = EXIT_FAILURE;
-      goto EXIT_OUTPUT;
+      if (remove(buff) != 0)
+      {
+        fprintf(stderr, "%s: Error in deleting worskpace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
+        exitcode = EXIT_FAILURE;
+        goto EXIT_OUTPUT;
+      }
     }
   }
   json_object_set_new(var, "value", var_val);
   json_array_append_new(ws_vars, var);
 
   /* stream */
-  for (size_t i = 0; i < MIN(Nans, 3); ++i)
-    fprintf(fout, "%G ", ans[i]);
+  fprintf(fout, "%G", ans[0]);
+  for (size_t i = 1; i < MIN(Nans, 3); ++i)
+    fprintf(fout, ", %G", ans[i]);
   if (Nans > 5)
     fprintf(fout, "... ");
   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-    fprintf(fout, "%G ", ans[i]);
+    fprintf(fout, ", %G", ans[i]);
   fprintf(fout, "\n");
 
 HISTORY:
