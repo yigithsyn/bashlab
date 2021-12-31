@@ -359,11 +359,12 @@ OUTPUT:;
   sprintf(buff, "%s_%s.json", BLAB_WS, json_string_value(json_object_get(var, "name")));
   if (Nans > BLAB_WS_ARR_LIM)
   {
+    json_object_set_new(var, "size", json_real((number_t)Nans));
     json_dump_file(var_val, buff, JSON_COMPACT);
     json_array_clear(var_val);
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
-    for (size_t i = BLAB_WS_ARR_LIM - 2; i < BLAB_WS_ARR_LIM; ++i)
+    for (size_t i = Nans - 2; i < Nans; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
   }
   else

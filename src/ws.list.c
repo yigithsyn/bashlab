@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   fout = stdout;
   /* buffer variables */
-  json_t *workspace = NULL, *program_list = NULL;
+  json_t *workspace = NULL, *workspace_val = NULL, *program_list = NULL;
   void *argtable[100];
 
   /* ======================================================================== */
@@ -210,20 +210,16 @@ OUTPUT:;
       }
       if (json_array_size(var_val) > BLAB_WS_ARR_LIM)
       {
-        sprintf(buff, "%s_%s.json", BLAB_WS, json_string_value(json_object_get(var, "name")));
-        var_val = json_load_file(buff, 0, json_error);
-        if (!var_val)
-        {
-          fprintf(stderr, "%s: large variable %s file could not be read.\n", PROGNAME, json_string_value(json_object_get(var, "name")));
-          fprintf(stderr, "Check and fix workspace.\n\n");
-          exitcode = EXIT_FAILURE;
-          goto EXIT_OUTPUT;
-        }
+        sprintf(buff, "number[%zu]", (size_t)json_real_value(json_object_get(var, "size")));
+        fprintf(fout, "%-15s: ", buff);
       }
-      if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
+      else
       {
         sprintf(buff, "number[%zu]", json_array_size(var_val));
         fprintf(fout, "%-15s: ", buff);
+      }
+      if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
+      {
         fprintf(fout, "%G", json_real_value(json_array_get(var_val, 0)));
         for (size_t i = 1; i < MIN(json_array_size(var_val), 3); ++i)
           fprintf(fout, ", %G", json_real_value(json_array_get(var_val, i)));
@@ -271,6 +267,8 @@ EXIT:
   /* dereference json objects */
   if (workspace != NULL)
     json_decref(workspace);
+  if (workspace_val != NULL)
+    json_decref(workspace_val);
   if (program_list != NULL)
     json_decref(program_list);
 
