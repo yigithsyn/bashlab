@@ -1,10 +1,10 @@
-#define PROGNAME "wslist"
-// #include "s11toswr.h"
+#define PROGNAME "ws.list"
 
 #include "argtable3.h"
 #include "jansson.h"
 
 #include "configs.h"
+#include "definitions.h"
 #include "programs.h"
 #include "macros.h"
 #include "utility.h"
@@ -206,7 +206,19 @@ OUTPUT:;
         fprintf(stderr, "%s: unsupported variable from workspace.\n", PROGNAME);
         fprintf(stderr, "Check and fix workspace.\n\n");
         exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
+        goto EXIT_OUTPUT;
+      }
+      if (json_array_size(var_val) > BLAB_WS_ARR_LIM)
+      {
+        sprintf(buff, "%s_%s.json", BLAB_WS, json_string_value(json_object_get(var, "name")));
+        var_val = json_load_file(buff, 0, json_error);
+        if (!var_val)
+        {
+          fprintf(stderr, "%s: large variable %s file could not be read.\n", PROGNAME, json_string_value(json_object_get(var, "name")));
+          fprintf(stderr, "Check and fix workspace.\n\n");
+          exitcode = EXIT_FAILURE;
+          goto EXIT_OUTPUT;
+        }
       }
       if (json_typeof(json_array_get(var_val, 0)) == JSON_REAL)
       {
@@ -226,7 +238,7 @@ OUTPUT:;
         fprintf(stderr, "%s: unsupported variable value.\n", PROGNAME);
         fprintf(stderr, "Check workspace.\n\n");
         exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
+        goto EXIT_OUTPUT;
       }
     }
   }
@@ -252,6 +264,8 @@ HISTORY:
 EXIT_OPERATION:;
 
 EXIT_INPUT:;
+
+EXIT_OUTPUT:;
 
 EXIT:
   /* dereference json objects */

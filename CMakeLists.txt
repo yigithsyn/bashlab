@@ -28,7 +28,7 @@ if(UNIX)
   set(COMMON_LINK_LIBS m jansson argtable3_static)
 endif(UNIX)
 
-set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr wslist s11toswr)
+set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr ws.list s11toswr)
 
 file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/wavelen2freq_impl.c")
 add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
@@ -54,8 +54,8 @@ add_executable(wsclr src/wsclr.c ${SOURCES} ${COMMONS})
 target_link_libraries(wsclr ${COMMON_LINK_LIBS})
 
 file(GLOB SOURCES "src/impl/no_impl*")
-add_executable(wslist src/wslist.c ${SOURCES} ${COMMONS})
-target_link_libraries(wslist ${COMMON_LINK_LIBS})
+add_executable(ws.list src/ws.list.c ${SOURCES} ${COMMONS})
+target_link_libraries(ws.list ${COMMON_LINK_LIBS})
 
 file(GLOB SOURCES "src/impl/s11toswr_impl.c") 
 add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
