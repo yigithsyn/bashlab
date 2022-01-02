@@ -374,7 +374,7 @@ OUTPUT:;
     {
       if (remove(buff) != 0)
       {
-        fprintf(stderr, "%s: Error in deleting worskpace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
+        fprintf(stderr, "%s: Error in deleting workspace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
         exitcode = EXIT_FAILURE;
         goto EXIT_OUTPUT;
       }
