@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16.3)
-project(freq2wavelen VERSION 0.1.0)
+project(bashlab VERSION 0.1.0)
 
 
 if (WIN32)
@@ -12,27 +12,23 @@ endif(WIN32)
 
 # commons
 include_directories("include")
+
+set(LIB_ARGTABLE_DIR "${bashlab_SOURCE_DIR}/libs/argtable-v3.2.1.52f24e5")
+set(LIB_JANSSON_DIR "${bashlab_SOURCE_DIR}/libs/jansson-2.14")
+
 if(WIN32)
   include_directories($ENV{USERPROFILE}/AppData/Local/include) 
   link_directories($ENV{USERPROFILE}/AppData/Local/lib)
-endif(WIN32)
-if(UNIX)
-include_directories("libs/argtable-v3.2.1.52f24e5/dist/")
-include_directories("libs/jansson-2.14/build/include/")
-endif(UNIX)
-set(LIB_ARGTABLE_DIR "libs/argtable-v3.2.1.52f24e5")
-set(LIB_JANSSON_DIR "libs/jansson-2.14")
-if(UNIX)
-  link_directories("${LIB_JANSSON_DIR}/build/lib/")
-  link_directories("${LIB_ARGTABLE_DIR}/build/src/")
-endif(UNIX)
 
-if(WIN32)
   set(COMMON_LINK_LIBS_DEBUG jansson_d argtable3d)
   set(COMMON_LINK_LIBS_OPTIM jansson argtable3)
 endif(WIN32)
+
 if(UNIX)
-  set(COMMON_LINK_LIBS m jansson argtable3_static)
+  include_directories("/usr/local/include/")
+
+  set(COMMON_LINK_LIBS_DEBUG "${LIB_JANSSON_DIR}/build/lib/jansson" "${LIB_ARGTABLE_DIR}/build/src/argtable3" m) 
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 m) 
 endif(UNIX)
 
 set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr ws.list s11toswr)

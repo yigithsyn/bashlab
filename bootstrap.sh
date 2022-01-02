@@ -15,8 +15,10 @@ if [ "$1" != "build" ]; then
   cd libs/argtable-v3.2.1.52f24e5
   mkdir build
   cd build
-  cmake ..
+  cmake -DBUILD_SHARED_LIBS=ON ..
+  cmake --build . --config Debug
   cmake --build . --config Release
+  cmake --install . --prefix /usr/local
   cd ../../..
 
   echo "Jansson: C library for encoding, decoding and manipulating JSON data"
@@ -25,10 +27,10 @@ if [ "$1" != "build" ]; then
   cd libs/jansson-2.14
   mkdir build
   cd build
-  cmake -DJANSSON_BUILD_DOCS=OFF ..
-  # make
-  # make check
+  cmake -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON ..
+  cmake --build . --config Debug
   cmake --build . --config Release
+  cmake --install . --prefix /usr/local
   cd ../../..
 
   echo "algo: Simple algorithms"
@@ -43,7 +45,9 @@ if [ "$1" != "build" ]; then
   mkdir build_dir
   cd build_dir
   cmake -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON ..
+  cmake --build . --config Debug
   cmake --build . --config Release
+  cmake --install . --prefix /usr/local
   cd ../../..
 
 fi
