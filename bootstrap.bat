@@ -69,7 +69,9 @@ CD libs\civetweb-1.15
 MKDIR build_dir
 CD build_dir
 "%cmake_path%" -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+DEL /F %USERPROFILE%\AppData\Local\bin\civetwebd.dll
 "%cmake_path%" --build . --target INSTALL --config Debug
+REN %USERPROFILE%\AppData\Local\bin\civetweb.dll civetwebd.dll
 "%cmake_path%" --build . --target INSTALL --config Release
 CD ../../..
 @REM RMDIR /Q /S libs\civetweb-1.15
