@@ -13,9 +13,6 @@ endif(WIN32)
 # commons
 include_directories("include")
 
-set(LIB_ARGTABLE_DIR "${bashlab_SOURCE_DIR}/libs/argtable-v3.2.1.52f24e5")
-set(LIB_JANSSON_DIR "${bashlab_SOURCE_DIR}/libs/jansson-2.14") 
-
 if(WIN32)
   include_directories($ENV{USERPROFILE}/AppData/Local/include) 
   link_directories($ENV{USERPROFILE}/AppData/Local/lib)
@@ -27,8 +24,7 @@ endif(WIN32)
 if(UNIX)
   include_directories("/usr/local/include/")
  
-  # set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
-  set(COMMON_LINK_LIBS_DEBUG ${LIB_JANSSON_DIR}/build/lib/jansson ${LIB_ARGTABLE_DIR}/build/src/argtable3 m)
+  set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
   set(COMMON_LINK_LIBS_OPTIM jansson argtable3 m) 
 endif(UNIX)
 message(STATUS ${COMMON_LINK_LIBS_DEBUG})
