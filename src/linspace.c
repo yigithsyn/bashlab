@@ -353,6 +353,8 @@ INPUT:;
     /* process variable */
     N = (size_t)json_integer_value(json_array_get(var_val, 0));
   }
+
+  /* operational check */
   if (N < 2)
   {
     fprintf(stderr, "%s: N should be at least 2.\n", PROGNAME);
