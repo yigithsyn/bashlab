@@ -2,8 +2,24 @@
 #define H_UTILITY
 
 #include <string.h>
+#include <stdbool.h>
 
-char isnumber(const char *str)
+
+bool isinteger(const char *str)
+{
+  /* How to check if a string is a number? */
+  /* https://stackoverflow.com/a/58585995/13305144 */
+  int decpos = -1, pmpos = -1, engpos = strlen(str) - 1, epmpos = strlen(str) - 1;
+  for (int i = 0; i < strlen(str); i++)
+    /* check if it is integer */
+    if (str[i] > 47 && str[i] < 58)
+      continue;
+    else
+      return false;
+  return true;
+}
+
+bool isnumber(const char *str)
 {
   /* How to check if a string is a number? */
   /* https://stackoverflow.com/a/58585995/13305144 */
@@ -37,8 +53,8 @@ char isnumber(const char *str)
       continue;
     }
     else
-      return 0;
-  return 1;
+      return false;
+  return true;
 }
 
 #endif

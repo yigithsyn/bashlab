@@ -21,6 +21,7 @@
     "ffdist.h": "c",
     "linspace.h": "c",
     "inttypes.h": "c",
-    "configs.h": "c"
+    "configs.h": "c",
+    "utility.h": "c"
   }
 }

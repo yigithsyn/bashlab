@@ -40,14 +40,15 @@ set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr ws.list s1
 # target_link_libraries(freq2wavelen debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 # target_link_libraries(wavelen2freq debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 
-file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/ffdist_impl.c")
-add_executable(ffdist src/ffdist.c ${SOURCES} ${COMMONS})
-target_link_libraries(ffdist debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
+# file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/ffdist_impl.c")
+# add_executable(ffdist src/ffdist.c ${SOURCES} ${COMMONS})
+# target_link_libraries(ffdist debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 
-# file(GLOB SOURCES "libs/algo/linspace.c")
-# add_executable(linspace src/linspace.c ${SOURCES} ${COMMONS})
-# target_include_directories(linspace PUBLIC "libs/algo")
-# target_link_libraries(linspace debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
+file(GLOB SOURCES "libs/algo/linspace.c")
+add_executable(linspace src/linspace.c ${SOURCES} ${COMMONS})
+target_include_directories(linspace PUBLIC "libs/algo")
+target_link_libraries(linspace debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS linspace CONFIGURATIONS Release) 
 
 # file(GLOB SOURCES "src/impl/no_impl*")
 # add_executable(wsset src/wsset.c ${SOURCES} ${COMMONS})
@@ -64,5 +65,3 @@ target_link_libraries(ffdist debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_
 # file(GLOB SOURCES "src/impl/s11toswr_impl.c") 
 # add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
 # target_link_libraries(s11toswr debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
-
-# install(TARGETS ${ALL_TARGETS} CONFIGURATIONS Release) 
