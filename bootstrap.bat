@@ -20,7 +20,7 @@ tar -xf libs\argtable-v3.2.1.52f24e5.tar.gz --directory libs\
 CD libs\argtable-v3.2.1.52f24e5
 MKDIR build
 CD build
-cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 cmake.exe --build . --target INSTALL --config Debug
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
@@ -34,7 +34,7 @@ tar -xvf libs\jansson-2.14.tar.gz --directory libs\
 CD libs\jansson-2.14
 MKDIR build
 CD build
-cmake.exe -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+cmake.exe -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 cmake.exe --build . --target INSTALL --config Debug
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
@@ -51,7 +51,7 @@ tar -xvf libs\civetweb-1.15.tar.gz --directory libs\
 CD libs\civetweb-1.15
 MKDIR build_dir
 CD build_dir
-cmake.exe -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+cmake.exe -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 DEL /F %USERPROFILE%\AppData\Local\bin\civetwebd.dll
 cmake.exe --build . --target INSTALL --config Debug
 REN %USERPROFILE%\AppData\Local\bin\civetweb.dll civetwebd.dll
@@ -68,7 +68,7 @@ ECHO [INFO] Building ...
 ECHO ============================
 CD build
 
-cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 
 :install
 ECHO ============================
