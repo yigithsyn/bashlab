@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
   struct arg_str *arg_b = (struct arg_str *)argtable[1];
   struct arg_str *arg_N = (struct arg_str *)argtable[2];
 
-INPUT:;
+INPUTT:;
   /* a */
   number_t a;
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), arg_a->sval[0]) == 0) break;
@@ -232,14 +232,6 @@ INPUT:;
     var_name = json_object_get(ivar, "name");
     var_size = json_object_get(ivar, "size");
     var_val = json_object_get(ivar, "value");
-    /* validity check */
-    if (var_val == NULL || var_size == NULL || json_typeof(var_val) != JSON_ARRAY || json_typeof(var_size) != JSON_ARRAY)
-    {
-      fprintf(stderr, "%s: invalid workspace variable: %s.\n", PROGNAME, json_string_value(var_name));
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
     /* size check */
     if (json_array_size(var_size) != 1 || json_integer_value(json_array_get(var_size, 0)) != 1)
     {
@@ -266,7 +258,7 @@ INPUT:;
   if (ivar_index == json_array_size(ws_vars))
     if (!isnumber(arg_b->sval[0]))
     {
-      fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, arg_b->sval[0]);
+      fprintf(stderr, "%s: %s should be number.\n", PROGNAME, arg_b->sval[0]);
       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT_INPUT;
@@ -278,14 +270,6 @@ INPUT:;
     var_name = json_object_get(ivar, "name");
     var_size = json_object_get(ivar, "size");
     var_val = json_object_get(ivar, "value");
-    /* validity check */
-    if (var_val == NULL || var_size == NULL || json_typeof(var_val) != JSON_ARRAY || json_typeof(var_size) != JSON_ARRAY)
-    {
-      fprintf(stderr, "%s: invalid workspace variable: %s.\n", PROGNAME, json_string_value(var_name));
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
     /* size check */
     if (json_array_size(var_size) != 1 || json_integer_value(json_array_get(var_size, 0)) != 1)
     {
@@ -297,7 +281,7 @@ INPUT:;
     /* type check */
     if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
     {
-      fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+      fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT_INPUT;
@@ -326,14 +310,6 @@ INPUT:;
     var_name = json_object_get(ivar, "name");
     var_size = json_object_get(ivar, "size");
     var_val = json_object_get(ivar, "value");
-    /* validity check */
-    if (var_val == NULL || var_size == NULL || json_typeof(var_val) != JSON_ARRAY || json_typeof(var_size) != JSON_ARRAY)
-    {
-      fprintf(stderr, "%s: invalid workspace variable: %s.\n", PROGNAME, json_string_value(var_name));
-      fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
     /* size check */
     if (json_array_size(var_size) != 1 || json_integer_value(json_array_get(var_size, 0)) != 1)
     {
@@ -343,15 +319,15 @@ INPUT:;
       goto EXIT_INPUT;
     }
     /* type check */
-    if (json_typeof(json_array_get(var_val, 0)) != JSON_INTEGER)
+    if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
     {
-      fprintf(stderr, "%s: %s should be integer number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+      fprintf(stderr, "%s: %s should be number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
       fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
       exitcode = EXIT_FAILURE;
       goto EXIT_INPUT;
     }
     /* process variable */
-    N = (size_t)json_integer_value(json_array_get(var_val, 0));
+    N = (size_t)json_real_value(json_array_get(var_val, 0));
   }
 
   /* operational check */
@@ -394,6 +370,17 @@ OUTPUT:;
   {
     json_dump_file(var_val, buff, JSON_COMPACT);
     json_array_clear(var_val);
+    // FILE *f = fopen(buff, "wb");
+    // fwrite(ans, sizeof(number_t), Nans, f);
+    // fclose(f);
+    // number_t *ans_read = (number_t *)calloc(Nans, sizeof(number_t));
+    // Sleep(10000);
+    // FILE *ifp = fopen(buff, "r"); 
+    // fread(ans_read, sizeof(number_t), Nans, ifp);
+    // fclose(ifp);
+    // for (size_t i = 0; i < Nans; ++i)
+    //   printf("%.16f %.16f %.16f\n", ans[i], ans_read[i], ans[i]-ans_read[i]);
+    // free(ans_read);
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
     for (size_t i = Nans - 2; i < Nans; ++i)
@@ -410,6 +397,9 @@ OUTPUT:;
         goto EXIT_OUTPUT;
       }
     }
+    // /* append results */
+    // for (size_t i = 0; i < Nans; ++i)
+    //   json_array_append_new(var_val, json_real(ans[i]));
   }
   json_object_set_new(var, "value", var_val);
   json_array_append_new(ws_vars, var);
