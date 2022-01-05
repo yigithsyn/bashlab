@@ -367,7 +367,7 @@ OUTPUT:;
   {
     FILE *f = fopen(buff, "w");
     for (size_t i = 0; i < Nans; ++i)
-      fprintf(f, "%.16f\n", ans[i]);
+      fprintf(f, "%.16E\n", ans[i]);
     fclose(f);
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
