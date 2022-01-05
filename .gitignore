@@ -1,4 +1,5 @@
 test/workspace*.json
+test/workspace*.txt
 build
 libs
 # Prerequisites

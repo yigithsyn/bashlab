@@ -359,28 +359,16 @@ OUTPUT:;
   var = json_object();
   json_object_set_new(var, "name", json_string(buff));
   var_val = json_array();
-  /* append results */
-  for (size_t i = 0; i < Nans; ++i)
-    json_array_append_new(var_val, json_real(ans[i]));
   /* write out large arrays seperately */
-  sprintf(buff, "%s_%s.json", BLAB_WS_WO_EXT, json_string_value(json_object_get(var, "name")));
+  sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(json_object_get(var, "name")));
   json_object_set_new(var, "size", json_array());
   json_array_append_new(json_object_get(var, "size"), json_integer(Nans));
   if (Nans > BLAB_WS_ARR_LIM)
   {
-    json_dump_file(var_val, buff, JSON_COMPACT);
-    json_array_clear(var_val);
-    // FILE *f = fopen(buff, "wb");
-    // fwrite(ans, sizeof(number_t), Nans, f);
-    // fclose(f);
-    // number_t *ans_read = (number_t *)calloc(Nans, sizeof(number_t));
-    // Sleep(10000);
-    // FILE *ifp = fopen(buff, "r"); 
-    // fread(ans_read, sizeof(number_t), Nans, ifp);
-    // fclose(ifp);
-    // for (size_t i = 0; i < Nans; ++i)
-    //   printf("%.16f %.16f %.16f\n", ans[i], ans_read[i], ans[i]-ans_read[i]);
-    // free(ans_read);
+    FILE *f = fopen(buff, "w");
+    for (size_t i = 0; i < Nans; ++i)
+      fprintf(f, "%.16f\n", ans[i]);
+    fclose(f);
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
     for (size_t i = Nans - 2; i < Nans; ++i)
@@ -397,21 +385,21 @@ OUTPUT:;
         goto EXIT_OUTPUT;
       }
     }
-    // /* append results */
-    // for (size_t i = 0; i < Nans; ++i)
-    //   json_array_append_new(var_val, json_real(ans[i]));
+    /* append results */
+    for (size_t i = 0; i < Nans; ++i)
+      json_array_append_new(var_val, json_real(ans[i]));
   }
   json_object_set_new(var, "value", var_val);
   json_array_append_new(ws_vars, var);
 
   /* stream */
-  fprintf(fout, "%G", ans[0]);
+  fprintf(fout, "%.16G", ans[0]);
   for (size_t i = 1; i < MIN(Nans, 3); ++i)
-    fprintf(fout, ", %G", ans[i]);
+    fprintf(fout, ", %.16G", ans[i]);
   if (Nans > 5)
     fprintf(fout, ", ...");
   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-    fprintf(fout, ", %G", ans[i]);
+    fprintf(fout, ", %.16G", ans[i]);
   fprintf(fout, "\n");
 
 HISTORY:
