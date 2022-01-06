@@ -363,11 +363,6 @@ OUTPUT:;
       timespec_get(&toc, TIME_UTC);
       fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
     }
-    if (verbose->count)
-    {
-      fprintf(stdout, "Output: Workspace: ... ");
-      timespec_get(&tic, TIME_UTC);
-    }
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
     for (size_t i = Nans - 2; i < Nans; ++i)
@@ -375,11 +370,6 @@ OUTPUT:;
   }
   else
   {
-    if (verbose->count)
-    {
-      fprintf(stdout, "Output: Workspace: ... ");
-      timespec_get(&tic, TIME_UTC);
-    }
     if (stat(buff, &stat_buff) == 0)
     {
       if (remove(buff) != 0)
@@ -405,11 +395,6 @@ HISTORY:
   }
   json_array_append_new(ws_hist, json_string(buff));
   json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
-  if (verbose->count)
-  {
-    timespec_get(&toc, TIME_UTC);
-    fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
-  }
 
 STDOUT:
   /* stream */

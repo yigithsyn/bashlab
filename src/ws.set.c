@@ -1,10 +1,9 @@
-#define PROGNAME "linspace"
+#define PROGNAME "ws.set"
 static const char *program_json =
     "{"
     "\"name\": \"ws.set\","
     "\"desc\": \"sets worskpace variable\","
     "\"pargs\": ["
-    /*        */ "{\"name\":\"var\", \"minc\":1, \"maxc\":1, \"desc\":\"variable name\"},"
     /*        */ "{\"name\":\"val(s)\", \"minc\":1, \"maxc\":100, \"desc\":\"values to be set\"}"
     /*       */ "],"
     "\"oargs\": ["
@@ -180,8 +179,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* main operation                                                           */
   /* ======================================================================== */
-  struct arg_str *arg_var = (struct arg_str *)argtable[0];
-  struct arg_str *arg_val = (struct arg_str *)argtable[1];
+  struct arg_str *arg_val = (struct arg_str *)argtable[0];
 
 INPUTT:;
   /* a */
@@ -211,7 +209,7 @@ INPUTT:;
         valn[N++] = atof(arg_val->sval[i]);
       else
       {
-        vals[N] = malloc(strlen(arg_val->sval[i]) * sizeof(char_t));
+        vals[N] = malloc((strlen(arg_val->sval[i]) + 1) * sizeof(char_t));
         strcpy(vals[N++], arg_val->sval[i]);
       }
     }
@@ -232,7 +230,7 @@ INPUTT:;
       if (!isvalnumberdet)
       {
         isvalnumberdet = true;
-        isvalnumber = isnumber(arg_val->sval[i]);
+        isvalnumber = json_typeof(json_array_get(var_val, 0)) == JSON_REAL;
       }
       if ((isvalnumber && json_typeof(json_array_get(var_val, 0)) != JSON_REAL) || (!isvalnumber && json_typeof(json_array_get(var_val, 0)) != JSON_STRING))
       {
@@ -242,52 +240,38 @@ INPUTT:;
         goto EXIT_INPUT;
       }
       /* process variable */
-      // a = json_real_value(json_array_get(var_val, 0));
+      for (int j = 0; j < json_array_size(var_val); ++j)
+      {
+        if (N >= Nmax)
+        {
+          Nmax *= 2;
+          if (isvalnumber)
+            valn = realloc(valn, sizeof(number_t) * Nmax);
+          else
+            vals = realloc(vals, sizeof(string_t) * Nmax);
+        }
+        if (isvalnumber)
+          valn[N++] = json_real_value(json_array_get(var_val, j));
+        else
+        {
+          vals[N] = malloc((strlen(arg_val->sval[i]) + 1) * sizeof(char_t));
+          strcpy(vals[N++], json_string_value(json_array_get(var_val, j)));
+        }
+      }
     }
   }
 
-  /* operational check */
-  // if (N < 2)
-  // {
-  //   fprintf(stderr, "%s: N should be at least 2.\n", PROGNAME);
-  //   fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-  //   exitcode = EXIT_FAILURE;
-  //   goto EXIT_INPUT;
-  // }
-
-  printf("%d\n", isvalnumber);
-  printf("%d\n", N);
-  if (isvalnumber)
-    for (size_t i = 0; i < N; i++)
-      printf("%f\n", valn[i]);
-  else
-    for (size_t i = 0; i < N; i++)
-      printf("%s\n", vals[i]);
-
 OPERATION:;
-  // number_t *arr = (number_t *)calloc(N, sizeof(number_t));
-  // if (verbose->count)
-  // {
-  //   fprintf(stdout, "Operation: ... ");
-  //   timespec_get(&tic, TIME_UTC);
-  // }
-  // // linspace(a, b, (int)N, arr);
-  // if (verbose->count)
-  // {
-  //   timespec_get(&toc, TIME_UTC);
-  //   fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
-  // }
 
 OUTPUT:;
   size_t Nans = N;
-  number_t *ansn = valn;
+  number_t *ans = valn;
   string_t *anss = vals;
   /* workspace */
-  // if (ws_out->count)
-  //   strcpy(buff, ws_out->sval[0]);
-  // else
-  //   strcpy(buff, "ans");
-  strcpy(buff, arg_var->sval[0]);
+  if (ws_out->count)
+    strcpy(buff, ws_out->sval[0]);
+  else
+    strcpy(buff, "ans");
   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
   /* delete existing */
   if (ivar_index != json_array_size(ws_vars))
@@ -310,7 +294,7 @@ OUTPUT:;
     FILE *f = fopen(buff, "w");
     for (size_t i = 0; i < Nans; ++i)
       if (isvalnumber)
-        fprintf(f, "%.16E\n", ansn[i]);
+        fprintf(f, "%.16E\n", ans[i]);
       else
         fprintf(f, "%s\n", anss[i]);
     fclose(f);
@@ -319,29 +303,19 @@ OUTPUT:;
       timespec_get(&toc, TIME_UTC);
       fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
     }
-    if (verbose->count)
-    {
-      fprintf(stdout, "Output: Workspace: ... ");
-      timespec_get(&tic, TIME_UTC);
-    }
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       if (isvalnumber)
-        json_array_append_new(var_val, json_real(ansn[i]));
+        json_array_append_new(var_val, json_real(ans[i]));
       else
         json_array_append_new(var_val, json_string(anss[i]));
     for (size_t i = Nans - 2; i < Nans; ++i)
       if (isvalnumber)
-        json_array_append_new(var_val, json_real(ansn[i]));
+        json_array_append_new(var_val, json_real(ans[i]));
       else
         json_array_append_new(var_val, json_string(anss[i]));
   }
   else
   {
-    if (verbose->count)
-    {
-      fprintf(stdout, "Output: Workspace: ... ");
-      timespec_get(&tic, TIME_UTC);
-    }
     if (stat(buff, &stat_buff) == 0)
     {
       if (remove(buff) != 0)
@@ -354,7 +328,7 @@ OUTPUT:;
     /* append results */
     for (size_t i = 0; i < Nans; ++i)
       if (isvalnumber)
-        json_array_append_new(var_val, json_real(ansn[i]));
+        json_array_append_new(var_val, json_real(ans[i]));
       else
         json_array_append_new(var_val, json_string(anss[i]));
   }
@@ -370,22 +344,31 @@ HISTORY:
   }
   json_array_append_new(ws_hist, json_string(buff));
   json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
-  if (verbose->count)
-  {
-    timespec_get(&toc, TIME_UTC);
-    fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
-  }
 
 STDOUT:
-  /* stream */
-  // fprintf(fout, "%.16G", ans[0]);
-  // for (size_t i = 1; i < MIN(Nans, 3); ++i)
-  //   fprintf(fout, ", %.16G", ans[i]);
-  // if (Nans > 5)
-  //   fprintf(fout, ", ...");
-  // for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-  //   fprintf(fout, ", %.16G", ans[i]);
-  // fprintf(fout, "\n");
+  fprintf(fout, "%-10s: ", ws_out->count ? ws_out->sval[0] : "ans");
+  fprintf(fout, "%s[%zu]:\t", isvalnumber ? "number" : "string", Nans);
+  if (isvalnumber)
+  {
+    fprintf(fout, "%.16G", ans[0]);
+    for (size_t i = 1; i < MIN(Nans, 3); ++i)
+      fprintf(fout, ", %.16G", ans[i]);
+    if (Nans > 5)
+      fprintf(fout, ", ...");
+    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+      fprintf(fout, ", %.16G", ans[i]);
+    fprintf(fout, "\n");
+  }
+  else{
+    fprintf(fout, "%s", anss[0]);
+    for (size_t i = 1; i < MIN(Nans, 3); ++i)
+      fprintf(fout, ", %s", anss[i]);
+    if (Nans > 5)
+      fprintf(fout, ", ...");
+    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+      fprintf(fout, ", %s", anss[i]);
+    fprintf(fout, "\n");
+  }
 
 /* ======================================================================== */
 /* exit                                                                     */
