@@ -3,7 +3,9 @@
     // "args": [ "-5", "-10", "-20" , "-d"],
     // "args": [ ],
     // "args": [ "--help" ],
-    "args": [ "-5", "-10", "50001", "--verbose"],
+    // "args": [ "-5", "-10", "50001", "--verbose"],
+    // "args": [ "a", "5", "11.1", "-2.3", "--verbose"],
+    "args": [ "a", "aa", "bb", "cc", "--verbose"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
