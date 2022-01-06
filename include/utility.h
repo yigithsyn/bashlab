@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 
 bool isinteger(const char *str)
@@ -55,6 +56,11 @@ bool isnumber(const char *str)
     else
       return false;
   return true;
+}
+
+unsigned long difftime_ms(struct timespec *start, struct timespec *end){
+  double duration = (((double)end->tv_sec*1e9 + end->tv_nsec) - ((double)start->tv_sec*1e9 + start->tv_nsec));
+  return (unsigned long)(duration/1E6);
 }
 
 #endif

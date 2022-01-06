@@ -3,7 +3,7 @@
     // "args": [ "-5", "-10", "-20" , "-d"],
     // "args": [ ],
     // "args": [ "--help" ],
-    "args": [ "-5", "-10", "50001"],
+    "args": [ "-5", "-10", "50001", "--verbose"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
