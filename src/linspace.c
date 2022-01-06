@@ -3,12 +3,6 @@ static const char *program_json =
     "{"
     "\"name\": \"linspace\","
     "\"desc\": \"generate linearly spaced array\","
-    "\"vers\": ["
-    /*        */ "{\"num\":\"1.0.0\", \"msg\":\"initial release\"},"
-    /*        */ "{\"num\":\"1.0.1\", \"msg\":\"minimum interval number check\"},"
-    /*        */ "{\"num\":\"1.1.0\", \"msg\":\"print large arrays into file\"},"
-    /*        */ "{\"num\":\"2.0.0\", \"msg\":\"integer number of points parsing\"}"
-    /*      */ "],"
     "\"pargs\": ["
     /*        */ "{\"name\":\"a\", \"minc\":1, \"maxc\":1, \"desc\":\"starting value of the sequence\"},"
     /*        */ "{\"name\":\"b\", \"minc\":1, \"maxc\":1, \"desc\":\"end value of the seqeunce (included)\"},"
@@ -108,13 +102,9 @@ int main(int argc, char *argv[])
   /* commong arg structs */
   struct arg_str *ws_out = arg_str0("o", "out", "name", "workspace output variable name");
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
-  struct arg_lit *version = arg_lit0(NULL, "version", "display version number_t and exit");
-  struct arg_lit *versions = arg_lit0(NULL, "versions", "display all version infos and exit");
   struct arg_end *end = arg_end(20);
   argtable[argcount++] = ws_out;
   argtable[argcount++] = help;
-  argtable[argcount++] = version;
-  argtable[argcount++] = versions;
   argtable[argcount] = end;
 
   int arg_errors = arg_parse(argc, argv, argtable);
@@ -126,26 +116,6 @@ int main(int argc, char *argv[])
     printf("Usage: %s", PROGNAME);
     arg_print_syntaxv(stdout, argtable, "\n\n");
     arg_print_glossary(stdout, argtable, "  %-25s %s\n");
-    goto EXIT;
-  }
-
-  /* special case: '--version' takes precedence over error reporting */
-  if (version->count > 0)
-  {
-    json_t *vers = json_object_get(program, "vers");
-    json_t *last_ver = json_array_get(vers, json_array_size(vers) - 1);
-    printf("%s\n", json_string_value(json_object_get(last_ver, "num")));
-    goto EXIT;
-  }
-
-  /* special case: '--versions' takes precedence over error reporting */
-  if (versions->count > 0)
-  {
-    json_t *vers = json_object_get(program, "vers");
-    json_array_foreach(vers, ivar_index, ivar)
-    {
-      printf("%s: %s\n", json_string_value(json_object_get(ivar, "num")), json_string_value(json_object_get(ivar, "msg")));
-    }
     goto EXIT;
   }
 
