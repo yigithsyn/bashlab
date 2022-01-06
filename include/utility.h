@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-
 bool isinteger(const char *str)
 {
   /* How to check if a string is a number? */
@@ -58,9 +57,18 @@ bool isnumber(const char *str)
   return true;
 }
 
-unsigned long difftime_ms(struct timespec *start, struct timespec *end){
-  double duration = (((double)end->tv_sec*1e9 + end->tv_nsec) - ((double)start->tv_sec*1e9 + start->tv_nsec));
-  return (unsigned long)(duration/1E6);
+/* chronometer */
+static struct timespec t_start, t_end;
+unsigned long tic()
+{
+  timespec_get(&t_start, TIME_UTC);
+  return 0;
+}
+unsigned long toc()
+{
+  timespec_get(&t_end, TIME_UTC);
+  double duration = (((double)t_end.tv_sec * 1e9 + t_end.tv_nsec) - ((double)t_start.tv_sec * 1e9 + t_start.tv_nsec));
+  return (unsigned long)(duration / 1E6);
 }
 
 #endif

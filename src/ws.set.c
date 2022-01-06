@@ -26,14 +26,12 @@ static const char *program_json =
 #include <errno.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include <time.h>
 #if defined(_WIN32)
 #else
 #include <unistd.h>
 #endif
 
 static struct stat stat_buff;
-static struct timespec tic, toc;
 static json_error_t *json_error;
 static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
 static size_t ivar_index;
@@ -287,10 +285,7 @@ OUTPUT:;
   if (Nans > BLAB_WS_ARR_LIM)
   {
     if (verbose->count)
-    {
-      fprintf(stdout, "Output: File: ... ");
-      timespec_get(&tic, TIME_UTC);
-    }
+      fprintf(stdout, "Output: File: %ld ... ", tic());
     FILE *f = fopen(buff, "w");
     for (size_t i = 0; i < Nans; ++i)
       if (isvalnumber)
@@ -299,10 +294,7 @@ OUTPUT:;
         fprintf(f, "%s\n", anss[i]);
     fclose(f);
     if (verbose->count)
-    {
-      timespec_get(&toc, TIME_UTC);
-      fprintf(stdout, "%ld [ms]\n", difftime_ms(&tic, &toc));
-    }
+      fprintf(stdout, "%ld [ms]\n", toc());
     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
       if (isvalnumber)
         json_array_append_new(var_val, json_real(ans[i]));
@@ -359,7 +351,8 @@ STDOUT:
       fprintf(fout, ", %.16G", ans[i]);
     fprintf(fout, "\n");
   }
-  else{
+  else
+  {
     fprintf(fout, "%s", anss[0]);
     for (size_t i = 1; i < MIN(Nans, 3); ++i)
       fprintf(fout, ", %s", anss[i]);
