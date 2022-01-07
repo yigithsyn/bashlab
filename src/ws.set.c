@@ -238,22 +238,42 @@ INPUTT:;
         goto EXIT_INPUT;
       }
       /* process variable */
-      for (int j = 0; j < json_array_size(var_val); ++j)
+      Nmax = N + json_integer_value(json_array_get(var_size, 0));
+      if (isvalnumber)
+        valn = realloc(valn, sizeof(number_t) * Nmax);
+      else
+        vals = realloc(vals, sizeof(string_t) * Nmax);
+      if (json_integer_value(json_array_get(var_size, 0)) > BLAB_WS_ARR_LIM)
       {
-        if (N >= Nmax)
-        {
-          Nmax *= 2;
-          if (isvalnumber)
-            valn = realloc(valn, sizeof(number_t) * Nmax);
-          else
-            vals = realloc(vals, sizeof(string_t) * Nmax);
-        }
+        sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
         if (isvalnumber)
-          valn[N++] = json_real_value(json_array_get(var_val, j));
+        {
+          number_t *arr = (number_t *)calloc(Nmax, sizeof(number_t));
+          read_number_data_file(buff, arr);
+          for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
+          {
+            valn[N++] = arr[j];
+          }
+          free(arr);
+        }
         else
         {
-          vals[N] = malloc((strlen(arg_val->sval[i]) + 1) * sizeof(char_t));
-          strcpy(vals[N++], json_string_value(json_array_get(var_val, j)));
+          fprintf(stderr, "%s: not implemented.\n", PROGNAME);
+          exitcode = EXIT_FAILURE;
+          goto EXIT_INPUT;
+        }
+      }
+      else
+      {
+        for (int j = 0; j < json_array_size(var_val); ++j)
+        {
+          if (isvalnumber)
+            valn[N++] = json_real_value(json_array_get(var_val, j));
+          else
+          {
+            vals[N] = malloc((strlen(arg_val->sval[i]) + 1) * sizeof(char_t));
+            strcpy(vals[N++], json_string_value(json_array_get(var_val, j)));
+          }
         }
       }
     }
@@ -372,7 +392,7 @@ EXIT_OPERATION:;
 
 EXIT_INPUT:;
   free(valn);
-  free(vals);
+  // free(vals);
 
 EXIT:
   /* dereference json objects */

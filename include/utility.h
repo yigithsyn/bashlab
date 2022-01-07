@@ -1,6 +1,8 @@
 #ifndef H_UTILITY
 #define H_UTILITY
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
@@ -70,5 +72,24 @@ unsigned long toc()
   double duration = (((double)t_end.tv_sec * 1e9 + t_end.tv_nsec) - ((double)t_start.tv_sec * 1e9 + t_start.tv_nsec));
   return (unsigned long)(duration / 1E6);
 }
+
+/* read workspace data */
+int read_number_data_file(const char *filename, number_t *arr)
+{
+  FILE *fp;
+  size_t len = 100;
+  char line[100];
+  fp = fopen(filename, "r");
+  if (fp == NULL)
+    return EXIT_FAILURE;
+
+  size_t i = 0;
+  while (fgets(line, len, fp))
+    arr[i++] = atof(line);
+
+  fclose(fp);
+  return EXIT_SUCCESS;
+}
+
 
 #endif
