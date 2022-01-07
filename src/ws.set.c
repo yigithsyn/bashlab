@@ -251,9 +251,7 @@ INPUTT:;
           number_t *arr = (number_t *)calloc(Nmax, sizeof(number_t));
           read_number_data_file(buff, arr);
           for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
-          {
             valn[N++] = arr[j];
-          }
           free(arr);
         }
         else
@@ -265,7 +263,7 @@ INPUTT:;
       }
       else
       {
-        for (int j = 0; j < json_array_size(var_val); ++j)
+        for (size_t j = 0; j < json_array_size(var_val); ++j)
         {
           if (isvalnumber)
             valn[N++] = json_real_value(json_array_get(var_val, j));
