@@ -27,7 +27,6 @@ if(UNIX)
   set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
   set(COMMON_LINK_LIBS_OPTIM jansson argtable3 m) 
 endif(UNIX)
-set(ALL_TARGETS freq2wavelen wavelen2freq ffdist linspace wsset wsclr ws.list s11toswr)
 
 file(GLOB SOURCES "libs/algo/linspace.c")
 add_executable(linspace src/linspace.c ${SOURCES} ${COMMONS})
