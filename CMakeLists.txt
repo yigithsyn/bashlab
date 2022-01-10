@@ -49,6 +49,11 @@ add_executable(ws.clr src/ws.clr.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.clr debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ws.clr CONFIGURATIONS Release) 
 
+file(GLOB SOURCES "src/impl/no_impl*")
+add_executable(ams2nsi src/ams2nsi.c ${SOURCES} ${COMMONS})
+target_link_libraries(ams2nsi debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS ams2nsi CONFIGURATIONS Release) 
+
 # file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/wavelen2freq_impl.c")
 # add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
 # add_executable(wavelen2freq src/wavelen2freq.c ${SOURCES} ${COMMONS})

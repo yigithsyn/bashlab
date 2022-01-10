@@ -1,7 +1,7 @@
 {
   "cmake.debugConfig": {
     // "args": [ "-5", "-10", "-20" , "-d"],
-    "args": [ ],
+    "args": ["20211227_MGR-SSR_SumPort_1.02-1.11GHz.csv", "--verbose"],
     // "args": [ "--help" ],
     // "args": [ "-5", "-10", "50001", "--verbose"],
     // "args": [ "a", "5", "11.1", "-2.3", "--verbose"],
