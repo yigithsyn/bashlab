@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   fout = stdout;
   /* buffer variables */
-  json_t *workspace = NULL, *program_list = NULL;
+  json_t *workspace = NULL, *program = NULL;
   void *argtable[100];
 
   /* ======================================================================== */
   /* fetch program definitions                                                */
   /* ======================================================================== */
-  json_t *program = json_loads(program_json, 0, json_error);
+  program = json_loads(program_json, 0, json_error);
 
   /* ======================================================================== */
   /* argument parse                                                           */
@@ -357,7 +357,9 @@ HISTORY:
 
 STDOUT:
   fprintf(fout, "%-10s: ", ws_out->count ? ws_out->sval[0] : "ans");
-  fprintf(fout, "%s[%zu]:\t", isvalnumber ? "number" : "string", Nans);
+  sprintf(buff, "%s", isvalnumber ? "number" : "string");
+  sprintf(buff, "%s[%zu]:", buff, Nans);
+  fprintf(fout, "%-15s: ", buff);
   if (isvalnumber)
   {
     fprintf(fout, "%.16G", ans[0]);
@@ -396,8 +398,8 @@ EXIT:
   /* dereference json objects */
   if (workspace != NULL)
     json_decref(workspace);
-  if (program_list != NULL)
-    json_decref(program_list);
+  if (program != NULL)
+    json_decref(program);
 
   /* deallocate each non-null entry in argtable[] */
   arg_freetable(argtable, argcount + 1); // +1 for end

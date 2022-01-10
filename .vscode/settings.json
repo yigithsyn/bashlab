@@ -1,12 +1,12 @@
 {
   "cmake.debugConfig": {
     // "args": [ "-5", "-10", "-20" , "-d"],
-    // "args": [ ],
+    "args": [ ],
     // "args": [ "--help" ],
     // "args": [ "-5", "-10", "50001", "--verbose"],
     // "args": [ "a", "5", "11.1", "-2.3", "--verbose"],
     // "args": [ "a", "aa", "bb", "cc", "--verbose"],
-    "args": [ "0", "arr"],
+    // "args": [ "0", "arr"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {

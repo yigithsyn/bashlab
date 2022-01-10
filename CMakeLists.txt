@@ -39,6 +39,10 @@ add_executable(ws.set src/ws.set.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.set debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ws.set CONFIGURATIONS Release) 
 
+file(GLOB SOURCES "src/impl/no_impl*")
+add_executable(ws.list src/ws.list.c ${SOURCES} ${COMMONS})
+target_link_libraries(ws.list debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS ws.list CONFIGURATIONS Release) 
 
 # file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/wavelen2freq_impl.c")
 # add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
