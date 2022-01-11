@@ -187,14 +187,14 @@ INPUTT:;
   {
     fprintf(stderr, "%s: %s: %s\n", PROGNAME, strerror(errno), arg_file->sval[0]);
     exitcode = EXIT_FAILURE;
-    goto EXIT_INPUT;
+    goto EXIT;
   }
   fin = fopen(arg_file->sval[0], "r");
   if (fin == NULL)
   {
     fprintf(stderr, "%s: %s: %s\n", PROGNAME, strerror(errno), arg_file->sval[0]);
     exitcode = EXIT_FAILURE;
-    goto EXIT_INPUT;
+    goto EXIT;
   }
 
   size_t len = 250;
@@ -315,7 +315,7 @@ OUTPUT:;
     sprintf(buff,"Beam_%zu.txt", i+1);
     fout = fopen(buff, "w");
     for (size_t j = 0; j < Nline / Nfreq; j++)
-      fprintf(fout, "%f %f %f %f %f %f\n", pol[j * Nfreq + i], step[j * Nfreq + i], scan[j * Nfreq + i], pow(10.0, amp[j * Nfreq + i] / 20) * cos(phas[j * Nfreq + i] / 180 * BLAB_PI), pow(10.0, amp[j * Nfreq + i] / 20) * sin(phas[j * Nfreq + i] / 180 * BLAB_PI));
+      fprintf(fout, "%f %f %f %f %f\n", pol[j * Nfreq + i], step[j * Nfreq + i], scan[j * Nfreq + i], pow(10.0, amp[j * Nfreq + i] / 20) * cos(phas[j * Nfreq + i] / 180 * BLAB_PI), pow(10.0, amp[j * Nfreq + i] / 20) * sin(phas[j * Nfreq + i] / 180 * BLAB_PI));
     fclose(fout);
   }
 
