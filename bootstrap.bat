@@ -60,9 +60,9 @@ CD ../../..
 RMDIR /Q /S libs\civetweb-1.15
 IF "%1"=="civetweb" EXIT /B 0
 
+:build
 RMDIR /Q /S build > nul 2>&1
 MKDIR build
-:build
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
