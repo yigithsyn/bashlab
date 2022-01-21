@@ -314,8 +314,9 @@ OUTPUT:;
   {
     sprintf(buff,"Beam_%zu.txt", i+1);
     fout = fopen(buff, "w");
+    fprintf(fout, "#pol\t\tstep\t\tscan\t\treal\t\timag\n");
     for (size_t j = 0; j < Nline / Nfreq; j++)
-      fprintf(fout, "%f %f %f %f %f\n", pol[j * Nfreq + i], step[j * Nfreq + i], scan[j * Nfreq + i], pow(10.0, amp[j * Nfreq + i] / 20) * cos(phas[j * Nfreq + i] / 180 * BLAB_PI), pow(10.0, amp[j * Nfreq + i] / 20) * sin(phas[j * Nfreq + i] / 180 * BLAB_PI));
+      fprintf(fout, "%f\t\t%f\t\t%f\t\t%f\t\t%f\n", pol[j * Nfreq + i], step[j * Nfreq + i], scan[j * Nfreq + i], pow(10.0, amp[j * Nfreq + i] / 20) * cos(phas[j * Nfreq + i] / 180 * BLAB_PI), pow(10.0, amp[j * Nfreq + i] / 20) * sin(phas[j * Nfreq + i] / 180 * BLAB_PI));
     fclose(fout);
   }
 
