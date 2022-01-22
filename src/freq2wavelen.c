@@ -18,6 +18,7 @@ static const char *program_json =
 #include "configs.h"
 #include "macros.h"
 #include "utility.h"
+#include "constants.h"
 
 #include "freq2wavelen.h"
 
@@ -255,7 +256,7 @@ OPERATION:;
   if (verbose->count)
     fprintf(stdout, "Operation: %ld ... ", tic());
   for (int i = 0; i < N; ++i)
-    out1[i] = freq2wavelen(inp1[i]);
+    out1[i] = BLAB_C0 / inp1[i];
   if (verbose->count)
     fprintf(stdout, "%ld [ms]\n", toc());
 

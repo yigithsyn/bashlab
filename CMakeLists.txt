@@ -54,13 +54,11 @@ add_executable(ams2nsi src/ams2nsi.c ${SOURCES} ${COMMONS})
 target_link_libraries(ams2nsi ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ams2nsi CONFIGURATIONS Release) 
 
-file(GLOB SOURCES "src/impl/freq2wavelen_impl.c")
-add_executable(freq2wavelen src/freq2wavelen.c ${SOURCES} ${COMMONS})
+add_executable(freq2wavelen src/freq2wavelen.c ${COMMONS})
 target_link_libraries(freq2wavelen ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS freq2wavelen CONFIGURATIONS Release) 
 
-file(GLOB SOURCES "src/impl/freq2wavelen_impl.c")
-add_executable(wavelen2freq src/wavelen2freq.c ${SOURCES} ${COMMONS})
+add_executable(wavelen2freq src/wavelen2freq.c ${COMMONS})
 target_link_libraries(wavelen2freq ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS wavelen2freq CONFIGURATIONS Release)
 
