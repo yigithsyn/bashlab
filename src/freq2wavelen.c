@@ -377,7 +377,7 @@ char *human(number_t arg, char *buff)
   if (arg >= 1E3)
     sprintf(buff, "%.1f km", arg / 1E3);
   else if (arg >= 1)
-    sprintf(buff, "%.1f m", arg / 1E1);
+    sprintf(buff, "%.1f m", arg / 1E0);
   else if (arg >= 1E-2)
     sprintf(buff, "%.1f cm", arg / 1E-2);
   else

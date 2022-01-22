@@ -8,7 +8,7 @@
     // "args": [ "-5", "-10", "50001", "--verbose"],
     // "args": [ "a", "5", "11.1", "-2.3", "--verbose"],
     // "args": [ "a", "aa", "bb", "cc", "--verbose"],
-    // "args": [ "0", "arr"],
+    "args": [ "300E6", "1"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
