@@ -68,18 +68,6 @@ install(TARGETS wavelen2freq CONFIGURATIONS Release)
 # add_executable(ffdist src/ffdist.c ${SOURCES} ${COMMONS})
 # target_link_libraries(ffdist debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
 
-# file(GLOB SOURCES "src/impl/no_impl*")
-# add_executable(wsset src/wsset.c ${SOURCES} ${COMMONS})
-# target_link_libraries(wsset debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
-
-# file(GLOB SOURCES "src/impl/no_impl*")
-# add_executable(wsclr src/wsclr.c ${SOURCES} ${COMMONS})
-# target_link_libraries(wsclr debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
-
-# file(GLOB SOURCES "src/impl/no_impl*")
-# add_executable(ws.list src/ws.list.c ${SOURCES} ${COMMONS})
-# target_link_libraries(ws.list debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
-
 # file(GLOB SOURCES "src/impl/s11toswr_impl.c") 
 # add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
 # target_link_libraries(s11toswr debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
