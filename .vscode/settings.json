@@ -29,6 +29,8 @@
     "configs.h": "c",
     "utility.h": "c",
     "math.h": "c",
-    "corecrt_math.h": "c"
+    "corecrt_math.h": "c",
+    "typedefs.h": "c",
+    "macros.h": "c"
   }
 }
