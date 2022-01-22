@@ -20,8 +20,6 @@ static const char *program_json =
 #include "utility.h"
 #include "constants.h"
 
-#include "freq2wavelen.h"
-
 #include "argtable3.h"
 #include "jansson.h"
 
