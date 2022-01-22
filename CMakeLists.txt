@@ -64,10 +64,10 @@ add_executable(wavelen2freq src/wavelen2freq.c ${SOURCES} ${COMMONS})
 target_link_libraries(wavelen2freq ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS wavelen2freq CONFIGURATIONS Release)
 
+add_executable(s11toswr src/s11toswr.c ${COMMONS})
+target_link_libraries(s11toswr ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS s11toswr CONFIGURATIONS Release) 
+
 # file(GLOB SOURCES "src/impl/freq2wavelen_impl.c" "src/impl/ffdist_impl.c")
 # add_executable(ffdist src/ffdist.c ${SOURCES} ${COMMONS})
 # target_link_libraries(ffdist debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
-
-# file(GLOB SOURCES "src/impl/s11toswr_impl.c") 
-# add_executable(s11toswr src/s11toswr.c ${SOURCES} ${COMMONS})
-# target_link_libraries(s11toswr debug ${COMMON_LINK_LIBS_DEBUG} optimized ${COMMON_LINK_LIBS_OPTIM})
