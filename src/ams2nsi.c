@@ -203,7 +203,7 @@ INPUTT:;
   /* calculate number of frequencies */
   size_t Nfreq = 0;
   number_t fstart = 0;
-  fgets(line, len, fin);
+  token = fgets(line, len, fin); // trivial output for compiler
   while (fgets(line, len, fin))
   {
     token = strtok(line, ", ");
@@ -219,7 +219,7 @@ INPUTT:;
   /* calculate step size */
   size_t Nscan = 0;
   rewind(fin);
-  fgets(line, len, fin);
+  token = fgets(line, len, fin); // trivial output for compiler
   number_t step_prev = 0, step_next = 0;
   while (fgets(line, len, fin))
   {
@@ -237,7 +237,7 @@ INPUTT:;
 
   /* calculate scan size */
   rewind(fin);
-  fgets(line, len, fin);
+  token = fgets(line, len, fin); // trivial output for compiler
   number_t scan_prev = 0, scan_next = 0;
   while (fgets(line, len, fin))
   {
@@ -260,7 +260,7 @@ INPUTT:;
   number_t *amp = (number_t *)calloc(Nmax, sizeof(number_t));
   number_t *phas = (number_t *)calloc(Nmax, sizeof(number_t));
   rewind(fin);
-  fgets(line, len, fin);
+  token = fgets(line, len, fin); // trivial output for compiler
   while (fgets(line, len, fin))
   {
     if (Nline >= Nmax)
@@ -312,7 +312,7 @@ OPERATION:;
 OUTPUT:;
   for (size_t i = 0; i < Nfreq; i++)
   {
-    sprintf(buff,"Beam_%zu.txt", i+1);
+    sprintf(buff, "Beam_%zu.txt", i + 1);
     fout = fopen(buff, "w");
     fprintf(fout, "#pol\t\tstep\t\tscan\t\treal\t\timag\n");
     for (size_t j = 0; j < Nline / Nfreq; j++)
