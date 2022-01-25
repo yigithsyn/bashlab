@@ -63,6 +63,7 @@ tar -xvf libs\mongo-c-driver-1.20.1.tar.gz --directory libs\
 CD libs\mongo-c-driver-1.20.1
 MKDIR build_dir
 CD build_dir
+@REM For x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
 cmake.exe -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
