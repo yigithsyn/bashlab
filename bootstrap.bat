@@ -3,6 +3,7 @@
 IF "%1"=="jansson" GOTO jansson
 IF "%1"=="argtable3" GOTO argtable3
 IF "%1"=="civetweb" GOTO civetweb
+IF "%1"=="libmongoc" GOTO libmongoc
 GOTO build
 @REM for arguements with quotes
 @REM IF "%~1"=="build" GOTO build
@@ -54,6 +55,19 @@ cmake.exe --build . --target INSTALL --config Release
 CD ../../..
 RMDIR /Q /S libs\civetweb-1.15
 IF "%1"=="civetweb" EXIT /B 0
+
+:libmongoc
+ECHO libmongoc: A high-performance MongoDB driver for C
+curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.20.1/mongo-c-driver-1.20.1.tar.gz --output libs\mongo-c-driver-1.20.1.tar.gz --silent
+tar -xvf libs\mongo-c-driver-1.20.1.tar.gz --directory libs\
+CD libs\mongo-c-driver-1.20.1
+MKDIR build_dir
+CD build_dir
+cmake.exe -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
+cmake.exe --build . --target INSTALL --config Release
+CD ../../..
+RMDIR /Q /S libs\mongo-c-driver-1.20.1
+IF "%1"=="libmongoc" EXIT /B 0
 
 :build
 RMDIR /Q /S build > nul 2>&1
