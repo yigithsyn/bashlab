@@ -88,4 +88,4 @@ echo "[INFO] Installing ..."
 echo ============================
 make install 
 
-cd ..
+cd .. 
