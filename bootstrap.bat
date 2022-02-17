@@ -4,6 +4,7 @@ IF "%1"=="jansson" GOTO jansson
 IF "%1"=="argtable3" GOTO argtable3
 IF "%1"=="civetweb" GOTO civetweb
 IF "%1"=="libmongoc" GOTO libmongoc
+IF "%1"=="serialport" GOTO serialport
 GOTO build
 @REM for arguements with quotes
 @REM IF "%~1"=="build" GOTO build
@@ -69,6 +70,19 @@ cmake.exe --build . --target INSTALL --config Release
 CD ../../..
 RMDIR /Q /S libs\mongo-c-driver-1.20.1
 IF "%1"=="libmongoc" EXIT /B 0
+
+:serialport
+ECHO libserialport: Minimal, cross-platform shared library written in C
+curl -L http://sigrok.org/gitweb/?p=libserialport.git;a=snapshot;h=6f9b03e597ea7200eb616a4e410add3dd1690cb1;sf=zip --output libs\libserialport-6f9b03e.zip --silent
+powershell.exe -NoP -NonI -Command "Expand-Archive '.\libs\libserialport-6f9b03e.zip' '.\libs\'"
+CD libs\libserialport-6f9b03e
+msbuild libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x86
+copy /Y libserialport.h %USERPROFILE%\AppData\Local\include\
+copy /Y Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
+copy /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
+CD ../..
+RMDIR /Q /S libs\libserialport-6f9b03e
+IF "%1"=="serialport" EXIT /B 0
 
 :build
 RMDIR /Q /S build > nul 2>&1
