@@ -58,6 +58,21 @@ if [ "$1" == "civetweb" ]; then
   exit
 fi
 
+if [ "$1" == "serialport" ]; then
+  echo "Libserialport: Minimal, cross-platform shared library written in C"
+  curl -L https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/libserialport/0.1.1-4/libserialport_0.1.1.orig.tar.xz --output libs/libserialport-0.1.1-4.tar.xz --silent
+  mkdir libs/libserialport-0.1.1-4/
+  tar -xf libs/libserialport-0.1.1-4.tar.xz --directory libs/libserialport-0.1.1-4/
+  cd libs/libserialport-0.1.1-4/
+  ./autogen.sh
+  ./configure --prefix=/usr/local
+  make
+  sudo make install
+  cd ../../
+  rm -rf libs/libserialport-0.1.1-4/
+  exit
+fi
+
 rm -rf build && mkdir build && cd build
 ################################################################################
 # build and install
