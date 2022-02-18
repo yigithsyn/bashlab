@@ -31,6 +31,7 @@
     "math.h": "c",
     "corecrt_math.h": "c",
     "typedefs.h": "c",
-    "macros.h": "c"
+    "macros.h": "c",
+    "mongoc.h": "c"
   }
 }

@@ -15,17 +15,19 @@ include_directories("include")
 
 if(WIN32)
   include_directories($ENV{USERPROFILE}/AppData/Local/include) 
+  include_directories($ENV{USERPROFILE}/AppData/Local/include/libmongoc-1.0) 
+  include_directories($ENV{USERPROFILE}/AppData/Local/include/libbson-1.0)
   link_directories($ENV{USERPROFILE}/AppData/Local/lib)
 
   # set(COMMON_LINK_LIBS_DEBUG jansson_d argtable3d)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3)
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0)
 endif(WIN32)
 
 if(UNIX)
   include_directories("/usr/local/include/")
  
   # set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 m) 
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc bson m) 
 endif(UNIX)
 
 file(GLOB SOURCES "libs/algo/linspace.c")
@@ -69,3 +71,9 @@ install(TARGETS s11toswr CONFIGURATIONS Release)
 add_executable(ffdist src/ffdist.c ${COMMONS})
 target_link_libraries(ffdist ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ffdist CONFIGURATIONS Release) 
+
+# MongoDB as workspace
+
+add_executable(serialport.list src/serialport.list.c ${COMMONS})
+target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS serialport.list CONFIGURATIONS Release) 
