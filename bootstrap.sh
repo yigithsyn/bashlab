@@ -71,7 +71,7 @@ if [ "$1" == "libmongoc" ]; then
   mkdir build_dir
   cd build_dir
   # In Windows: for x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
-  cmake -DENABLE_MONGODB_AWS_AUTH=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF ..
+  cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF ..
   cmake --build . --config Release
   cmake --install . --prefix /usr/local
   cd ../../..

@@ -29,6 +29,12 @@ static FILE *fin;
 static FILE *fout;
 static size_t argcount = 0;
 static char buff[250];
+// mongodb
+static mongoc_uri_t *mdb_uri = NULL;
+static mongoc_client_t *mdb_cli = NULL;
+static mongoc_database_t *mdb_dtb = NULL;
+static mongoc_collection_t *mdb_col = NULL;
+static bson_error_t bsn_err;
 
 /*============================================================================*/
 /* Specifics                                                                  */
@@ -143,48 +149,70 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(BLAB_WS, 0, json_error);
-  if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
+  if (!getenv("BASHLAB_MONGODB_URI_STRING"))
+    goto MAIN;
+
+
+  mongoc_init();
+  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &bsn_err);
+  if (!mdb_uri)
   {
-    fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (workspace == NULL)
-  {
-    workspace = json_object();
-  }
-  ws_vars = json_object_get(workspace, "variables");
-  if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
-  {
-    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (ws_vars == NULL)
-  {
-    json_object_set_new(workspace, "variables", json_array());
-    ws_vars = json_object_get(workspace, "variables");
-  }
-  ws_hist = json_object_get(workspace, "history");
-  if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
-  {
-    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (ws_hist == NULL)
-  {
-    json_object_set_new(workspace, "history", json_array());
-    ws_hist = json_object_get(workspace, "history");
+    fprintf(stdout, "%s: failed to parse database connection string. Continuing without database.\n", PROGNAME);
+    goto MAIN;
   }
 
-  /* ======================================================================== */
-  /* main operation                                                           */
-  /* ======================================================================== */
+  mdb_cli = mongoc_client_new_from_uri(mdb_uri);
+  if (!mdb_cli)
+  {
+    fprintf(stdout, "%s: failed to connect database. Continuing without database.\n", PROGNAME);
+    goto MAIN;
+  }
+
+  mongoc_client_set_appname (mdb_cli, PROGNAME);
+
+// workspace = json_load_file(BLAB_WS, 0, json_error);
+// if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
+// {
+//   fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
+//   fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//   exitcode = EXIT_FAILURE;
+//   goto EXIT;
+// }
+// if (workspace == NULL)
+// {
+//   workspace = json_object();
+// }
+// ws_vars = json_object_get(workspace, "variables");
+// if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
+// {
+//   fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+//   fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//   exitcode = EXIT_FAILURE;
+//   goto EXIT;
+// }
+// if (ws_vars == NULL)
+// {
+//   json_object_set_new(workspace, "variables", json_array());
+//   ws_vars = json_object_get(workspace, "variables");
+// }
+// ws_hist = json_object_get(workspace, "history");
+// if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
+// {
+//   fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
+//   fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//   exitcode = EXIT_FAILURE;
+//   goto EXIT;
+// }
+// if (ws_hist == NULL)
+// {
+//   json_object_set_new(workspace, "history", json_array());
+//   ws_hist = json_object_get(workspace, "history");
+// }
+
+/* ======================================================================== */
+/* main operation                                                           */
+/* ======================================================================== */
+MAIN:;
   struct arg_str *parg1 = (struct arg_str *)argtable[0]; // frequency
   struct arg_str *parg2 = (struct arg_str *)argtable[1]; // aperture length
   struct arg_lit *opti1 = (struct arg_lit *)argtable[2]; // human
@@ -443,8 +471,16 @@ EXIT_INPUT:;
 
 EXIT:
   /* dereference json objects */
-  if (workspace != NULL)
-    json_decref(workspace);
+  // if (workspace != NULL)
+  //   json_decref(workspace);
+
+  // Release our handles and clean up libmongoc
+  mongoc_collection_destroy(mdb_col);
+  mongoc_database_destroy(mdb_dtb);
+  mongoc_client_destroy(mdb_cli);
+  mongoc_uri_destroy(mdb_uri);
+  mongoc_cleanup();
+
   if (program != NULL)
     json_decref(program);
 
