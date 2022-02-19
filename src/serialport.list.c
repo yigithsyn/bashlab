@@ -189,244 +189,244 @@ int main(int argc, char *argv[])
   struct arg_str *parg2 = (struct arg_str *)argtable[1]; // aperture length
   struct arg_lit *opti1 = (struct arg_lit *)argtable[2]; // human
 
-INPUTT:;
-  /* frequency */
-  int N1 = 0, Nmax1 = 1;
-  number_t *inp1 = (number_t *)calloc(Nmax1, sizeof(number_t));
-  for (size_t i = 0; i < parg1->count; ++i)
-  {
-    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), parg1->sval[i]) == 0) break;
-    if (ivar_index == json_array_size(ws_vars))
-    {
-      if (!isnumber(parg1->sval[i]))
-      {
-        fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, parg1->sval[i]);
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      else
-      {
-        if (N1 >= Nmax1)
-        {
-          Nmax1 *= 2;
-          inp1 = realloc(inp1, sizeof(number_t) * Nmax1);
-        }
-        inp1[N1++] = atof(parg1->sval[i]);
-      }
-    }
-    else
-    {
-      var_name = json_object_get(ivar, "name");
-      var_size = json_object_get(ivar, "size");
-      var_val = json_object_get(ivar, "value");
-      /* size check */
-      if (json_array_size(var_size) != 1)
-      {
-        fprintf(stderr, "%s: %s should be scalar or 1D array.\n", PROGNAME, json_string_value(var_name));
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      /* type check */
-      if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
-      {
-        fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      /* process variable */
-      Nmax1 = N1 + json_integer_value(json_array_get(var_size, 0));
-      inp1 = realloc(inp1, sizeof(number_t) * Nmax1);
-      if (json_integer_value(json_array_get(var_size, 0)) > BLAB_WS_ARR_LIM)
-      {
-        sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
-        number_t *arr = (number_t *)calloc(Nmax1, sizeof(number_t));
-        read_number_data_file(buff, arr);
-        for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
-          inp1[N1++] = arr[j];
-        free(arr);
-      }
-      else
-        for (size_t j = 0; j < json_array_size(var_val); ++j)
-          inp1[N1++] = json_real_value(json_array_get(var_val, j));
-    }
-  }
-  /* aperture length */
-  int N2 = 0, Nmax2 = 1;
-  number_t *inp2 = (number_t *)calloc(Nmax2, sizeof(number_t));
-  for (size_t i = 0; i < parg2->count; ++i)
-  {
-    json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), parg2->sval[i]) == 0) break;
-    if (ivar_index == json_array_size(ws_vars))
-    {
-      if (!isnumber(parg2->sval[i]))
-      {
-        fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, parg2->sval[i]);
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      else
-      {
-        if (N2 >= Nmax2)
-        {
-          Nmax2 *= 2;
-          inp2 = realloc(inp2, sizeof(number_t) * Nmax2);
-        }
-        inp2[N2++] = atof(parg2->sval[i]);
-      }
-    }
-    else
-    {
-      var_name = json_object_get(ivar, "name");
-      var_size = json_object_get(ivar, "size");
-      var_val = json_object_get(ivar, "value");
-      /* size check */
-      if (json_array_size(var_size) != 1)
-      {
-        fprintf(stderr, "%s: %s should be scalar or 1D array.\n", PROGNAME, json_string_value(var_name));
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      /* type check */
-      if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
-      {
-        fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
-        fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_INPUT;
-      }
-      /* process variable */
-      Nmax2 = N2 + json_integer_value(json_array_get(var_size, 0));
-      inp2 = realloc(inp2, sizeof(number_t) * Nmax2);
-      if (json_integer_value(json_array_get(var_size, 0)) > BLAB_WS_ARR_LIM)
-      {
-        sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
-        number_t *arr = (number_t *)calloc(Nmax2, sizeof(number_t));
-        read_number_data_file(buff, arr);
-        for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
-          inp2[N2++] = arr[j];
-        free(arr);
-      }
-      else
-        for (size_t j = 0; j < json_array_size(var_val); ++j)
-          inp2[N2++] = json_real_value(json_array_get(var_val, j));
-    }
-  }
+// INPUTT:;
+//   /* frequency */
+//   size_t N1 = 0, Nmax1 = 1;
+//   number_t *inp1 = (number_t *)calloc(Nmax1, sizeof(number_t));
+//   for (size_t i = 0; i < parg1->count; ++i)
+//   {
+//     json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), parg1->sval[i]) == 0) break;
+//     if (ivar_index == json_array_size(ws_vars))
+//     {
+//       if (!isnumber(parg1->sval[i]))
+//       {
+//         fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, parg1->sval[i]);
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       else
+//       {
+//         if (N1 >= Nmax1)
+//         {
+//           Nmax1 *= 2;
+//           inp1 = realloc(inp1, sizeof(number_t) * Nmax1);
+//         }
+//         inp1[N1++] = atof(parg1->sval[i]);
+//       }
+//     }
+//     else
+//     {
+//       var_name = json_object_get(ivar, "name");
+//       var_size = json_object_get(ivar, "size");
+//       var_val = json_object_get(ivar, "value");
+//       /* size check */
+//       if (json_array_size(var_size) != 1)
+//       {
+//         fprintf(stderr, "%s: %s should be scalar or 1D array.\n", PROGNAME, json_string_value(var_name));
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       /* type check */
+//       if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
+//       {
+//         fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       /* process variable */
+//       Nmax1 = N1 + json_integer_value(json_array_get(var_size, 0));
+//       inp1 = realloc(inp1, sizeof(number_t) * Nmax1);
+//       if (json_integer_value(json_array_get(var_size, 0)) > BLAB_WS_ARR_LIM)
+//       {
+//         sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
+//         number_t *arr = (number_t *)calloc(Nmax1, sizeof(number_t));
+//         read_number_data_file(buff, arr);
+//         for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
+//           inp1[N1++] = arr[j];
+//         free(arr);
+//       }
+//       else
+//         for (size_t j = 0; j < json_array_size(var_val); ++j)
+//           inp1[N1++] = json_real_value(json_array_get(var_val, j));
+//     }
+//   }
+//   /* aperture length */
+//   size_t N2 = 0, Nmax2 = 1;
+//   number_t *inp2 = (number_t *)calloc(Nmax2, sizeof(number_t));
+//   for (size_t i = 0; i < parg2->count; ++i)
+//   {
+//     json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), parg2->sval[i]) == 0) break;
+//     if (ivar_index == json_array_size(ws_vars))
+//     {
+//       if (!isnumber(parg2->sval[i]))
+//       {
+//         fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, parg2->sval[i]);
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       else
+//       {
+//         if (N2 >= Nmax2)
+//         {
+//           Nmax2 *= 2;
+//           inp2 = realloc(inp2, sizeof(number_t) * Nmax2);
+//         }
+//         inp2[N2++] = atof(parg2->sval[i]);
+//       }
+//     }
+//     else
+//     {
+//       var_name = json_object_get(ivar, "name");
+//       var_size = json_object_get(ivar, "size");
+//       var_val = json_object_get(ivar, "value");
+//       /* size check */
+//       if (json_array_size(var_size) != 1)
+//       {
+//         fprintf(stderr, "%s: %s should be scalar or 1D array.\n", PROGNAME, json_string_value(var_name));
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       /* type check */
+//       if (json_typeof(json_array_get(var_val, 0)) != JSON_REAL)
+//       {
+//         fprintf(stderr, "%s: %s should be real number.\n", PROGNAME, json_string_value(json_object_get(ivar, "name")));
+//         fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_INPUT;
+//       }
+//       /* process variable */
+//       Nmax2 = N2 + json_integer_value(json_array_get(var_size, 0));
+//       inp2 = realloc(inp2, sizeof(number_t) * Nmax2);
+//       if (json_integer_value(json_array_get(var_size, 0)) > BLAB_WS_ARR_LIM)
+//       {
+//         sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
+//         number_t *arr = (number_t *)calloc(Nmax2, sizeof(number_t));
+//         read_number_data_file(buff, arr);
+//         for (size_t j = 0; j < json_integer_value(json_array_get(var_size, 0)); ++j)
+//           inp2[N2++] = arr[j];
+//         free(arr);
+//       }
+//       else
+//         for (size_t j = 0; j < json_array_size(var_val); ++j)
+//           inp2[N2++] = json_real_value(json_array_get(var_val, j));
+//     }
+//   }
 
-  /* size check */
-  if (N1 != N2)
-  {
-    fprintf(stderr, "%s: %s[%zu], %s[%zu] input arrays should match in size.\n", PROGNAME, "freq", N1, "D", N2);
-    exitcode = EXIT_FAILURE;
-    goto EXIT_INPUT;
-  }
+//   /* size check */
+//   if (N1 != N2)
+//   {
+//     fprintf(stderr, "%s: %s[%zu], %s[%zu] input arrays should match in size.\n", PROGNAME, "freq", N1, "D", N2);
+//     exitcode = EXIT_FAILURE;
+//     goto EXIT_INPUT;
+//   }
 
-OPERATION:;
-  number_t *out1 = (number_t *)calloc(N1, sizeof(number_t));
-  if (verbose->count)
-    fprintf(stdout, "Operation: %ld ... ", tic());
-  for (int i = 0; i < N1; ++i)
-  {
-    number_t freq = inp1[i];
-    number_t wavelen = BLAB_C0 / freq;
-    number_t D = inp2[i];
-    /* ffdist = max(2D^2/lambda,1.6*lambda,5*D) */
-    out1[i] = MAX(2 * D * D / wavelen, MAX(1.6 * wavelen, 5 * D));
-  }
-  if (verbose->count)
-    fprintf(stdout, "%ld [ms]\n", toc());
+// OPERATION:;
+//   number_t *out1 = (number_t *)calloc(N1, sizeof(number_t));
+//   if (verbose->count)
+//     fprintf(stdout, "Operation: %ld ... ", tic());
+//   for (int i = 0; i < N1; ++i)
+//   {
+//     number_t freq = inp1[i];
+//     number_t wavelen = BLAB_C0 / freq;
+//     number_t D = inp2[i];
+//     /* ffdist = max(2D^2/lambda,1.6*lambda,5*D) */
+//     out1[i] = MAX(2 * D * D / wavelen, MAX(1.6 * wavelen, 5 * D));
+//   }
+//   if (verbose->count)
+//     fprintf(stdout, "%ld [ms]\n", toc());
 
-OUTPUT:;
-  size_t Nans = N1;
-  number_t *ans = out1;
-  /* workspace */
-  if (ws_out->count)
-    strcpy(buff, ws_out->sval[0]);
-  else
-    strcpy(buff, "ans");
-  json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
-  /* delete existing */
-  if (ivar_index != json_array_size(ws_vars))
-    json_array_remove(ws_vars, ivar_index);
-  /* create new */
-  var = json_object();
-  json_object_set_new(var, "name", json_string(buff));
-  var_val = json_array();
-  /* write out large arrays seperately */
-  sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(json_object_get(var, "name")));
-  json_object_set_new(var, "size", json_array());
-  json_array_append_new(json_object_get(var, "size"), json_integer(Nans));
-  if (Nans > BLAB_WS_ARR_LIM)
-  {
-    if (verbose->count)
-      fprintf(stdout, "Output: File: %ld ... ", tic());
-    FILE *f = fopen(buff, "w");
-    for (size_t i = 0; i < Nans; ++i)
-      fprintf(f, "%.16E\n", ans[i]);
-    fclose(f);
-    if (verbose->count)
-      fprintf(stdout, "%ld [ms]\n", toc());
-    for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
-      json_array_append_new(var_val, json_real(ans[i]));
-    for (size_t i = Nans - 2; i < Nans; ++i)
-      json_array_append_new(var_val, json_real(ans[i]));
-  }
-  else
-  {
-    if (stat(buff, &stat_buff) == 0)
-    {
-      if (remove(buff) != 0)
-      {
-        fprintf(stderr, "%s: Error in deleting workspace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
-        exitcode = EXIT_FAILURE;
-        goto EXIT_OUTPUT;
-      }
-    }
-    /* append results */
-    for (size_t i = 0; i < Nans; ++i)
-      json_array_append_new(var_val, json_real(ans[i]));
-  }
-  json_object_set_new(var, "value", var_val);
-  json_array_append_new(ws_vars, var);
+// OUTPUT:;
+//   size_t Nans = N1;
+//   number_t *ans = out1;
+//   /* workspace */
+//   if (ws_out->count)
+//     strcpy(buff, ws_out->sval[0]);
+//   else
+//     strcpy(buff, "ans");
+//   json_array_foreach(ws_vars, ivar_index, ivar) if (strcmp(json_string_value(json_object_get(ivar, "name")), buff) == 0) break;
+//   /* delete existing */
+//   if (ivar_index != json_array_size(ws_vars))
+//     json_array_remove(ws_vars, ivar_index);
+//   /* create new */
+//   var = json_object();
+//   json_object_set_new(var, "name", json_string(buff));
+//   var_val = json_array();
+//   /* write out large arrays seperately */
+//   sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(json_object_get(var, "name")));
+//   json_object_set_new(var, "size", json_array());
+//   json_array_append_new(json_object_get(var, "size"), json_integer(Nans));
+//   if (Nans > BLAB_WS_ARR_LIM)
+//   {
+//     if (verbose->count)
+//       fprintf(stdout, "Output: File: %ld ... ", tic());
+//     FILE *f = fopen(buff, "w");
+//     for (size_t i = 0; i < Nans; ++i)
+//       fprintf(f, "%.16E\n", ans[i]);
+//     fclose(f);
+//     if (verbose->count)
+//       fprintf(stdout, "%ld [ms]\n", toc());
+//     for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
+//       json_array_append_new(var_val, json_real(ans[i]));
+//     for (size_t i = Nans - 2; i < Nans; ++i)
+//       json_array_append_new(var_val, json_real(ans[i]));
+//   }
+//   else
+//   {
+//     if (stat(buff, &stat_buff) == 0)
+//     {
+//       if (remove(buff) != 0)
+//       {
+//         fprintf(stderr, "%s: Error in deleting workspace variable '%s' file: %s\n", PROGNAME, json_string_value(json_object_get(var, "name")), strerror(errno));
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_OUTPUT;
+//       }
+//     }
+//     /* append results */
+//     for (size_t i = 0; i < Nans; ++i)
+//       json_array_append_new(var_val, json_real(ans[i]));
+//   }
+//   json_object_set_new(var, "value", var_val);
+//   json_array_append_new(ws_vars, var);
 
-HISTORY:
-  strcpy(buff, PROGNAME);
-  for (size_t i = 1; i < argc; i++)
-  {
-    strcat(buff, " ");
-    strcat(buff, argv[i]);
-  }
-  json_array_append_new(ws_hist, json_string(buff));
-  json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
+// HISTORY:
+//   strcpy(buff, PROGNAME);
+//   for (size_t i = 1; i < argc; i++)
+//   {
+//     strcat(buff, " ");
+//     strcat(buff, argv[i]);
+//   }
+//   json_array_append_new(ws_hist, json_string(buff));
+//   json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
 
-STDOUT:
-  /* stream */
-  if (opti1->count > 0)
-  {
-    fprintf(fout, "%s", human(ans[0], buff));
-    for (size_t i = 1; i < MIN(Nans, 3); ++i)
-      fprintf(fout, ", %s", human(ans[i], buff));
-    if (Nans > 5)
-      fprintf(fout, ", ...");
-    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(fout, ", %s", human(ans[i], buff));
-    fprintf(fout, "\n");
-  }
-  else
-  {
-    fprintf(fout, "%.16G", ans[0]);
-    for (size_t i = 1; i < MIN(Nans, 3); ++i)
-      fprintf(fout, ", %.16G", ans[i]);
-    if (Nans > 5)
-      fprintf(fout, ", ...");
-    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(fout, ", %.16G", ans[i]);
-    fprintf(fout, "\n");
-  }
+// STDOUT:
+//   /* stream */
+//   if (opti1->count > 0)
+//   {
+//     fprintf(fout, "%s", human(ans[0], buff));
+//     for (size_t i = 1; i < MIN(Nans, 3); ++i)
+//       fprintf(fout, ", %s", human(ans[i], buff));
+//     if (Nans > 5)
+//       fprintf(fout, ", ...");
+//     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+//       fprintf(fout, ", %s", human(ans[i], buff));
+//     fprintf(fout, "\n");
+//   }
+//   else
+//   {
+//     fprintf(fout, "%.16G", ans[0]);
+//     for (size_t i = 1; i < MIN(Nans, 3); ++i)
+//       fprintf(fout, ", %.16G", ans[i]);
+//     if (Nans > 5)
+//       fprintf(fout, ", ...");
+//     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+//       fprintf(fout, ", %.16G", ans[i]);
+//     fprintf(fout, "\n");
+//   }
 
 /* ======================================================================== */
 /* exit                                                                     */
@@ -435,11 +435,11 @@ EXIT_OUTPUT:;
   // free(ans);
 
 EXIT_OPERATION:;
-  free(out1);
+  // free(out1);
 
 EXIT_INPUT:;
-  free(inp1);
-  free(inp2);
+  // free(inp1);
+  // free(inp2);
 
 EXIT:
   /* dereference json objects */

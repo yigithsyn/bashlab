@@ -58,6 +58,28 @@ if [ "$1" == "civetweb" ]; then
   exit
 fi
 
+if [ "$1" == "libmongoc" ]; then
+  echo ============================
+  echo "[INFO] Dependecies: Libmongoc: A high-performance MongoDB driver for C"
+  echo ============================
+  # Dependencies
+  # apt update
+  # sudo apt-get install cmake libssl-dev libsasl2-dev
+  curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.20.1/mongo-c-driver-1.20.1.tar.gz --output libs/mongo-c-driver-1.20.1.tar.gz --silent
+  tar -xvf libs/mongo-c-driver-1.20.1.tar.gz --directory libs/
+  cd libs/mongo-c-driver-1.20.1
+  mkdir build_dir
+  cd build_dir
+  # In Windows: for x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
+  cmake -DENABLE_MONGODB_AWS_AUTH=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF ..
+  cmake --build . --config Release
+  cmake --install . --prefix /usr/local
+  cd ../../..
+  rm -rf libs/mongo-c-driver-1.20.1
+  exit
+fi
+
+
 if [ "$1" == "serialport" ]; then
   echo "Libserialport: Minimal, cross-platform shared library written in C"
   curl -L https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/libserialport/0.1.1-4/libserialport_0.1.1.orig.tar.xz --output libs/libserialport-0.1.1-4.tar.xz --silent

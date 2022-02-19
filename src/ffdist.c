@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
 INPUTT:;
   /* frequency */
-  int N1 = 0, Nmax1 = 1;
+  size_t N1 = 0, Nmax1 = 1;
   number_t *inp1 = (number_t *)calloc(Nmax1, sizeof(number_t));
   for (size_t i = 0; i < parg1->count; ++i)
   {
@@ -256,7 +256,7 @@ INPUTT:;
     }
   }
   /* aperture length */
-  int N2 = 0, Nmax2 = 1;
+  size_t N2 = 0, Nmax2 = 1;
   number_t *inp2 = (number_t *)calloc(Nmax2, sizeof(number_t));
   for (size_t i = 0; i < parg2->count; ++i)
   {
