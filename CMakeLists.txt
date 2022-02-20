@@ -76,5 +76,5 @@ install(TARGETS ffdist CONFIGURATIONS Release)
 
 # MongoDB as workspace
 add_executable(serialport.list src/serialport.list.c ${COMMONS})
-target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM})
+target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM} serialport)
 install(TARGETS serialport.list CONFIGURATIONS Release) 
