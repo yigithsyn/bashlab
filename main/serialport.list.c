@@ -29,6 +29,7 @@ static FILE *fin;
 static FILE *fout;
 static size_t argcount = 0;
 static char buff[250];
+
 // mongodb
 static mongoc_uri_t *mdb_uri = NULL;
 static mongoc_client_t *mdb_cli = NULL;
@@ -36,7 +37,7 @@ static mongoc_database_t *mdb_dtb = NULL;
 static mongoc_collection_t *mdb_col = NULL;
 static bson_error_t bsn_err;
 static bson_oid_t oid;
-
+static char ws_out[50] = "ans";
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
   int exitcode = EXIT_SUCCESS;
   fout = stdout;
   /* buffer variables */
-  json_t *workspace = NULL, *program = NULL;
+  json_t *program = NULL;
   void *argtable[100];
 
   /* ======================================================================== */
@@ -111,12 +112,9 @@ int main(int argc, char *argv[])
   }
 
   /* commong arg structs */
-  struct arg_str *ws_out = arg_str0("o", "out", "name", "workspace output variable name");
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
   struct arg_lit *verbose = arg_lit0(NULL, "verbose", "print processing details");
   struct arg_end *end = arg_end(20);
-  // argtable[argcount++] = database;
-  argtable[argcount++] = ws_out;
   argtable[argcount++] = help;
   argtable[argcount++] = verbose;
   argtable[argcount] = end;
@@ -187,7 +185,7 @@ INPUTT:;
 
 OPERATION:;
   struct sp_port **port_list;
-  size_t N = 0;
+  size_t N1 = 0;
   enum sp_return sp_result = sp_list_ports(&port_list);
   if (sp_result != SP_OK)
   {
@@ -195,22 +193,28 @@ OPERATION:;
     exitcode = EXIT_FAILURE;
     goto EXIT_OPERATION;
   }
-  while (port_list[N] != NULL)
-    ++N;
+  while (port_list[N1] != NULL)
+    ++N1;
 
 OUTPUT:;
-  char **out = (char **)malloc(N * sizeof(char *));
-  for (int i = 0; i < N; i++)
+  char **out1 = (char **)malloc(N1 * sizeof(char *));
+  for (int i = 0; i < N1; i++)
   {
-    out[i] = (char *)malloc(256 * sizeof(char));
-    strcpy(out[i], sp_get_port_name(port_list[i]));
+    out1[i] = (char *)malloc(256 * sizeof(char));
+    strcpy(out1[i], sp_get_port_name(port_list[i]));
   }
+
+ 
+
+  if (getenv("BASHLAB_WORKSPACE_OUT"))
+    strcpy(ws_out, getenv("BASHLAB_WORKSPACE_OUT"));
+  else
+    strcpy(ws_out, "ans");
 
   if (mdb_cli != NULL)
   {
-    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8("ans3"));
+    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(ws_out));
     int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &bsn_err);
-    printf("%" PRId64 " documents counted.\n", mdb_cnt);
     bson_destroy(mdb_qry);
 
     if (mdb_cnt < 0)
@@ -226,14 +230,10 @@ OUTPUT:;
       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
       BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-      BSON_APPEND_UTF8(&mdb_doc_child2, "name", "ans3");
+      BSON_APPEND_UTF8(&mdb_doc_child2, "name", ws_out);
       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
-      for (int i = 0; i < 4; ++i)
-      {
-        char key[5];
-        sprintf(key, "%d", i);
-        bson_append_utf8(&mdb_doc_child3, "key", -1, key, -1);
-      }
+      for (size_t i = 0; i < N1; ++i)
+        bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
       bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
@@ -247,17 +247,13 @@ OUTPUT:;
     }
     else
     {
-      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8("ans3"));
+      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(ws_out));
       bson_t *mdb_doc = bson_new();
       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.val", &mdb_doc_child2);
-      for (int i = 0; i < 14; ++i)
-      {
-        char key[5];
-        sprintf(key, "%d", i);
-        bson_append_utf8(&mdb_doc_child2, "key", -1, key, -1);
-      }
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
+      for (size_t i = 0; i < N1; ++i)
+        bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
@@ -268,149 +264,55 @@ OUTPUT:;
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
     }
-
-    // mdb_doc = bson_new();
-    // bson_t mdb_doc_child1, mdb_doc_child2;
-    // BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-    // BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.val", &mdb_doc_child2);
-
-    // // mdb_var = bson_new();
-    // // BSON_APPEND_ARRAY_BEGIN(mdb_var, "value", &mdb_var_val);
-    // for (int i = 0; i < 5; ++i)
-    // {
-    //   char key[5];
-    //   sprintf(key, "%d", i);
-    //   // bson_append_utf8(&mdb_var_val, "key", -1, key, -1);
-    //   bson_append_utf8(&mdb_doc_child2, "key", -1, key, -1);
-    // }
-    // // bson_append_array_end(mdb_var, &mdb_var_val);
-    // bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-    // bson_append_array_end(mdb_doc, &mdb_doc_child1);
-
-    // // char *str = bson_as_relaxed_extended_json(mdb_var, NULL);
-    // char *str = bson_as_relaxed_extended_json(mdb_doc, NULL);
-    // printf("%s\n", str);
-    // bson_free(str);
-
-    //  bson_t *query = BCON_NEW("variables.name",
-    //                          BCON_UTF8("ans2"));
-
-    // if (!mongoc_collection_update_one(mdb_col, query, mdb_doc, NULL, NULL, &bsn_err))
-    // {
-    //   fprintf(stderr, "%s\n", bsn_err.message);
-    // }
-
-    // if (!mongoc_collection_insert_one(mdb_col, mdb_var, NULL, NULL, &bsn_err))
-    // {
-    //   fprintf(stderr, "%s\n", bsn_err.message);
-    // }
-
-    // bson_t *query = BCON_NEW("name",
-    //                          "{",
-    //                          "$exists",
-    //                          BCON_BOOL(true),
-    //                          "}");
-    // if (!mongoc_collection_replace_one(mdb_col, query, mdb_var, NULL, NULL, &bsn_err))
-    // {
-    //   fprintf(stderr, "%s\n", bsn_err.message);
-    // }
-
-    // bson_t *query = BCON_NEW("variables.name",
-    //                          BCON_UTF8("ans")
-    //                          );
-    // const bson_t *doc;
-    // mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(mdb_col, query, NULL, NULL);
-
-    // str = bson_as_canonical_extended_json(query, NULL);
-    // printf("%s\n", str);
-    // bson_free(str);
-    // while (mongoc_cursor_next(cursor, &doc))
-    // {
-    //   str = bson_as_canonical_extended_json(doc, NULL);
-    //   printf("%s\n", str);
-    //   bson_free(str);
-    // }
-
-    // bson_t *query = BCON_NEW("variables.name",
-    //                          BCON_UTF8("ans"));
-    // const bson_t *doc;
-    // mongoc_cursor_t *cursor = mongoc_collection_find_with_opts(mdb_col, query, NULL, NULL);
-
-    // str = bson_as_canonical_extended_json(query, NULL);
-    // printf("%s\n", str);
-    // bson_free(str);
-    // while (mongoc_cursor_next(cursor, &doc))
-    // {
-    //   str = bson_as_canonical_extended_json(doc, NULL);
-    //   printf("%s\n", str);
-    //   bson_free(str);
-    // }
-
-    // bson_t *query = BCON_NEW("variables.name",
-    //                            BCON_UTF8("ans2"));
-    //   bson_t *update = BCON_NEW("$set",
-    //                             "{",
-    //                             "variables.$.val",
-    //                             BCON_UTF8("new_value"),
-    //                             "}");
-
-    //   if (!mongoc_collection_update_one(mdb_col, query, update, NULL, NULL, &bsn_err))
-    //   {
-    //     fprintf(stderr, "%s\n", bsn_err.message);
-    //   }
   }
 
-// HISTORY:
-//   strcpy(buff, PROGNAME);
-//   for (size_t i = 1; i < argc; i++)
-//   {
-//     strcat(buff, " ");
-//     strcat(buff, argv[i]);
-//   }
-//   json_array_append_new(ws_hist, json_string(buff));
-//   json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
+HISTORY:
+  if (mdb_cli != NULL)
+  {
+    strcpy(buff, PROGNAME);
+    for (size_t i = 1; i < argc; i++)
+    {
+      strcat(buff, " ");
+      strcat(buff, argv[i]);
+    }
+    bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
+    bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
 
-// STDOUT:
-//   /* stream */
-//   if (opti1->count > 0)
-//   {
-//     fprintf(fout, "%s", human(ans[0], buff));
-//     for (size_t i = 1; i < MIN(Nans, 3); ++i)
-//       fprintf(fout, ", %s", human(ans[i], buff));
-//     if (Nans > 5)
-//       fprintf(fout, ", ...");
-//     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-//       fprintf(fout, ", %s", human(ans[i], buff));
-//     fprintf(fout, "\n");
-//   }
-//   else
-//   {
-//     fprintf(fout, "%.16G", ans[0]);
-//     for (size_t i = 1; i < MIN(Nans, 3); ++i)
-//       fprintf(fout, ", %.16G", ans[i]);
-//     if (Nans > 5)
-//       fprintf(fout, ", ...");
-//     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-//       fprintf(fout, ", %.16G", ans[i]);
-//     fprintf(fout, "\n");
-//   }
+    if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+    {
+      fprintf(stderr, "%s\n", bsn_err.message);
+    }
+    bson_destroy(mdb_doc);
+    bson_destroy(mdb_qry);
+  }
+
+STDOUT:;
+  size_t Nans = N1;
+  char **ans = out1;
+  if (Nans > 0)
+    fprintf(fout, "%s", ans[0]);
+  for (size_t i = 1; i < MIN(Nans, 3); ++i)
+    fprintf(fout, ", %s", ans[0]);
+  if (Nans > 5)
+    fprintf(fout, ", ...");
+  for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+    fprintf(fout, ", %s", ans[0]);
+  fprintf(fout, "\n");
 
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
 EXIT_OUTPUT:;
-  for (int i = N; i < N; i++)
-    free(out[i]);
-  free(out);
-  // bson_destroy(mdb_var);
+  for (int i = N1; i < N1; i++)
+    free(out1[i]);
+  free(out1);
 
 EXIT_OPERATION:;
   sp_free_port_list(port_list);
 
 EXIT_INPUT:;
-  // free(inp1);
 
-EXIT:
+EXIT:;
   // mongoc cleanup
   mongoc_collection_destroy(mdb_col);
   mongoc_database_destroy(mdb_dtb);
@@ -425,17 +327,4 @@ EXIT:
   // argtable cleanup
   arg_freetable(argtable, argcount + 1); // +1 for end
   return exitcode;
-}
-
-char *human(number_t arg, char *buff)
-{
-  if (arg >= 1E3)
-    sprintf(buff, "%.1f km", arg / 1E3);
-  else if (arg >= 1)
-    sprintf(buff, "%.1f m", arg / 1E0);
-  else if (arg >= 1E-2)
-    sprintf(buff, "%.1f cm", arg / 1E-2);
-  else
-    sprintf(buff, "%.1f mm", arg / 1E-3);
-  return buff;
 }
