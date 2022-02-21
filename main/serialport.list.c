@@ -36,8 +36,6 @@ static mongoc_database_t *mdb_dtb = NULL;
 static mongoc_collection_t *mdb_col = NULL;
 static bson_error_t bsn_err;
 static bson_oid_t oid;
-static bson_t *mdb_doc;
-static bson_t *mdb_var, mdb_var_val;
 
 /*============================================================================*/
 /* Specifics                                                                  */
@@ -195,7 +193,7 @@ OPERATION:;
   {
     fprintf(stderr, "%s: serialport listing failed.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
-    goto EXIT_INPUT;
+    goto EXIT_OPERATION;
   }
   while (port_list[N] != NULL)
     ++N;
@@ -210,42 +208,97 @@ OUTPUT:;
 
   if (mdb_cli != NULL)
   {
-    mdb_doc = bson_new();
-    bson_t mdb_doc_child1, mdb_doc_child2; 
-    BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-    BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.val", &mdb_doc_child2);
+    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8("ans3"));
+    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &bsn_err);
+    printf("%" PRId64 " documents counted.\n", mdb_cnt);
+    bson_destroy(mdb_qry);
 
-
-    // mdb_var = bson_new();
-    // BSON_APPEND_ARRAY_BEGIN(mdb_var, "value", &mdb_var_val);
-    for (int i = 0; i < 5; ++i)
+    if (mdb_cnt < 0)
     {
-      char key[5];
-      sprintf(key, "%d", i);
-      // bson_append_utf8(&mdb_var_val, "key", -1, key, -1);
-      bson_append_utf8(&mdb_doc_child2, "key", -1, key, -1);
+      fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_OUTPUT;
     }
-    // bson_append_array_end(mdb_var, &mdb_var_val);
-    bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-    bson_append_array_end(mdb_doc, &mdb_doc_child1);
-
-    // char *str = bson_as_relaxed_extended_json(mdb_var, NULL);
-    char *str = bson_as_relaxed_extended_json(mdb_doc, NULL);
-    printf("%s\n", str);
-    bson_free(str);
-
-     bson_t *query = BCON_NEW("variables.name",
-                             BCON_UTF8("ans2"));
-  //   bson_t *update = BCON_NEW("$set",
-  //                             "{",
-  //                             "variables.$.val",
-  //                             BCON_UTF8("new_value"),                             
-  //                             "}");
-
-    if (!mongoc_collection_update_one(mdb_col, query, mdb_doc, NULL, NULL, &bsn_err))
+    else if (mdb_cnt == 0)
     {
-      fprintf(stderr, "%s\n", bsn_err.message);
+      bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+      bson_t *mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
+      BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
+      BSON_APPEND_UTF8(&mdb_doc_child2, "name", "ans3");
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
+      for (int i = 0; i < 4; ++i)
+      {
+        char key[5];
+        sprintf(key, "%d", i);
+        bson_append_utf8(&mdb_doc_child3, "key", -1, key, -1);
+      }
+      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+      bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+      {
+        fprintf(stderr, "%s\n", bsn_err.message);
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
     }
+    else
+    {
+      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8("ans3"));
+      bson_t *mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.val", &mdb_doc_child2);
+      for (int i = 0; i < 14; ++i)
+      {
+        char key[5];
+        sprintf(key, "%d", i);
+        bson_append_utf8(&mdb_doc_child2, "key", -1, key, -1);
+      }
+      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+      {
+        fprintf(stderr, "%s\n", bsn_err.message);
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
+    }
+
+    // mdb_doc = bson_new();
+    // bson_t mdb_doc_child1, mdb_doc_child2;
+    // BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
+    // BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.val", &mdb_doc_child2);
+
+    // // mdb_var = bson_new();
+    // // BSON_APPEND_ARRAY_BEGIN(mdb_var, "value", &mdb_var_val);
+    // for (int i = 0; i < 5; ++i)
+    // {
+    //   char key[5];
+    //   sprintf(key, "%d", i);
+    //   // bson_append_utf8(&mdb_var_val, "key", -1, key, -1);
+    //   bson_append_utf8(&mdb_doc_child2, "key", -1, key, -1);
+    // }
+    // // bson_append_array_end(mdb_var, &mdb_var_val);
+    // bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+    // bson_append_array_end(mdb_doc, &mdb_doc_child1);
+
+    // // char *str = bson_as_relaxed_extended_json(mdb_var, NULL);
+    // char *str = bson_as_relaxed_extended_json(mdb_doc, NULL);
+    // printf("%s\n", str);
+    // bson_free(str);
+
+    //  bson_t *query = BCON_NEW("variables.name",
+    //                          BCON_UTF8("ans2"));
+
+    // if (!mongoc_collection_update_one(mdb_col, query, mdb_doc, NULL, NULL, &bsn_err))
+    // {
+    //   fprintf(stderr, "%s\n", bsn_err.message);
+    // }
 
     // if (!mongoc_collection_insert_one(mdb_col, mdb_var, NULL, NULL, &bsn_err))
     // {
@@ -293,18 +346,18 @@ OUTPUT:;
     //   bson_free(str);
     // }
 
-  // bson_t *query = BCON_NEW("variables.name",
-  //                            BCON_UTF8("ans2"));
-  //   bson_t *update = BCON_NEW("$set",
-  //                             "{",
-  //                             "variables.$.val",
-  //                             BCON_UTF8("new_value"),                             
-  //                             "}");
+    // bson_t *query = BCON_NEW("variables.name",
+    //                            BCON_UTF8("ans2"));
+    //   bson_t *update = BCON_NEW("$set",
+    //                             "{",
+    //                             "variables.$.val",
+    //                             BCON_UTF8("new_value"),
+    //                             "}");
 
-  //   if (!mongoc_collection_update_one(mdb_col, query, update, NULL, NULL, &bsn_err))
-  //   {
-  //     fprintf(stderr, "%s\n", bsn_err.message);
-  //   }
+    //   if (!mongoc_collection_update_one(mdb_col, query, update, NULL, NULL, &bsn_err))
+    //   {
+    //     fprintf(stderr, "%s\n", bsn_err.message);
+    //   }
   }
 
 // HISTORY:
@@ -349,7 +402,7 @@ EXIT_OUTPUT:;
   for (int i = N; i < N; i++)
     free(out[i]);
   free(out);
-  bson_destroy(mdb_var);
+  // bson_destroy(mdb_var);
 
 EXIT_OPERATION:;
   sp_free_port_list(port_list);
