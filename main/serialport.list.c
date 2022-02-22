@@ -201,15 +201,17 @@ OUTPUT:;
 STDOUT:;
   size_t Nans = N1;
   char **ans = out1;
-  if (Nans > 0)
-    fprintf(stdout, "%s", ans[0]);
-  for (size_t i = 1; i < MIN(Nans, 3); ++i)
-    fprintf(stdout, ", %s", ans[i]);
-  if (Nans > 5)
-    fprintf(stdout, ", ...");
-  for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-    fprintf(stdout, ", %s", ans[i]);
-  fprintf(stdout, "\n");
+  for (int i = 0; i < Nans; i++)
+    fprintf(stdout, "%s: %s", sp_get_port_name(port_list[i]), sp_get_port_description(port_list[i]));
+  // if (Nans > 0)
+  //   fprintf(stdout, "%s", ans[0]);
+  // for (size_t i = 1; i < MIN(Nans, 3); ++i)
+  //   fprintf(stdout, ", %s", ans[i]);
+  // if (Nans > 5)
+  //   fprintf(stdout, ", ...");
+  // for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+  //   fprintf(stdout, ", %s", ans[i]);
+  // fprintf(stdout, "\n");
 
 WORKSPACE:;
 
