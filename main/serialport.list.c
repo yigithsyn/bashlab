@@ -25,8 +25,6 @@ static struct stat stat_buff;
 static json_error_t *json_error;
 static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
 static size_t ivar_index;
-static FILE *fin;
-static FILE *fout;
 static size_t argcount = 0;
 static char buff[250];
 
@@ -35,9 +33,11 @@ static mongoc_uri_t *mdb_uri = NULL;
 static mongoc_client_t *mdb_cli = NULL;
 static mongoc_database_t *mdb_dtb = NULL;
 static mongoc_collection_t *mdb_col = NULL;
-static bson_error_t bsn_err;
-static bson_oid_t oid;
-static char ws_out[50] = "ans";
+static bson_error_t mdb_err;
+static bson_oid_t mdb_oid;
+static char mdb_dtb_str[50] = "local";
+static char mdb_col_str[50] = "workspace";
+static char mdb_var_str[50] = "ans";
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
@@ -59,7 +59,6 @@ static const char *program_json =
 int main(int argc, char *argv[])
 {
   int exitcode = EXIT_SUCCESS;
-  fout = stdout;
   /* buffer variables */
   json_t *program = NULL;
   void *argtable[100];
@@ -153,7 +152,7 @@ int main(int argc, char *argv[])
     goto MAIN;
 
   mongoc_init();
-  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &bsn_err);
+  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &mdb_err);
   if (!mdb_uri)
     goto MAIN;
 
@@ -163,12 +162,10 @@ int main(int argc, char *argv[])
 
   mongoc_client_set_appname(mdb_cli, PROGNAME);
 
-  char mdb_dtb_str[50] = "local";
   if (getenv("BASHLAB_MONGODB_DTB_STRING"))
     strcpy(mdb_dtb_str, getenv("BASHLAB_MONGODB_DTB_STRING"));
   mdb_dtb = mongoc_client_get_database(mdb_cli, mdb_dtb_str);
 
-  char mdb_col_str[50] = "workspace";
   if (getenv("BASHLAB_MONGODB_COL_STRING"))
     strcpy(mdb_col_str, getenv("BASHLAB_MONGODB_COL_STRING"));
   mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, mdb_col_str);
@@ -177,9 +174,6 @@ int main(int argc, char *argv[])
 /* main operation                                                           */
 /* ======================================================================== */
 MAIN:;
-  struct arg_str *parg1 = (struct arg_str *)argtable[0]; // frequency
-  struct arg_str *parg2 = (struct arg_str *)argtable[1]; // aperture length
-  struct arg_lit *opti1 = (struct arg_lit *)argtable[2]; // human
 
 INPUTT:;
 
@@ -204,24 +198,35 @@ OUTPUT:;
     strcpy(out1[i], sp_get_port_name(port_list[i]));
   }
 
- 
+STDOUT:;
+  size_t Nans = N1;
+  char **ans = out1;
+  if (Nans > 0)
+    fprintf(stdout, "%s", ans[0]);
+  for (size_t i = 1; i < MIN(Nans, 3); ++i)
+    fprintf(stdout, ", %s", ans[0]);
+  if (Nans > 5)
+    fprintf(stdout, ", ...");
+  for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+    fprintf(stdout, ", %s", ans[0]);
+  fprintf(stdout, "\n");
 
-  if (getenv("BASHLAB_WORKSPACE_OUT"))
-    strcpy(ws_out, getenv("BASHLAB_WORKSPACE_OUT"));
-  else
-    strcpy(ws_out, "ans");
+WORKSPACE:;
+
+  if (getenv("BASHLAB_MONGODB_VAR_STRING"))
+    strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
   if (mdb_cli != NULL)
   {
-    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(ws_out));
-    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &bsn_err);
+    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
     bson_destroy(mdb_qry);
 
     if (mdb_cnt < 0)
     {
       fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
       exitcode = EXIT_FAILURE;
-      goto EXIT_OUTPUT;
+      goto EXIT_WORKSPACE;
     }
     else if (mdb_cnt == 0)
     {
@@ -230,7 +235,7 @@ OUTPUT:;
       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
       BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-      BSON_APPEND_UTF8(&mdb_doc_child2, "name", ws_out);
+      BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
       for (size_t i = 0; i < N1; ++i)
         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
@@ -238,16 +243,18 @@ OUTPUT:;
       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
       {
-        fprintf(stderr, "%s\n", bsn_err.message);
+        fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
       }
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
     }
     else
     {
-      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(ws_out));
+      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
       bson_t *mdb_doc = bson_new();
       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
@@ -257,9 +264,11 @@ OUTPUT:;
       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
       {
-        fprintf(stderr, "%s\n", bsn_err.message);
+        fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
       }
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
@@ -278,30 +287,23 @@ HISTORY:
     bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
     bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
 
-    if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &bsn_err))
+    if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
     {
-      fprintf(stderr, "%s\n", bsn_err.message);
+      fprintf(stderr, "%s: history update failed.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_HISTORY;
     }
     bson_destroy(mdb_doc);
     bson_destroy(mdb_qry);
   }
 
-STDOUT:;
-  size_t Nans = N1;
-  char **ans = out1;
-  if (Nans > 0)
-    fprintf(fout, "%s", ans[0]);
-  for (size_t i = 1; i < MIN(Nans, 3); ++i)
-    fprintf(fout, ", %s", ans[0]);
-  if (Nans > 5)
-    fprintf(fout, ", ...");
-  for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-    fprintf(fout, ", %s", ans[0]);
-  fprintf(fout, "\n");
-
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
+EXIT_HISTORY:;
+
+EXIT_WORKSPACE:;
+
 EXIT_OUTPUT:;
   for (int i = N1; i < N1; i++)
     free(out1[i]);
@@ -321,8 +323,7 @@ EXIT:;
   mongoc_cleanup();
 
   // jansson cleanup
-  if (program != NULL)
-    json_decref(program);
+  json_decref(program);
 
   // argtable cleanup
   arg_freetable(argtable, argcount + 1); // +1 for end
