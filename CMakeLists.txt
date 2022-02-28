@@ -33,7 +33,7 @@ if(UNIX)
 endif(UNIX)
 
 file(GLOB SOURCES "libs/algo/linspace.c")
-add_executable(linspace main/linspace.c ${SOURCES} ${COMMONS})
+add_executable(linspace main/linspacex.c ${SOURCES} ${COMMONS})
 target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS linspace CONFIGURATIONS Release) 

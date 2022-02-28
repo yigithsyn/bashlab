@@ -1,4 +1,49 @@
-#define PROGNAME "ws.list"
+/*============================================================================*/
+/* Commons                                                                    */
+/*============================================================================*/
+#include "typedefs.h"
+#include "configs.h"
+#include "macros.h"
+#include "utility.h"
+#include "constants.h"
+
+#include "argtable3.h"
+#include "jansson.h"
+#include "mongoc/mongoc.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <sys/stat.h>
+#if defined(_WIN32)
+#else
+#include <unistd.h>
+#endif
+
+static struct stat stat_buff;
+static json_error_t *json_error;
+static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
+static size_t ivar_index;
+static size_t argcount = 0;
+static char buff[250];
+
+// mongodb
+static mongoc_uri_t *mdb_uri = NULL;
+static mongoc_client_t *mdb_cli = NULL;
+static mongoc_database_t *mdb_dtb = NULL;
+static mongoc_collection_t *mdb_col = NULL;
+static bson_error_t mdb_err;
+static bson_oid_t mdb_oid;
+static char mdb_dtb_str[50] = "local";
+static char mdb_col_str[50] = "workspace";
+static char mdb_var_str[50] = "ans";
+bson_t *mdb_qry, *mdb_qry1, *mdb_doc, *mdb_doc1, *mdb_pip;
+mongoc_cursor_t *mdb_crs, *mdb_crs1;
+/*============================================================================*/
+/* Specifics                                                                  */
+/*============================================================================*/
+#define PROGNAME "ws.set"
 static const char *program_json =
     "{"
     "\"name\": \"ws.list\","
@@ -14,40 +59,11 @@ static const char *program_json =
     /*      */ "]"
     "}";
 
-#include "typedefs.h"
-#include "configs.h"
-#include "macros.h"
-#include "utility.h"
-
-#include "argtable3.h"
-#include "jansson.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <inttypes.h>
-#include <sys/stat.h>
-#if defined(_WIN32)
-#else
-#include <unistd.h>
-#endif
-
-static struct stat stat_buff;
-static json_error_t *json_error;
-static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
-static json_type var_type;
-static size_t ivar_index;
-static FILE *fin;
-static FILE *fout;
-static size_t argcount = 0;
-static char buff[250];
-
 int main(int argc, char *argv[])
 {
   int exitcode = EXIT_SUCCESS;
-  fout = stdout;
   /* buffer variables */
-  json_t *workspace = NULL, *program = NULL;
+  json_t *program = NULL;
   void *argtable[100];
 
   /* ======================================================================== */
@@ -61,16 +77,16 @@ int main(int argc, char *argv[])
   /* copy positional args */
   for (size_t i = 1; i < argc; i++)
     if (argv[i][0] == 45 && isnumber(argv[i]))
-      argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour for negative numbers
+      argv[i][0] = 126; // '-' to '~' avoiding argtable literal behaviour
 
   /* positional arg structs*/
   json_t *pargs = json_object_get(program, "pargs");
   json_array_foreach(pargs, ivar_index, ivar)
   {
-    const char *name = json_string_value(json_object_get(ivar, "name"));
-    int minc = json_integer_value(json_object_get(ivar, "minc"));
-    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t name = json_string_value(json_object_get(ivar, "name"));
+    int_t minc = json_integer_value(json_object_get(ivar, "minc"));
+    int_t maxc = json_integer_value(json_object_get(ivar, "maxc"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_strn(NULL, NULL, name, minc, maxc, desc);
   }
 
@@ -78,33 +94,34 @@ int main(int argc, char *argv[])
   json_t *oargs = json_object_get(program, "oargs");
   json_array_foreach(oargs, ivar_index, ivar)
   {
-    const char *sh = json_string_value(json_object_get(ivar, "short"));
-    const char *ln = json_string_value(json_object_get(ivar, "long"));
-    const char *name = json_string_value(json_object_get(ivar, "name"));
-    int minc = json_integer_value(json_object_get(ivar, "minc"));
-    int maxc = json_integer_value(json_object_get(ivar, "maxc"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t sh = json_string_value(json_object_get(ivar, "short"));
+    const_string_t ln = json_string_value(json_object_get(ivar, "long"));
+    const_string_t name = json_string_value(json_object_get(ivar, "name"));
+    int_t minc = json_integer_value(json_object_get(ivar, "minc"));
+    int_t maxc = json_integer_value(json_object_get(ivar, "maxc"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_strn(sh, ln, name, minc, maxc, desc);
   }
 
-  /* option arg structs*/
+  /* options structs*/
   json_t *opts = json_object_get(program, "opts");
   json_array_foreach(opts, ivar_index, ivar)
   {
-    const char *sh = json_string_value(json_object_get(ivar, "short"));
-    const char *ln = json_string_value(json_object_get(ivar, "long"));
-    const char *desc = json_string_value(json_object_get(ivar, "desc"));
+    const_string_t sh = json_string_value(json_object_get(ivar, "short"));
+    const_string_t ln = json_string_value(json_object_get(ivar, "long"));
+    const_string_t desc = json_string_value(json_object_get(ivar, "desc"));
     argtable[argcount++] = arg_lit0(sh, ln, desc);
   }
 
   /* commong arg structs */
   struct arg_lit *help = arg_lit0(NULL, "help", "display this help and exit");
+  struct arg_lit *verbose = arg_lit0(NULL, "verbose", "print processing details");
   struct arg_end *end = arg_end(20);
   argtable[argcount++] = help;
+  argtable[argcount++] = verbose;
   argtable[argcount] = end;
 
-  int arg_errors;
-  arg_errors = arg_parse(argc, argv, argtable);
+  int arg_errors = arg_parse(argc, argv, argtable);
 
   /* special case: '--help' takes precedence over error reporting */
   if (help->count > 0)
@@ -126,7 +143,7 @@ int main(int argc, char *argv[])
     goto EXIT;
   }
 
-  /* minus number back in positional args */
+  /* minus number_t back in positional args */
   for (size_t i = 1; i < argc; i++)
     if (argv[i][0] == 126)
       argv[i][0] = 45; // '~' to '-'
@@ -134,124 +151,244 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(BLAB_WS, 0, json_error);
-  if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
+  if (!getenv("BASHLAB_MONGODB_URI_STRING"))
+    goto MAIN;
+
+  mongoc_init();
+  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &mdb_err);
+  if (!mdb_uri)
+    goto MAIN;
+
+  mdb_cli = mongoc_client_new_from_uri(mdb_uri);
+  if (!mdb_cli)
+    goto MAIN;
+
+  mongoc_client_set_appname(mdb_cli, PROGNAME);
+
+  if (getenv("BASHLAB_MONGODB_DTB_STRING"))
+    strcpy(mdb_dtb_str, getenv("BASHLAB_MONGODB_DTB_STRING"));
+  mdb_dtb = mongoc_client_get_database(mdb_cli, mdb_dtb_str);
+
+  if (getenv("BASHLAB_MONGODB_COL_STRING"))
+    strcpy(mdb_col_str, getenv("BASHLAB_MONGODB_COL_STRING"));
+  mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, mdb_col_str);
+
+/* ======================================================================== */
+/* main operation                                                           */
+/* ======================================================================== */
+MAIN:;
+  if (mdb_col == NULL)
   {
-    fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
+    fprintf(stderr, "%s: function requires validworkspace.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT;
-  }
-  if (workspace == NULL)
-  {
-    workspace = json_object();
-  }
-  ws_vars = json_object_get(workspace, "variables");
-  if (ws_vars != NULL && json_typeof(ws_vars) != JSON_ARRAY)
-  {
-    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (ws_vars == NULL)
-  {
-    json_object_set_new(workspace, "variables", json_array());
-    ws_vars = json_object_get(workspace, "variables");
-  }
-  ws_hist = json_object_get(workspace, "history");
-  if (ws_hist != NULL && json_typeof(ws_hist) != JSON_ARRAY)
-  {
-    fprintf(stderr, "%s: invalid workspace variables.\n", PROGNAME);
-    fprintf(stderr, "Try '%s --help' for more information.\n\n", PROGNAME);
-    exitcode = EXIT_FAILURE;
-    goto EXIT;
-  }
-  if (ws_hist == NULL)
-  {
-    json_object_set_new(workspace, "history", json_array());
-    ws_hist = json_object_get(workspace, "history");
   }
 
-  /* ======================================================================== */
-  /* main operation                                                           */
-  /* ======================================================================== */
-  struct arg_lit *arg_hist = (struct arg_lit *)argtable[0];
-
-INPUT:;
+INPUTT:;
 
 OPERATION:;
 
 OUTPUT:;
-  size_t Nans = 1;
 
-  /* stream */
-  if (arg_hist->count < 1)
+STDOUT:;
+  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, NULL, NULL);
+  if (mongoc_cursor_error(mdb_crs, &mdb_err))
   {
-    for (size_t i = 0; i < json_array_size(ws_vars); ++i)
-    {
-      var = json_array_get(ws_vars, i);
-      var_name = json_object_get(var, "name");
-      var_size = json_object_get(var, "size");
-      var_val = json_object_get(var, "value");
-      var_type = json_typeof(json_array_get(var_val, 0));
-      fprintf(fout, "%-10s: ", json_string_value(var_name));
-      sprintf(buff, "%s", var_type == JSON_REAL ? "number[" : "string[");
-      for (size_t i = 0; i < json_array_size(var_size) - 1; ++i)
-        sprintf(buff, "%s%lldx", buff, json_integer_value(json_array_get(var_size, i)));
-      sprintf(buff, "%s%lld]", buff,json_integer_value(json_array_get(var_size, json_array_size(var_size) - 1)));
-      fprintf(fout, "%-15s: ", buff);
+    fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
+    exitcode = EXIT_FAILURE;
+    goto STDOUT;
+  }
 
-      Nans = json_array_size(var_val);
-      if (var_type == JSON_REAL)
+  while (mongoc_cursor_next(mdb_crs, &mdb_doc))
+  {
+    bson_iter_t iter, sub_iter, sub_sub_iter, sub_sub_sub_iter;
+    if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &sub_iter))
+    {
+      while (bson_iter_next(&sub_iter))
       {
-        fprintf(fout, "%.16G", json_real_value(json_array_get(var_val, 0)));
-        for (size_t i = 1; i < MIN(Nans, 3); ++i)
-          fprintf(fout, ", %.16G", json_real_value(json_array_get(var_val, i)));
-        if (Nans > 5)
-          fprintf(fout, ", ...");
-        for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-          fprintf(fout, ", %.16G", json_real_value(json_array_get(var_val, i)));
-        fprintf(fout, "\n");
-      }
-      else
-      {
-        fprintf(fout, "%s", json_string_value(json_array_get(var_val, 0)));
-        for (size_t i = 1; i < MIN(Nans, 3); ++i)
-          fprintf(fout, ", %s", json_string_value(json_array_get(var_val, i)));
-        if (Nans > 5)
-          fprintf(fout, ", ...");
-        for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-          fprintf(fout, ", %s", json_string_value(json_array_get(var_val, i)));
-        fprintf(fout, "\n");
+        bson_iter_recurse(&sub_iter, &sub_sub_iter);
+        while (bson_iter_next(&sub_sub_iter))
+        {
+          if (!strcmp(bson_iter_key(&sub_sub_iter), "name"))
+          {
+            fprintf(stdout, "%-10s: \n", bson_iter_value(&sub_sub_iter)->value.v_utf8.str);
+            mdb_pip = BCON_NEW("pipeline", "[", "{", "$match", "{", "variables", "{", "$exists", BCON_BOOL("true"), "}", "}", "}", "{", "$unwind", "$variables", "}", "{", "$match", "{", "variables.name", BCON_UTF8(bson_iter_value(&sub_sub_iter)->value.v_utf8.str), "}", "}", "{", "$project", "{", "_id", BCON_INT32(0), "count", "{", "$size", BCON_UTF8("$variables.value"), "}", "}", "}", "]");
+
+            mdb_crs1 = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_pip, NULL, NULL);
+            if (mongoc_cursor_error(mdb_crs1, &mdb_err))
+            {
+              fprintf(stderr, "An error occurred: %s\n", mdb_err.message);
+            }
+            while (mongoc_cursor_next(mdb_crs1, &mdb_doc1))
+            {
+              char *str = bson_as_canonical_extended_json(mdb_doc1, NULL);
+              printf("%s\n", str);
+              bson_free(str);
+            }
+
+            bson_destroy(mdb_pip);
+            mongoc_cursor_destroy(mdb_crs1);
+            // }
+
+            //   else
+            //   {
+            //     bson_iter_recurse(&sub_sub_iter, &sub_sub_sub_iter);
+            //     while (bson_iter_next(&sub_sub_sub_iter))
+            //     {
+            //       // printf("Found key \"%s\" in sub document.\n", bson_iter_key(&sub_sub_sub_iter));
+            //       if (bson_iter_value(&sub_sub_sub_iter)->value_type == BSON_TYPE_DOUBLE)
+            //         printf("[double]%f", bson_iter_value(&sub_sub_sub_iter)->value.v_double);
+            //     }
+            //   }
+          }
+        }
       }
     }
   }
-  else
-  {
-    for (size_t i = 0; i < json_array_size(ws_hist); ++i)
-      fprintf(fout, "%s\n", json_string_value(json_array_get(ws_hist, i)));
-  }
+  bson_destroy(mdb_doc);
+  mongoc_cursor_destroy(mdb_crs);
+  bson_destroy(mdb_qry);
 
-HISTORY:
+  // size_t Nans = N1;
+  // char **ans = out1;
+  // if (verbose->count)
+  // {
+  //   for (int i = 0; i < Nans; i++)
+  //     fprintf(stdout, "%s: %s\n", sp_get_port_name(port_list[i]), sp_get_port_description(port_list[i]));
+  // }
+  // else
+  // {
+  //   if (Nans > 0)
+  //     fprintf(stdout, "%s", ans[0]);
+  //   for (size_t i = 1; i < MIN(Nans, 3); ++i)
+  //     fprintf(stdout, ", %s", ans[i]);
+  //   if (Nans > 5)
+  //     fprintf(stdout, ", ...");
+  //   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+  //     fprintf(stdout, ", %s", ans[i]);
+  //   fprintf(stdout, "\n");
+  // }
+
+WORKSPACE:;
+
+//   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
+//     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
+
+//   if (mdb_cli != NULL)
+//   {
+//     bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+//     int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
+//     bson_destroy(mdb_qry);
+
+//     if (mdb_cnt < 0)
+//     {
+//       fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
+//       exitcode = EXIT_FAILURE;
+//       goto EXIT_WORKSPACE;
+//     }
+//     else if (mdb_cnt == 0)
+//     {
+//       bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+//       bson_t *mdb_doc = bson_new();
+//       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+//       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
+//       BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
+//       BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
+//       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
+//       for (size_t i = 0; i < N1; ++i)
+//         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
+//       bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+//       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
+//       bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+//       if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+//       {
+//         fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_WORKSPACE;
+//       }
+//       bson_destroy(mdb_qry);
+//       bson_destroy(mdb_doc);
+//     }
+//     else
+//     {
+//       bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+//       bson_t *mdb_doc = bson_new();
+//       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+//       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
+//       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
+//       for (size_t i = 0; i < N1; ++i)
+//         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
+//       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+//       bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+//       if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+//       {
+//         fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
+//         exitcode = EXIT_FAILURE;
+//         goto EXIT_WORKSPACE;
+//       }
+//       bson_destroy(mdb_qry);
+//       bson_destroy(mdb_doc);
+//     }
+//   }
+
+// HISTORY:
+//   if (mdb_cli != NULL)
+//   {
+//     strcpy(buff, PROGNAME);
+//     for (size_t i = 1; i < argc; i++)
+//     {
+//       strcat(buff, " ");
+//       strcat(buff, argv[i]);
+//     }
+//     bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
+//     bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
+
+//     if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+//     {
+//       fprintf(stderr, "%s: history update failed.\n", PROGNAME);
+//       exitcode = EXIT_FAILURE;
+//       goto EXIT_HISTORY;
+//     }
+//     bson_destroy(mdb_doc);
+//     bson_destroy(mdb_qry);
+//   }
 
 /* ======================================================================== */
 /* exit                                                                     */
 /* ======================================================================== */
+EXIT_HISTORY:;
+
+EXIT_WORKSPACE:;
+
+EXIT_STDOUT:;
+  // mongoc_cursor_destroy(mdb_crs);
+  // bson_destroy(mdb_qry);
+
+EXIT_OUTPUT:;
+  // for (int i = N1; i < N1; i++)
+  //   free(out1[i]);
+  // free(out1);
+
 EXIT_OPERATION:;
+  // sp_free_port_list(port_list);
 
 EXIT_INPUT:;
 
-EXIT_OUTPUT:;
+EXIT:;
+  // mongoc cleanup
+  mongoc_collection_destroy(mdb_col);
+  mongoc_database_destroy(mdb_dtb);
+  mongoc_client_destroy(mdb_cli);
+  mongoc_uri_destroy(mdb_uri);
+  mongoc_cleanup();
 
-EXIT:
-  /* dereference json objects */
-  if (workspace != NULL)
-    json_decref(workspace);
-  if (program != NULL)
-    json_decref(program);
+  // jansson cleanup
+  json_decref(program);
 
-  /* deallocate each non-null entry in argtable[] */
+  // argtable cleanup
   arg_freetable(argtable, argcount + 1); // +1 for end
   return exitcode;
 }
