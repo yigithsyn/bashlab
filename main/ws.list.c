@@ -40,6 +40,7 @@ static char mdb_col_str[50] = "workspace";
 static char mdb_var_str[50] = "ans";
 bson_t *mdb_qry, *mdb_qry1, *mdb_doc, *mdb_doc1, *mdb_pip;
 mongoc_cursor_t *mdb_crs, *mdb_crs1;
+#define PIPELINE(name) "{\"pipeline\":[{\"$match\":{\"variables\":{\"$exists\":true}}},{\"$unwind\":\"$variables\"},{\"$match\":{\"variables.name\":\"" name "\"}},{\"$project\":{\"_id\":0,\"count\":{\"$size\":\"$variables.value\"}}}]}"
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
 MAIN:;
   if (mdb_col == NULL)
   {
-    fprintf(stderr, "%s: function requires validworkspace.\n", PROGNAME);
+    fprintf(stderr, "%s: function requires valid workspace.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
@@ -200,75 +201,80 @@ STDOUT:;
     goto STDOUT;
   }
 
-  while (mongoc_cursor_next(mdb_crs, &mdb_doc))
+  size_t sizes[100];
+  char names[100][10];
+  bson_type_t types[100];
+  double valsd[100][5];
+  char valss[100][1000];
+  size_t N = 0;
+  while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
   {
-    bson_iter_t iter, sub_iter, sub_sub_iter, sub_sub_sub_iter;
-    if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &sub_iter))
+    bson_iter_t iter, iter1, iter2, iter3;
+    if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &iter1))
     {
-      while (bson_iter_next(&sub_iter))
+      while (bson_iter_next(&iter1))
       {
-        bson_iter_recurse(&sub_iter, &sub_sub_iter);
-        while (bson_iter_next(&sub_sub_iter))
+        bson_iter_recurse(&iter1, &iter2);
+        while (bson_iter_next(&iter2))
         {
-          if (!strcmp(bson_iter_key(&sub_sub_iter), "name"))
+          if (strcmp(bson_iter_key(&iter2), "name") == 0)
           {
-            fprintf(stdout, "%-10s: \n", bson_iter_value(&sub_sub_iter)->value.v_utf8.str);
-            mdb_pip = BCON_NEW("pipeline", "[", "{", "$match", "{", "variables", "{", "$exists", BCON_BOOL("true"), "}", "}", "}", "{", "$unwind", "$variables", "}", "{", "$match", "{", "variables.name", BCON_UTF8(bson_iter_value(&sub_sub_iter)->value.v_utf8.str), "}", "}", "{", "$project", "{", "_id", BCON_INT32(0), "count", "{", "$size", BCON_UTF8("$variables.value"), "}", "}", "}", "]");
+            strcpy(names[N], bson_iter_value(&iter2)->value.v_utf8.str);
+
+            mdb_pip = BCON_NEW("pipeline", "[", "{", "$match", "{", "variables", "{", "$exists", BCON_BOOL("true"), "}", "}", "}", "{", "$unwind", "$variables", "}", "{", "$match", "{", "variables.name", BCON_UTF8(bson_iter_value(&iter2)->value.v_utf8.str), "}", "}", "{", "$project", "{", "_id", BCON_INT32(0), "count", "{", "$size", BCON_UTF8("$variables.value"), "}", "}", "}", "]");
 
             mdb_crs1 = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_pip, NULL, NULL);
-            if (mongoc_cursor_error(mdb_crs1, &mdb_err))
+            if (mongoc_cursor_next(mdb_crs1, (const bson_t **)&mdb_doc1))
             {
-              fprintf(stderr, "An error occurred: %s\n", mdb_err.message);
-            }
-            while (mongoc_cursor_next(mdb_crs1, &mdb_doc1))
-            {
-              char *str = bson_as_canonical_extended_json(mdb_doc1, NULL);
-              printf("%s\n", str);
-              bson_free(str);
+              bson_iter_init_find(&iter3, mdb_doc1, "count");
+              sizes[N] = bson_iter_value(&iter3)->value.v_int32;
             }
 
             bson_destroy(mdb_pip);
             mongoc_cursor_destroy(mdb_crs1);
-            // }
-
-            //   else
-            //   {
-            //     bson_iter_recurse(&sub_sub_iter, &sub_sub_sub_iter);
-            //     while (bson_iter_next(&sub_sub_sub_iter))
-            //     {
-            //       // printf("Found key \"%s\" in sub document.\n", bson_iter_key(&sub_sub_sub_iter));
-            //       if (bson_iter_value(&sub_sub_sub_iter)->value_type == BSON_TYPE_DOUBLE)
-            //         printf("[double]%f", bson_iter_value(&sub_sub_sub_iter)->value.v_double);
-            //     }
-            //   }
+          }
+          else
+          {
+            bson_iter_recurse(&iter2, &iter3);
+            size_t i = 0;
+            while (bson_iter_next(&iter3))
+            {
+              if (i == 0)
+                types[N] = bson_iter_value(&iter3)->value_type;
+              if (i == 0 || i == 1 || i == 2 || i == sizes[N] - 2 || i == sizes[N])
+              {
+                if (types[N] == BSON_TYPE_DOUBLE)
+                  valsd[N][i] = bson_iter_value(&iter3)->value.v_double;
+                if (types[N] == BSON_TYPE_UTF8)
+                  strcpy(valss[N], bson_iter_value(&iter3)->value.v_utf8.str);
+              }
+              i++;
+            }
           }
         }
+        N++;
+      }
+      for (size_t i = 0; i < N; i++)
+      {
+        fprintf(stdout, "%-10s: ", names[i]);
+        fprintf(stdout, "%s[", (types[i] == BSON_TYPE_DOUBLE) ? "number" : "string");
+        fprintf(stdout, "%zu]: ", sizes[i]);
+
+        if (sizes[i] > 0)
+          fprintf(stdout, "%.16G", valsd[i][0]);
+        for (size_t j = 1; j < MIN(sizes[i], 3); ++j)
+          fprintf(stdout, ", %.16G", valsd[i][j]);
+        if (sizes[i] > 5)
+          fprintf(stdout, ", ...");
+        for (size_t j = 3; j < sizes[i]; ++j)
+          fprintf(stdout, ", %.16G", valsd[i][j]);
+        fprintf(stdout, "\n");
       }
     }
   }
   bson_destroy(mdb_doc);
   mongoc_cursor_destroy(mdb_crs);
   bson_destroy(mdb_qry);
-
-  // size_t Nans = N1;
-  // char **ans = out1;
-  // if (verbose->count)
-  // {
-  //   for (int i = 0; i < Nans; i++)
-  //     fprintf(stdout, "%s: %s\n", sp_get_port_name(port_list[i]), sp_get_port_description(port_list[i]));
-  // }
-  // else
-  // {
-  //   if (Nans > 0)
-  //     fprintf(stdout, "%s", ans[0]);
-  //   for (size_t i = 1; i < MIN(Nans, 3); ++i)
-  //     fprintf(stdout, ", %s", ans[i]);
-  //   if (Nans > 5)
-  //     fprintf(stdout, ", ...");
-  //   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-  //     fprintf(stdout, ", %s", ans[i]);
-  //   fprintf(stdout, "\n");
-  // }
 
 WORKSPACE:;
 
@@ -364,16 +370,10 @@ EXIT_HISTORY:;
 EXIT_WORKSPACE:;
 
 EXIT_STDOUT:;
-  // mongoc_cursor_destroy(mdb_crs);
-  // bson_destroy(mdb_qry);
 
 EXIT_OUTPUT:;
-  // for (int i = N1; i < N1; i++)
-  //   free(out1[i]);
-  // free(out1);
 
 EXIT_OPERATION:;
-  // sp_free_port_list(port_list);
 
 EXIT_INPUT:;
 

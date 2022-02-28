@@ -38,13 +38,11 @@ target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS linspace CONFIGURATIONS Release) 
 
-add_executable(ws.set main/ws.set.c ${SOURCES} ${COMMONS})
+add_executable(ws.set main/ws.setx.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.set ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ws.set CONFIGURATIONS Release) 
 
-add_executable(ws.list main/ws.list.c ${SOURCES} ${COMMONS})
-target_link_libraries(ws.list ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS ws.list CONFIGURATIONS Release) 
+
 
 add_executable(ws.clr main/ws.clr.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.clr ${COMMON_LINK_LIBS_OPTIM})
@@ -78,3 +76,7 @@ elseif(UNIX)
 target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM} serialport)
 endif()
 install(TARGETS serialport.list CONFIGURATIONS Release) 
+
+add_executable(ws.list main/ws.list.c ${SOURCES} ${COMMONS})
+target_link_libraries(ws.list ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS ws.list CONFIGURATIONS Release) 
