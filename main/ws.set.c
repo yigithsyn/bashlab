@@ -332,8 +332,6 @@ EXIT_STDOUT:;
 EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
-  mongoc_cursor_destroy(mdb_crs);
-  bson_destroy(mdb_qry);
 
 EXIT_INPUT:;
 

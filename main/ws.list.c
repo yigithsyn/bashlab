@@ -313,7 +313,6 @@ STDOUT:;
         fprintf(stdout, ", %.16s", var_valss[i][4]);
     fprintf(stdout, "\n");
   }
-
 WORKSPACE:;
 
   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
@@ -418,8 +417,6 @@ EXIT_STDOUT:;
 EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
-  mongoc_cursor_destroy(mdb_crs);
-  bson_destroy(mdb_qry);
 
 EXIT_INPUT:;
 
