@@ -199,7 +199,7 @@ OPERATION:;
   size_t var_sizes[100][3];
   size_t var_sizeN[100];
   size_t var_sizeT[100];
-  char var_names[100][10];
+  char var_names[100][100];
   bson_type_t var_types[100];
   double var_valsd[100][5];
   char var_valss[100][5][16];
@@ -251,16 +251,16 @@ OPERATION:;
               else if (i == var_sizeT[var_lngth] - 2)
               {
                 if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
-                  var_valsd[var_lngth][MIN(i,3)] = bson_iter_value(&iter3)->value.v_double;
+                  var_valsd[var_lngth][MIN(i, 3)] = bson_iter_value(&iter3)->value.v_double;
                 if (var_types[var_lngth] == BSON_TYPE_UTF8)
-                  strcpy(var_valss[var_lngth][MIN(i,3)], bson_iter_value(&iter3)->value.v_utf8.str);
+                  strcpy(var_valss[var_lngth][MIN(i, 3)], bson_iter_value(&iter3)->value.v_utf8.str);
               }
               else if (i == var_sizeT[var_lngth] - 1)
               {
                 if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
-                  var_valsd[var_lngth][MIN(i,4)] = bson_iter_value(&iter3)->value.v_double;
+                  var_valsd[var_lngth][MIN(i, 4)] = bson_iter_value(&iter3)->value.v_double;
                 if (var_types[var_lngth] == BSON_TYPE_UTF8)
-                  strcpy(var_valss[var_lngth][MIN(i,4)], bson_iter_value(&iter3)->value.v_utf8.str);
+                  strcpy(var_valss[var_lngth][MIN(i, 4)], bson_iter_value(&iter3)->value.v_utf8.str);
               }
               i++;
             }
@@ -277,10 +277,13 @@ OPERATION:;
 OUTPUT:;
 
 STDOUT:;
-
+  size_t max_var_name_length = 0;
+  for (size_t i = 0; i < var_lngth; i++)
+    if (strlen(var_names[i]))
+      max_var_name_length = strlen(var_names[i]);
   for (size_t i = 0; i < var_lngth; i++)
   {
-    fprintf(stdout, "%-10s: ", var_names[i]);
+    fprintf(stdout, "%-*s: ", max_var_name_length, var_names[i]);
     fprintf(stdout, "%s[", (var_types[i] == BSON_TYPE_DOUBLE) ? "number" : "string");
     for (size_t j = 1; j < var_sizeN[i] - 1; ++j)
       fprintf(stdout, "%zux", var_sizes[i][j]);
