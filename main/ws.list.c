@@ -23,7 +23,7 @@
 
 static struct stat stat_buff;
 static json_error_t *json_error;
-static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
+static json_t *ivar;
 static size_t ivar_index;
 static size_t argcount = 0;
 static char buff[250];
@@ -40,11 +40,10 @@ static char mdb_col_str[50] = "workspace";
 static char mdb_var_str[50] = "ans";
 bson_t *mdb_qry, *mdb_qry1, *mdb_doc, *mdb_doc1, *mdb_pip;
 mongoc_cursor_t *mdb_crs, *mdb_crs1;
-#define PIPELINE(name) "{\"pipeline\":[{\"$match\":{\"variables\":{\"$exists\":true}}},{\"$unwind\":\"$variables\"},{\"$match\":{\"variables.name\":\"" name "\"}},{\"$project\":{\"_id\":0,\"count\":{\"$size\":\"$variables.value\"}}}]}"
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
-#define PROGNAME "ws.set"
+#define PROGNAME "ws.list"
 static const char *program_json =
     "{"
     "\"name\": \"ws.list\","
@@ -188,25 +187,23 @@ MAIN:;
 INPUTT:;
 
 OPERATION:;
-
-OUTPUT:;
-
-STDOUT:;
   mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
   mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, NULL, NULL);
   if (mongoc_cursor_error(mdb_crs, &mdb_err))
   {
     fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
     exitcode = EXIT_FAILURE;
-    goto STDOUT;
+    goto EXIT_OPERATION;
   }
 
-  size_t sizes[100];
-  char names[100][10];
-  bson_type_t types[100];
-  double valsd[100][5];
-  char valss[100][1000];
-  size_t N = 0;
+  size_t var_sizes[100][3];
+  size_t var_sizeN[100];
+  size_t var_sizeT[100];
+  char var_names[100][10];
+  bson_type_t var_types[100];
+  double var_valsd[100][5];
+  char var_valss[100][5][16];
+  size_t var_lngth = 0;
   while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
   {
     bson_iter_t iter, iter1, iter2, iter3;
@@ -218,57 +215,44 @@ STDOUT:;
         while (bson_iter_next(&iter2))
         {
           if (strcmp(bson_iter_key(&iter2), "name") == 0)
+            strcpy(var_names[var_lngth], bson_iter_value(&iter2)->value.v_utf8.str);
+          else if (strcmp(bson_iter_key(&iter2), "size") == 0)
           {
-            strcpy(names[N], bson_iter_value(&iter2)->value.v_utf8.str);
-
-            mdb_pip = BCON_NEW("pipeline", "[", "{", "$match", "{", "variables", "{", "$exists", BCON_BOOL("true"), "}", "}", "}", "{", "$unwind", "$variables", "}", "{", "$match", "{", "variables.name", BCON_UTF8(bson_iter_value(&iter2)->value.v_utf8.str), "}", "}", "{", "$project", "{", "_id", BCON_INT32(0), "count", "{", "$size", BCON_UTF8("$variables.value"), "}", "}", "}", "]");
-
-            mdb_crs1 = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_pip, NULL, NULL);
-            if (mongoc_cursor_next(mdb_crs1, (const bson_t **)&mdb_doc1))
+            var_sizeT[var_lngth] = 1;
+            bson_iter_recurse(&iter2, &iter3);
+            size_t i = 0;
+            while (bson_iter_next(&iter3))
             {
-              bson_iter_init_find(&iter3, mdb_doc1, "count");
-              sizes[N] = bson_iter_value(&iter3)->value.v_int32;
+              var_sizes[var_lngth][i] = (size_t)bson_iter_value(&iter3)->value.v_int64;
+              var_sizeT[var_lngth] *= (size_t)bson_iter_value(&iter3)->value.v_int64;
+              i++;
             }
-
-            bson_destroy(mdb_pip);
-            mongoc_cursor_destroy(mdb_crs1);
+            var_sizeN[var_lngth] = i;
           }
-          else
+        }
+        bson_iter_recurse(&iter1, &iter2);
+        while (bson_iter_next(&iter2))
+        {
+          if (strcmp(bson_iter_key(&iter2), "value") == 0)
           {
             bson_iter_recurse(&iter2, &iter3);
             size_t i = 0;
             while (bson_iter_next(&iter3))
             {
               if (i == 0)
-                types[N] = bson_iter_value(&iter3)->value_type;
-              if (i == 0 || i == 1 || i == 2 || i == sizes[N] - 2 || i == sizes[N])
+                var_types[var_lngth] = bson_iter_value(&iter3)->value_type;
+              if (i == 0 || i == 1 || i == 2 || i == var_sizeT[var_lngth] - 2 || i == var_sizeT[var_lngth] - 1)
               {
-                if (types[N] == BSON_TYPE_DOUBLE)
-                  valsd[N][i] = bson_iter_value(&iter3)->value.v_double;
-                if (types[N] == BSON_TYPE_UTF8)
-                  strcpy(valss[N], bson_iter_value(&iter3)->value.v_utf8.str);
+                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
+                  var_valsd[var_lngth][i] = bson_iter_value(&iter3)->value.v_double;
+                if (var_types[var_lngth] == BSON_TYPE_UTF8)
+                  strcpy(var_valss[var_lngth][i], bson_iter_value(&iter3)->value.v_utf8.str);
               }
               i++;
             }
           }
         }
-        N++;
-      }
-      for (size_t i = 0; i < N; i++)
-      {
-        fprintf(stdout, "%-10s: ", names[i]);
-        fprintf(stdout, "%s[", (types[i] == BSON_TYPE_DOUBLE) ? "number" : "string");
-        fprintf(stdout, "%zu]: ", sizes[i]);
-
-        if (sizes[i] > 0)
-          fprintf(stdout, "%.16G", valsd[i][0]);
-        for (size_t j = 1; j < MIN(sizes[i], 3); ++j)
-          fprintf(stdout, ", %.16G", valsd[i][j]);
-        if (sizes[i] > 5)
-          fprintf(stdout, ", ...");
-        for (size_t j = 3; j < sizes[i]; ++j)
-          fprintf(stdout, ", %.16G", valsd[i][j]);
-        fprintf(stdout, "\n");
+        var_lngth++;
       }
     }
   }
@@ -276,91 +260,130 @@ STDOUT:;
   mongoc_cursor_destroy(mdb_crs);
   bson_destroy(mdb_qry);
 
+OUTPUT:;
+
+STDOUT:;
+
+  for (size_t i = 0; i < var_lngth; i++)
+  {
+    fprintf(stdout, "%-10s: ", var_names[i]);
+    fprintf(stdout, "%s[", (var_types[i] == BSON_TYPE_DOUBLE) ? "number" : "string");
+    for (size_t j = 1; j < var_sizeN[i] - 1; ++j)
+      fprintf(stdout, "%zux", var_sizes[i][j]);
+    fprintf(stdout, "%zu]: ", var_sizes[i][var_sizeN[i] - 1]);
+
+    if (var_sizeT[i] > 0)
+      if (var_types[i] == BSON_TYPE_DOUBLE)
+        fprintf(stdout, "%.16G", var_valsd[i][0]);
+      else
+        fprintf(stdout, "%.16s", var_valss[i][0]);
+    for (size_t j = 1; j < MIN(var_sizeT[i], 3); ++j)
+      if (var_types[i] == BSON_TYPE_DOUBLE)
+        fprintf(stdout, ", %.16G", var_valsd[i][j]);
+      else
+        fprintf(stdout, ", %.16s", var_valss[i][j]);
+    if (var_sizeT[i] > 5)
+      fprintf(stdout, ", ...");
+    for (size_t j = 3; j < var_sizeT[i]; ++j)
+      if (var_types[i] == BSON_TYPE_DOUBLE)
+        fprintf(stdout, ", %.16G", var_valsd[i][j]);
+      else
+        fprintf(stdout, ", %.16s", var_valss[i][j]);
+    fprintf(stdout, "\n");
+  }
+
 WORKSPACE:;
 
-//   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
-//     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
+  if (getenv("BASHLAB_MONGODB_VAR_STRING"))
+    strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
-//   if (mdb_cli != NULL)
-//   {
-//     bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-//     int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
-//     bson_destroy(mdb_qry);
+  if (mdb_col != NULL)
+  {
+    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
+    bson_destroy(mdb_qry);
 
-//     if (mdb_cnt < 0)
-//     {
-//       fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
-//       exitcode = EXIT_FAILURE;
-//       goto EXIT_WORKSPACE;
-//     }
-//     else if (mdb_cnt == 0)
-//     {
-//       bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-//       bson_t *mdb_doc = bson_new();
-//       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-//       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
-//       BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-//       BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
-//       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
-//       for (size_t i = 0; i < N1; ++i)
-//         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
-//       bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
-//       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
-//       bson_append_document_end(mdb_doc, &mdb_doc_child1);
+    if (mdb_cnt < 0)
+    {
+      fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_WORKSPACE;
+    }
+    else if (mdb_cnt == 0)
+    {
+      bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+      bson_t *mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
+      BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
+      BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
+      for (size_t i = 0; i < var_lngth; ++i)
+        bson_append_utf8(&mdb_doc_child3, "no", -1, var_names[i], -1);
+      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
+      bson_append_int64(&mdb_doc_child3, "no", -1, (int64_t)var_lngth);
+      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+      bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-//       if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-//       {
-//         fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
-//         exitcode = EXIT_FAILURE;
-//         goto EXIT_WORKSPACE;
-//       }
-//       bson_destroy(mdb_qry);
-//       bson_destroy(mdb_doc);
-//     }
-//     else
-//     {
-//       bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-//       bson_t *mdb_doc = bson_new();
-//       bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-//       BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-//       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
-//       for (size_t i = 0; i < N1; ++i)
-//         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
-//       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-//       bson_append_document_end(mdb_doc, &mdb_doc_child1);
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      {
+        fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
+    }
+    else
+    {
+      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+      bson_t *mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
+      for (size_t i = 0; i < var_lngth; ++i)
+        bson_append_utf8(&mdb_doc_child2, "no", -1, var_names[i], -1);
+      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
+      bson_append_int64(&mdb_doc_child2, "no", -1, (int64_t)var_lngth);
+      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-//       if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-//       {
-//         fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
-//         exitcode = EXIT_FAILURE;
-//         goto EXIT_WORKSPACE;
-//       }
-//       bson_destroy(mdb_qry);
-//       bson_destroy(mdb_doc);
-//     }
-//   }
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      {
+        fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
+      ;
+    }
+  }
 
-// HISTORY:
-//   if (mdb_cli != NULL)
-//   {
-//     strcpy(buff, PROGNAME);
-//     for (size_t i = 1; i < argc; i++)
-//     {
-//       strcat(buff, " ");
-//       strcat(buff, argv[i]);
-//     }
-//     bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
-//     bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
+HISTORY:
+  if (mdb_col != NULL)
+  {
+    strcpy(buff, PROGNAME);
+    for (size_t i = 1; i < argc; i++)
+    {
+      strcat(buff, " ");
+      strcat(buff, argv[i]);
+    }
+    bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
+    bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
 
-//     if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-//     {
-//       fprintf(stderr, "%s: history update failed.\n", PROGNAME);
-//       exitcode = EXIT_FAILURE;
-//       goto EXIT_HISTORY;
-//     }
-//     bson_destroy(mdb_doc);
-//     bson_destroy(mdb_qry);
-//   }
+    if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+    {
+      fprintf(stderr, "%s: history update failed.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_HISTORY;
+    }
+    bson_destroy(mdb_doc);
+    bson_destroy(mdb_qry);
+  }
 
 /* ======================================================================== */
 /* exit                                                                     */
@@ -374,7 +397,9 @@ EXIT_STDOUT:;
 EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
-
+  mongoc_cursor_destroy(mdb_crs);
+  bson_destroy(mdb_qry);
+  
 EXIT_INPUT:;
 
 EXIT:;

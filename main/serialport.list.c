@@ -224,7 +224,7 @@ WORKSPACE:;
   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
-  if (mdb_cli != NULL)
+  if (mdb_col != NULL)
   {
     bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
     int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
@@ -284,7 +284,7 @@ WORKSPACE:;
   }
 
 HISTORY:
-  if (mdb_cli != NULL)
+  if (mdb_col != NULL)
   {
     strcpy(buff, PROGNAME);
     for (size_t i = 1; i < argc; i++)
