@@ -20,7 +20,7 @@ if(WIN32)
   link_directories($ENV{USERPROFILE}/AppData/Local/lib)
 
   # set(COMMON_LINK_LIBS_DEBUG jansson_d argtable3d)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0)
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 libserialport)
 endif(WIN32)
 
 if(UNIX)
@@ -29,7 +29,7 @@ if(UNIX)
   include_directories("/usr/local/include/libbson-1.0")
  
   # set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 m) 
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 serialport m) 
 endif(UNIX)
 
 file(GLOB SOURCES "libs/algo/linspace.c")
@@ -37,12 +37,6 @@ add_executable(linspace main/linspacex.c ${SOURCES} ${COMMONS})
 target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS linspace CONFIGURATIONS Release) 
-
-add_executable(ws.set main/ws.setx.c ${SOURCES} ${COMMONS})
-target_link_libraries(ws.set ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS ws.set CONFIGURATIONS Release) 
-
-
 
 add_executable(ws.clr main/ws.clr.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.clr ${COMMON_LINK_LIBS_OPTIM})
@@ -70,13 +64,13 @@ install(TARGETS ffdist CONFIGURATIONS Release)
 
 # MongoDB as workspace
 add_executable(serialport.list main/serialport.list.c ${COMMONS})
-if(WIN32)
-target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM} libserialport)
-elseif(UNIX)
-target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM} serialport)
-endif()
+target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS serialport.list CONFIGURATIONS Release) 
 
 add_executable(ws.list main/ws.list.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.list ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS ws.list CONFIGURATIONS Release) 
+install(TARGETS ws.list CONFIGURATIONS Release)
+
+add_executable(ws.set main/ws.set.c ${SOURCES} ${COMMONS})
+target_link_libraries(ws.set ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS ws.set CONFIGURATIONS Release) 

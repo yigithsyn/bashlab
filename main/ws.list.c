@@ -241,12 +241,26 @@ OPERATION:;
             {
               if (i == 0)
                 var_types[var_lngth] = bson_iter_value(&iter3)->value_type;
-              if (i == 0 || i == 1 || i == 2 || i == var_sizeT[var_lngth] - 2 || i == var_sizeT[var_lngth] - 1)
+              if (i == 0 || i == 1 || i == 2)
               {
                 if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
                   var_valsd[var_lngth][i] = bson_iter_value(&iter3)->value.v_double;
                 if (var_types[var_lngth] == BSON_TYPE_UTF8)
                   strcpy(var_valss[var_lngth][i], bson_iter_value(&iter3)->value.v_utf8.str);
+              }
+              else if (i == var_sizeT[var_lngth] - 2)
+              {
+                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
+                  var_valsd[var_lngth][MIN(i,3)] = bson_iter_value(&iter3)->value.v_double;
+                if (var_types[var_lngth] == BSON_TYPE_UTF8)
+                  strcpy(var_valss[var_lngth][MIN(i,3)], bson_iter_value(&iter3)->value.v_utf8.str);
+              }
+              else if (i == var_sizeT[var_lngth] - 1)
+              {
+                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
+                  var_valsd[var_lngth][MIN(i,4)] = bson_iter_value(&iter3)->value.v_double;
+                if (var_types[var_lngth] == BSON_TYPE_UTF8)
+                  strcpy(var_valss[var_lngth][MIN(i,4)], bson_iter_value(&iter3)->value.v_utf8.str);
               }
               i++;
             }
@@ -284,11 +298,16 @@ STDOUT:;
         fprintf(stdout, ", %.16s", var_valss[i][j]);
     if (var_sizeT[i] > 5)
       fprintf(stdout, ", ...");
-    for (size_t j = 3; j < var_sizeT[i]; ++j)
+    if (var_sizeT[i] >= 4)
       if (var_types[i] == BSON_TYPE_DOUBLE)
-        fprintf(stdout, ", %.16G", var_valsd[i][j]);
+        fprintf(stdout, ", %.16G", var_valsd[i][3]);
       else
-        fprintf(stdout, ", %.16s", var_valss[i][j]);
+        fprintf(stdout, ", %.16s", var_valss[i][3]);
+    if (var_sizeT[i] >= 5)
+      if (var_types[i] == BSON_TYPE_DOUBLE)
+        fprintf(stdout, ", %.16G", var_valsd[i][4]);
+      else
+        fprintf(stdout, ", %.16s", var_valss[i][4]);
     fprintf(stdout, "\n");
   }
 
@@ -399,7 +418,7 @@ EXIT_OUTPUT:;
 EXIT_OPERATION:;
   mongoc_cursor_destroy(mdb_crs);
   bson_destroy(mdb_qry);
-  
+
 EXIT_INPUT:;
 
 EXIT:;
