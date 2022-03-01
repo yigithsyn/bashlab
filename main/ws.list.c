@@ -279,7 +279,7 @@ OUTPUT:;
 STDOUT:;
   size_t max_var_name_length = 0;
   for (size_t i = 0; i < var_lngth; i++)
-    if (strlen(var_names[i]))
+    if (strlen(var_names[i]) > max_var_name_length)
       max_var_name_length = strlen(var_names[i]);
   for (size_t i = 0; i < var_lngth; i++)
   {
@@ -381,7 +381,6 @@ WORKSPACE:;
       }
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
-      ;
     }
   }
 
