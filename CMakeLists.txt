@@ -74,3 +74,7 @@ install(TARGETS ws.list CONFIGURATIONS Release)
 add_executable(ws.set main/ws.set.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.set ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ws.set CONFIGURATIONS Release) 
+
+add_executable(ws.del main/ws.del.c ${SOURCES} ${COMMONS})
+target_link_libraries(ws.del ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS ws.del CONFIGURATIONS Release)
