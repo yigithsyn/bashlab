@@ -78,3 +78,7 @@ install(TARGETS ws.set CONFIGURATIONS Release)
 add_executable(ws.del main/ws.del.c ${SOURCES} ${COMMONS})
 target_link_libraries(ws.del ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ws.del CONFIGURATIONS Release)
+
+add_executable(serialport.ping main/serialport.ping.c ${COMMONS})
+target_link_libraries(serialport.ping ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS serialport.ping CONFIGURATIONS Release)
