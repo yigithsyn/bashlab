@@ -188,10 +188,10 @@ OPERATION:;
   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
-  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
   mdb_doc = bson_new();
   bson_t mdb_doc_child1, mdb_doc_child2;
-  BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
+  BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$pull", &mdb_doc_child1);
   BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
   BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
   bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
@@ -199,7 +199,7 @@ OPERATION:;
 
   if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
   {
-    fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
+    fprintf(stderr, "%s: variable delete failed.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT_WORKSPACE;
   }
@@ -209,6 +209,8 @@ OPERATION:;
 OUTPUT:;
 
 STDOUT:;
+
+  system("ws.list");
 
   // fprintf(stdout, "%-10s: ", mdb_var_str);
   // fprintf(stdout, "%s[%zu]: ", (var_type == BSON_TYPE_DOUBLE) ? "number" : "string", var_lngth);
