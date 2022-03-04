@@ -1,5 +1,7 @@
 @ECHO OFF
 
+MKDIR libs
+
 IF "%1"=="jansson" GOTO jansson
 IF "%1"=="argtable3" GOTO argtable3
 IF "%1"=="civetweb" GOTO civetweb
@@ -12,8 +14,7 @@ GOTO build
 ECHO ============================
 ECHO [INFO] Dependencies ...
 ECHO ============================
-RMDIR /Q /S libs 
-MKDIR libs
+
 
 :argtable3
 ECHO Argtable3: A single-file, ANSI C, command-line parsing library that parses GNU-style command-line options.
@@ -41,8 +42,10 @@ CD ../../..
 RMDIR /Q /S libs\jansson-2.14
 IF "%1"=="jansson" EXIT /B 0
 
+:algo
 ECHO algo: Simple algorithms
 git clone https://github.com/ntessore/algo.git libs/algo
+IF "%1"=="algo" EXIT /B 0
 
 :civetweb
 ECHO Civetweb: Embedded C/C++ web server
