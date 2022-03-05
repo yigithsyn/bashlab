@@ -1,6 +1,15 @@
 @ECHO OFF
 
-MKDIR libs
+RMDIR /Q /S build > nul 2>&1 && MKDIR build
+RMDIR /Q /S test > nul 2>&1 && MKDIR test
+
+ECHO ============================
+ECHO [INFO] Dependencies ...
+ECHO ============================
+:algo
+ECHO algo: Simple algorithms
+git clone https://github.com/ntessore/algo.git libs/algo
+IF "%1"=="algo" EXIT /B 0
 
 IF "%1"=="jansson" GOTO jansson
 IF "%1"=="argtable3" GOTO argtable3
@@ -10,11 +19,6 @@ IF "%1"=="serialport" GOTO serialport
 GOTO build
 @REM for arguements with quotes
 @REM IF "%~1"=="build" GOTO build
-
-ECHO ============================
-ECHO [INFO] Dependencies ...
-ECHO ============================
-
 
 :argtable3
 ECHO Argtable3: A single-file, ANSI C, command-line parsing library that parses GNU-style command-line options.
@@ -42,10 +46,7 @@ CD ../../..
 RMDIR /Q /S libs\jansson-2.14
 IF "%1"=="jansson" EXIT /B 0
 
-:algo
-ECHO algo: Simple algorithms
-git clone https://github.com/ntessore/algo.git libs/algo
-IF "%1"=="algo" EXIT /B 0
+
 
 :civetweb
 ECHO Civetweb: Embedded C/C++ web server
@@ -88,8 +89,6 @@ RMDIR /Q /S libs\libserialport-6f9b03e
 IF "%1"=="serialport" EXIT /B 0
 
 :build
-RMDIR /Q /S build > nul 2>&1
-MKDIR build
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================

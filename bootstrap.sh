@@ -7,6 +7,7 @@ echo ============================
 echo "[INFO] Dependencies ..."
 echo ============================
 rm -rf libs && mkdir libs
+rm -rf "test" && mkdir "test"
 
 echo "algo: Simple algorithms"
 git clone https://github.com/ntessore/algo.git libs/algo
