@@ -1,7 +1,7 @@
-#define PROGNAME "ws.clr"
+#define PROGNAME "workspace.clr"
 static const char *program_json =
     "{"
-    "\"name\": \"ws.clr\","
+    "\"name\": \"workspace.clr\","
     "\"desc\": \"clears workspace\","
     "\"pargs\": ["
     /*        */ ""

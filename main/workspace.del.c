@@ -43,13 +43,12 @@ mongoc_cursor_t *mdb_crs, *mdb_crs1;
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
-#define PROGNAME "ws.set"
+#define PROGNAME "workspace.del"
 static const char *program_json =
     "{"
-    "\"name\": \"ws.set\","
+    "\"name\": \"workspace.del\","
     "\"desc\": \"sets worskpace variable\","
     "\"pargs\": ["
-    /*        */ "{\"name\":\"val(s)\", \"minc\":1, \"maxc\":100, \"desc\":\"value to be set\"}"
     /*       */ "],"
     "\"oargs\": ["
     /*        */ ""
@@ -182,119 +181,56 @@ MAIN:;
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
-  struct arg_str *arg_val = (struct arg_str *)argtable[0];
 
 INPUTT:;
-  double var_valsd[100];
-  char var_valss[100][1000];
-  size_t var_lngth = arg_val->count;
-  bson_type_t var_type = isnumber(arg_val->sval[0]) ? BSON_TYPE_DOUBLE : BSON_TYPE_UTF8;
-  for (size_t i = 0; i < arg_val->count; ++i)
-  {
-    if (var_type == BSON_TYPE_DOUBLE)
-      var_valsd[i] = atof(arg_val->sval[i]);
-    else
-      strcpy(var_valss[i], arg_val->sval[i]);
-  }
 
 OPERATION:;
   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
-  if (mdb_col != NULL)
+  mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+  mdb_doc = bson_new();
+  bson_t mdb_doc_child1, mdb_doc_child2;
+  BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$pull", &mdb_doc_child1);
+  BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
+  BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
+  bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
+  bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+  if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
   {
-    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
-    bson_destroy(mdb_qry);
-
-    if (mdb_cnt < 0)
-    {
-      fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_WORKSPACE;
-    }
-    else if (mdb_cnt == 0)
-    {
-      bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-      bson_t *mdb_doc = bson_new();
-      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
-      BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-      BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
-      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
-      for (size_t i = 0; i < var_lngth; ++i)
-        if (var_type == BSON_TYPE_DOUBLE)
-          bson_append_double(&mdb_doc_child3, "no", -1, var_valsd[i]);
-        else
-          bson_append_utf8(&mdb_doc_child3, "no", -1, var_valss[i], -1);
-      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
-      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
-      bson_append_int64(&mdb_doc_child3, "no", -1, (int64_t)var_lngth);
-      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
-      bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
-      bson_append_document_end(mdb_doc, &mdb_doc_child1);
-
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-      {
-        fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_WORKSPACE;
-      }
-      bson_destroy(mdb_qry);
-      bson_destroy(mdb_doc);
-    }
-    else
-    {
-      bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-      bson_t *mdb_doc = bson_new();
-      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
-      for (size_t i = 0; i < var_lngth; ++i)
-        if (var_type == BSON_TYPE_DOUBLE)
-          bson_append_double(&mdb_doc_child2, "no", -1, var_valsd[i]);
-        else
-          bson_append_utf8(&mdb_doc_child2, "no", -1, var_valss[i], -1);
-      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
-      bson_append_int64(&mdb_doc_child2, "no", -1, (int64_t)var_lngth);
-      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-      bson_append_document_end(mdb_doc, &mdb_doc_child1);
-
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-      {
-        fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
-        exitcode = EXIT_FAILURE;
-        goto EXIT_WORKSPACE;
-      }
-      bson_destroy(mdb_qry);
-      bson_destroy(mdb_doc);
-    }
+    fprintf(stderr, "%s: variable delete failed.\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_WORKSPACE;
   }
+  bson_destroy(mdb_qry);
+  bson_destroy(mdb_doc);
 
 OUTPUT:;
 
 STDOUT:;
 
-  fprintf(stdout, "%-10s: ", mdb_var_str);
-  fprintf(stdout, "%s[%zu]: ", (var_type == BSON_TYPE_DOUBLE) ? "number" : "string", var_lngth);
-  if (var_type == BSON_TYPE_DOUBLE)
-    fprintf(stdout, "%.16G", var_valsd[0]);
-  else
-    fprintf(stdout, "%.16s", var_valss[0]);
-  for (size_t i = 1; i < MIN(var_lngth, 3); ++i)
-    if (var_type == BSON_TYPE_DOUBLE)
-      fprintf(stdout, ", %.16G", var_valsd[i]);
-    else
-      fprintf(stdout, ", %.16s", var_valss[i]);
-  if (var_lngth > 5)
-    fprintf(stdout, ", ...");
-  for (size_t i = MAX(MIN(var_lngth, 3), var_lngth - 2); i < var_lngth; ++i)
-    if (var_type == BSON_TYPE_DOUBLE)
-      fprintf(stdout, ", %.16G", var_valsd[i]);
-    else
-      fprintf(stdout, ", %.16s", var_valss[i]);
-  fprintf(stdout, "\n");
+  system("workspace.list");
+
+  // fprintf(stdout, "%-10s: ", mdb_var_str);
+  // fprintf(stdout, "%s[%zu]: ", (var_type == BSON_TYPE_DOUBLE) ? "number" : "string", var_lngth);
+  // if (var_type == BSON_TYPE_DOUBLE)
+  //   fprintf(stdout, "%.16G", var_valsd[0]);
+  // else
+  //   fprintf(stdout, "%.16s", var_valss[0]);
+  // for (size_t i = 1; i < MIN(var_lngth, 3); ++i)
+  //   if (var_type == BSON_TYPE_DOUBLE)
+  //     fprintf(stdout, ", %.16G", var_valsd[i]);
+  //   else
+  //     fprintf(stdout, ", %.16s", var_valss[i]);
+  // if (var_lngth > 5)
+  //   fprintf(stdout, ", ...");
+  // for (size_t i = MAX(MIN(var_lngth, 3), var_lngth - 2); i < var_lngth; ++i)
+  //   if (var_type == BSON_TYPE_DOUBLE)
+  //     fprintf(stdout, ", %.16G", var_valsd[i]);
+  //   else
+  //     fprintf(stdout, ", %.16s", var_valss[i]);
+  // fprintf(stdout, "\n");
 
 WORKSPACE:;
 

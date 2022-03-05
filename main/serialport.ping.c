@@ -56,6 +56,9 @@ static const char *program_json =
 
 #include <libserialport.h>
 
+/* Helper function for error handling. */
+int check(enum sp_return result);
+
 int main(int argc, char *argv[])
 {
   int exitcode = EXIT_SUCCESS;

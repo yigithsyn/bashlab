@@ -41,10 +41,10 @@ static char mdb_var_str[50] = "ans";
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
-#define PROGNAME "serialport.list"
+#define PROGNAME "serialport.get"
 static const char *program_json =
     "{"
-    "\"name\": \"serialport.list\","
+    "\"name\": \"serialport.get\","
     "\"desc\": \"lists avaliable serialports on machine\","
     "\"pargs\": ["
     /*       */ "],"
