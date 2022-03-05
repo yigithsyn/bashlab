@@ -209,28 +209,8 @@ OPERATION:;
 OUTPUT:;
 
 STDOUT:;
-
-  system("workspace.list");
-
-  // fprintf(stdout, "%-10s: ", mdb_var_str);
-  // fprintf(stdout, "%s[%zu]: ", (var_type == BSON_TYPE_DOUBLE) ? "number" : "string", var_lngth);
-  // if (var_type == BSON_TYPE_DOUBLE)
-  //   fprintf(stdout, "%.16G", var_valsd[0]);
-  // else
-  //   fprintf(stdout, "%.16s", var_valss[0]);
-  // for (size_t i = 1; i < MIN(var_lngth, 3); ++i)
-  //   if (var_type == BSON_TYPE_DOUBLE)
-  //     fprintf(stdout, ", %.16G", var_valsd[i]);
-  //   else
-  //     fprintf(stdout, ", %.16s", var_valss[i]);
-  // if (var_lngth > 5)
-  //   fprintf(stdout, ", ...");
-  // for (size_t i = MAX(MIN(var_lngth, 3), var_lngth - 2); i < var_lngth; ++i)
-  //   if (var_type == BSON_TYPE_DOUBLE)
-  //     fprintf(stdout, ", %.16G", var_valsd[i]);
-  //   else
-  //     fprintf(stdout, ", %.16s", var_valss[i]);
-  // fprintf(stdout, "\n");
+  // putenv("BASHLAB_MONGODB_VAR_STRING=ans");
+  exitcode = system("workspace.list");
 
 WORKSPACE:;
 
