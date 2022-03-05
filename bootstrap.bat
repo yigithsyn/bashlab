@@ -1,7 +1,8 @@
 @ECHO OFF
 
+RMDIR /Q /S libs > nul 2>&1 && MKDIR libs
 RMDIR /Q /S build > nul 2>&1 && MKDIR build
-RMDIR /Q /S test > nul 2>&1 && MKDIR test
+MKDIR test
 
 ECHO ============================
 ECHO [INFO] Dependencies ...
