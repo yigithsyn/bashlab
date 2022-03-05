@@ -201,7 +201,7 @@ OPERATION:;
   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
 
-  bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+  mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
   int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
   bson_destroy(mdb_qry);
 
@@ -213,8 +213,8 @@ OPERATION:;
   }
   else if (mdb_cnt == 0)
   {
-    bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-    bson_t *mdb_doc = bson_new();
+    mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+    mdb_doc = bson_new();
     bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
     BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
     BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
@@ -243,8 +243,8 @@ OPERATION:;
   }
   else
   {
-    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-    bson_t *mdb_doc = bson_new();
+    mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+    mdb_doc = bson_new();
     bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
     BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
     BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
@@ -302,8 +302,8 @@ HISTORY:
     strcat(buff, " ");
     strcat(buff, argv[i]);
   }
-  bson_t *mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
-  bson_t *mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
+  mdb_qry = BCON_NEW("history", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_doc = BCON_NEW("$push", "{", "history", BCON_UTF8(buff), "}");
 
   if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
   {
