@@ -223,8 +223,8 @@ OPERATION:;
             size_t i = 0;
             while (bson_iter_next(&iter3))
             {
-              var_sizes[var_lngth][i] = (size_t)bson_iter_value(&iter3)->value.v_int64;
-              var_sizeT[var_lngth] *= (size_t)bson_iter_value(&iter3)->value.v_int64;
+              var_sizes[var_lngth][i] = (size_t)bson_iter_value(&iter3)->value.v_double;
+              var_sizeT[var_lngth] *= var_sizes[var_lngth][i];
               i++;
             }
             var_sizeN[var_lngth] = i;
@@ -411,7 +411,7 @@ WORKSPACE:;
   //       bson_append_utf8(&mdb_doc_child3, "no", -1, var_names[i], -1);
   //     bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
   //     BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
-  //     bson_append_int64(&mdb_doc_child3, "no", -1, (int64_t)var_lngth);
+  //     bson_append_double(&mdb_doc_child3, "no", -1, (double)var_lngth);
   //     bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
   //     bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
   //     bson_append_document_end(mdb_doc, &mdb_doc_child1);
@@ -436,7 +436,7 @@ WORKSPACE:;
   //       bson_append_utf8(&mdb_doc_child2, "no", -1, var_names[i], -1);
   //     bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
   //     BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
-  //     bson_append_int64(&mdb_doc_child2, "no", -1, (int64_t)var_lngth);
+  //     bson_append_double(&mdb_doc_child2, "no", -1, (double)var_lngth);
   //     bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
   //     bson_append_document_end(mdb_doc, &mdb_doc_child1);
 

@@ -317,7 +317,7 @@ WORKSPACE:;
         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
       bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
-      bson_append_int64(&mdb_doc_child3, "no", -1, (int64_t)N1);
+      bson_append_double(&mdb_doc_child3, "no", -1, (double)N1);
       bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
@@ -342,7 +342,7 @@ WORKSPACE:;
         bson_append_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
       BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
-      bson_append_int64(&mdb_doc_child2, "no", -1, (int64_t)N1);
+      bson_append_double(&mdb_doc_child2, "no", -1, (double)N1);
       bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
