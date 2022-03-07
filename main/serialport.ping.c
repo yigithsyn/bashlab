@@ -23,7 +23,7 @@
 
 static struct stat stat_buff;
 static json_error_t *json_error;
-static json_t *ivar, *ws_vars, *ws_hist, *var, *var_val, *var_size, *var_name;
+static json_t *ivar;
 static size_t ivar_index;
 static size_t argcount = 0;
 static char buff[250];

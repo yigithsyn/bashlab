@@ -187,15 +187,6 @@ MAIN:;
 INPUTT:;
 
 OPERATION:;
-  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-  mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, NULL, NULL);
-  if (mongoc_cursor_error(mdb_crs, &mdb_err))
-  {
-    fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
-    exitcode = EXIT_FAILURE;
-    goto EXIT_OPERATION;
-  }
-
   size_t var_sizes[100][3];
   size_t var_sizeN[100];
   size_t var_sizeT[100];
@@ -204,19 +195,30 @@ OPERATION:;
   double var_valsd[100][5];
   char var_valss[100][5][16];
   size_t var_lngth = 0;
+
+  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_qry1 = BCON_NEW("projection", "{", "variables.name", BCON_BOOL(true), "variables.size", BCON_BOOL(true), "}");
+  mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, mdb_qry1, NULL);
+  if (mongoc_cursor_error(mdb_crs, &mdb_err))
+  {
+    fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
+
   while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
   {
     bson_iter_t iter, iter1, iter2, iter3;
     if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &iter1))
     {
-      while (bson_iter_next(&iter1))
+      while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
       {
-        bson_iter_recurse(&iter1, &iter2);
-        while (bson_iter_next(&iter2))
+        bson_iter_recurse(&iter1, &iter2); // step into variables array
+        while (bson_iter_next(&iter2))     // iter through variables array
         {
-          if (strcmp(bson_iter_key(&iter2), "name") == 0)
+          if (strcmp(bson_iter_key(&iter2), "name") == 0) // "name" key
             strcpy(var_names[var_lngth], bson_iter_value(&iter2)->value.v_utf8.str);
-          else if (strcmp(bson_iter_key(&iter2), "size") == 0)
+          else if (strcmp(bson_iter_key(&iter2), "size") == 0) // "size" key
           {
             var_sizeT[var_lngth] = 1;
             bson_iter_recurse(&iter2, &iter3);
@@ -230,8 +232,36 @@ OPERATION:;
             var_sizeN[var_lngth] = i;
           }
         }
-        bson_iter_recurse(&iter1, &iter2);
-        while (bson_iter_next(&iter2))
+        var_lngth++;
+      }
+    }
+  }
+  bson_destroy(mdb_doc);
+  mongoc_cursor_destroy(mdb_crs);
+  bson_destroy(mdb_qry);
+  bson_destroy(mdb_qry1);
+
+  // Fetch values
+  var_lngth = 0;
+
+  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_qry1 = BCON_NEW("projection", "{", "variables.value", BCON_BOOL(true), "}");
+  mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, mdb_qry1, NULL);
+  if (mongoc_cursor_error(mdb_crs, &mdb_err))
+  {
+    fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
+  while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
+  {
+    bson_iter_t iter, iter1, iter2, iter3;
+    if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &iter1))
+    {
+      while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
+      {
+        bson_iter_recurse(&iter1, &iter2); // step into variables array again for values
+        while (bson_iter_next(&iter2))     // iter through variables array again for values
         {
           if (strcmp(bson_iter_key(&iter2), "value") == 0)
           {
@@ -273,6 +303,7 @@ OPERATION:;
   bson_destroy(mdb_doc);
   mongoc_cursor_destroy(mdb_crs);
   bson_destroy(mdb_qry);
+  bson_destroy(mdb_qry1);
 
 OUTPUT:;
 
