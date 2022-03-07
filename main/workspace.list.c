@@ -191,9 +191,7 @@ OPERATION:;
   size_t var_sizeN[100];
   size_t var_sizeT[100];
   char var_names[100][100];
-  bson_type_t var_types[100];
-  double var_valsd[100][5];
-  char var_valss[100][5][16];
+
   size_t var_lngth = 0;
 
   mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
@@ -242,10 +240,13 @@ OPERATION:;
   bson_destroy(mdb_qry1);
 
   // Fetch values
+  double var_valsd[100][5];
+  char var_valss[100][5][16];
+  bson_type_t var_types[100];
   var_lngth = 0;
 
   mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-  mdb_qry1 = BCON_NEW("projection", "{", "variables.value", BCON_BOOL(true), "}");
+  mdb_qry1 = BCON_NEW("projection", "{", "variables.value", "{", "$slice", BCON_INT32(5), "}", "}");
   mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, mdb_qry1, NULL);
   if (mongoc_cursor_error(mdb_crs, &mdb_err))
   {
@@ -271,27 +272,59 @@ OPERATION:;
             {
               if (i == 0)
                 var_types[var_lngth] = bson_iter_value(&iter3)->value_type;
-              if (i == 0 || i == 1 || i == 2)
-              {
-                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
-                  var_valsd[var_lngth][i] = bson_iter_value(&iter3)->value.v_double;
-                if (var_types[var_lngth] == BSON_TYPE_UTF8)
-                  strcpy(var_valss[var_lngth][i], bson_iter_value(&iter3)->value.v_utf8.str);
-              }
-              else if (i == var_sizeT[var_lngth] - 2)
-              {
-                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
-                  var_valsd[var_lngth][MIN(i, 3)] = bson_iter_value(&iter3)->value.v_double;
-                if (var_types[var_lngth] == BSON_TYPE_UTF8)
-                  strcpy(var_valss[var_lngth][MIN(i, 3)], bson_iter_value(&iter3)->value.v_utf8.str);
-              }
-              else if (i == var_sizeT[var_lngth] - 1)
-              {
-                if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
-                  var_valsd[var_lngth][MIN(i, 4)] = bson_iter_value(&iter3)->value.v_double;
-                if (var_types[var_lngth] == BSON_TYPE_UTF8)
-                  strcpy(var_valss[var_lngth][MIN(i, 4)], bson_iter_value(&iter3)->value.v_utf8.str);
-              }
+              if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
+                var_valsd[var_lngth][i] = bson_iter_value(&iter3)->value.v_double;
+              if (var_types[var_lngth] == BSON_TYPE_UTF8)
+                strcpy(var_valss[var_lngth][i], bson_iter_value(&iter3)->value.v_utf8.str);
+              i++;
+            }
+          }
+        }
+        var_lngth++;
+      }
+    }
+  }
+  bson_destroy(mdb_doc);
+  mongoc_cursor_destroy(mdb_crs);
+  bson_destroy(mdb_qry);
+  bson_destroy(mdb_qry1);
+
+  // fetch values reverse
+  double var_valsd_b[100][5];
+  char var_valss_b[100][5][16];
+  var_lngth = 0;
+
+  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+  mdb_qry1 = BCON_NEW("projection", "{", "variables.value", "{", "$slice", BCON_INT32(-2), "}", "}");
+  mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, mdb_qry1, NULL);
+  if (mongoc_cursor_error(mdb_crs, &mdb_err))
+  {
+    fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
+  while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
+  {
+    bson_iter_t iter, iter1, iter2, iter3;
+    if (bson_iter_init_find(&iter, mdb_doc, "variables") && BSON_ITER_HOLDS_ARRAY(&iter) && bson_iter_recurse(&iter, &iter1))
+    {
+      while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
+      {
+        bson_iter_recurse(&iter1, &iter2); // step into variables array again for values
+        while (bson_iter_next(&iter2))     // iter through variables array again for values
+        {
+          if (strcmp(bson_iter_key(&iter2), "value") == 0)
+          {
+            bson_iter_recurse(&iter2, &iter3);
+            size_t i = 0;
+            while (bson_iter_next(&iter3))
+            {
+              if (i == 0)
+                var_types[var_lngth] = bson_iter_value(&iter3)->value_type;
+              if (var_types[var_lngth] == BSON_TYPE_DOUBLE)
+                var_valsd_b[var_lngth][i] = bson_iter_value(&iter3)->value.v_double;
+              if (var_types[var_lngth] == BSON_TYPE_UTF8)
+                strcpy(var_valss_b[var_lngth][i], bson_iter_value(&iter3)->value.v_utf8.str);
               i++;
             }
           }
@@ -325,23 +358,29 @@ STDOUT:;
         fprintf(stdout, "%.16G", var_valsd[i][0]);
       else
         fprintf(stdout, "%.16s", var_valss[i][0]);
-    for (size_t j = 1; j < MIN(var_sizeT[i], 3); ++j)
-      if (var_types[i] == BSON_TYPE_DOUBLE)
-        fprintf(stdout, ", %.16G", var_valsd[i][j]);
-      else
-        fprintf(stdout, ", %.16s", var_valss[i][j]);
-    if (var_sizeT[i] > 5)
+
+    if (var_sizeT[i] <= 5)
+    {
+      for (size_t j = 1; j < var_sizeT[i]; ++j)
+        if (var_types[i] == BSON_TYPE_DOUBLE)
+          fprintf(stdout, ", %.16G", var_valsd[i][j]);
+        else
+          fprintf(stdout, ", %.16s", var_valss[i][j]);
+    }
+    else
+    {
+      for (size_t j = 1; j < 3; ++j)
+        if (var_types[i] == BSON_TYPE_DOUBLE)
+          fprintf(stdout, ", %.16G", var_valsd[i][j]);
+        else
+          fprintf(stdout, ", %.16s", var_valss[i][j]);
       fprintf(stdout, ", ...");
-    if (var_sizeT[i] >= 4)
-      if (var_types[i] == BSON_TYPE_DOUBLE)
-        fprintf(stdout, ", %.16G", var_valsd[i][3]);
-      else
-        fprintf(stdout, ", %.16s", var_valss[i][3]);
-    if (var_sizeT[i] >= 5)
-      if (var_types[i] == BSON_TYPE_DOUBLE)
-        fprintf(stdout, ", %.16G", var_valsd[i][4]);
-      else
-        fprintf(stdout, ", %.16s", var_valss[i][4]);
+      for (size_t j = 0; j < 2; ++j)
+        if (var_types[i] == BSON_TYPE_DOUBLE)
+          fprintf(stdout, ", %.16G", var_valsd_b[i][j]);
+        else
+          fprintf(stdout, ", %.16s", var_valss_b[i][j]);
+    }
     fprintf(stdout, "\n");
   }
 WORKSPACE:;
