@@ -61,9 +61,9 @@ static const char *program_json =
 #include <libserialport.h>
 
 /* Helper function for error message handling. */
-int sp_check(enum sp_return result, char *buff)
+int sp_check(enum sp_return sp_result, char *buff)
 {
-  switch (result)
+  switch (sp_result)
   {
   case SP_ERR_ARG:
     strcpy(buff, "Invalid argument");
@@ -75,7 +75,7 @@ int sp_check(enum sp_return result, char *buff)
     strcpy(buff, "Couldn't allocate memory");
   case SP_OK:
   default:
-    return result;
+    return sp_result;
   }
 }
 
@@ -217,8 +217,6 @@ OPERATION:;
   while (port_list[N] != NULL)
     sp_found = sp_found || !strcmp(arg_port->sval[0], sp_get_port_name(port_list[N++]));
 
-  printf("%zu\n", N);
-
   if (!sp_found)
   {
     fprintf(stderr, "%s: could not find avaliable port named '%s'.\n", PROGNAME, arg_port->sval[0]);
@@ -251,21 +249,21 @@ OPERATION:;
   sp_free_port(port);
 
   // write to port
-  char buff2[100];
-  int result = 0;
+  char sp_buff[100];
+  int sp_result = 0;
   unsigned int timeout = 1000;
 
-  strcpy(buff2, arg_buff->sval[0]);
-  strcat(buff2, "\r");
+  strcpy(sp_buff, arg_buff->sval[0]);
+  strcat(sp_buff, "\r");
 
-  printf("Sending '%s' (%d bytes) on port %s.\n", buff2, strlen(buff2), arg_port->sval[0]);
-  result = sp_check(sp_blocking_write(port, buff2, strlen(buff2), timeout), buff);
-  printf("Sent %d bytes successfully.\n", result);
+  printf("Sending '%s' (%d bytes) on port %s.\n", sp_buff, strlen(sp_buff), arg_port->sval[0]);
+  sp_result = sp_check(sp_blocking_write(port, sp_buff, strlen(sp_buff), timeout), buff);
+  printf("Sent %d bytes successfully.\n", sp_result);
 
   // read port
-  result = sp_check(sp_blocking_read(port, buff2, 99, timeout), buff);
-  buff2[result] = '\0';
-  printf("Timed out, %d bytes received.\n%s\n", result, buff2);
+  sp_result = sp_check(sp_blocking_read(port, sp_buff, 99, timeout), buff);
+  sp_buff[sp_result] = '\0';
+  printf("Timed out, %d bytes received.\n%s\n", sp_result, sp_buff);
 
 
 
