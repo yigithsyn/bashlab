@@ -239,6 +239,23 @@ OPERATION:;
   sp_check(sp_set_stopbits(port, 1), buff);
   sp_check(sp_set_flowcontrol(port, SP_FLOWCONTROL_NONE), buff);
 
+  // write to port
+  char sp_buff[100];
+  int sp_Nbytes = 0;
+  unsigned int timeout = 1000;
+
+  strcpy(sp_buff, arg_buff->sval[0]);
+  strcat(sp_buff, "\r");
+
+  printf("Sending '%s' (%d bytes) on port %s.\n", sp_buff, strlen(sp_buff), arg_port->sval[0]);
+  sp_Nbytes = sp_check(sp_blocking_write(port, sp_buff, strlen(sp_buff), timeout), buff);
+  printf("Sent %d bytes successfully.\n", sp_Nbytes);
+
+  // read port
+  sp_Nbytes = sp_check(sp_blocking_read(port, sp_buff, 99, timeout), buff);
+  sp_buff[sp_Nbytes] = '\0';
+  printf("Timed out, %d bytes received.\n%s\n", sp_Nbytes, sp_buff);
+
   // close port
   if (sp_check(sp_close(port), buff) != SP_OK)
   {
@@ -246,26 +263,6 @@ OPERATION:;
     exitcode = EXIT_FAILURE;
     goto EXIT_OPERATION;
   }
-  sp_free_port(port);
-
-  // write to port
-  char sp_buff[100];
-  int sp_result = 0;
-  unsigned int timeout = 1000;
-
-  strcpy(sp_buff, arg_buff->sval[0]);
-  strcat(sp_buff, "\r");
-
-  printf("Sending '%s' (%d bytes) on port %s.\n", sp_buff, strlen(sp_buff), arg_port->sval[0]);
-  sp_result = sp_check(sp_blocking_write(port, sp_buff, strlen(sp_buff), timeout), buff);
-  printf("Sent %d bytes successfully.\n", sp_result);
-
-  // read port
-  sp_result = sp_check(sp_blocking_read(port, sp_buff, 99, timeout), buff);
-  sp_buff[sp_result] = '\0';
-  printf("Timed out, %d bytes received.\n%s\n", sp_result, sp_buff);
-
-
 
 OUTPUT:;
   // for (int i = 0; i < N; i++)
@@ -294,7 +291,6 @@ STDOUT:;
   //     fprintf(stdout, ", %s", ans[i]);
   //   fprintf(stdout, "\n");
   // }
-
 
 WORKSPACE:;
 
@@ -399,6 +395,7 @@ EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
   sp_free_port_list(port_list);
+  sp_free_port(port);
 
 EXIT_INPUT:;
 
