@@ -185,8 +185,8 @@ MAIN:;
 INPUTT:;
 
 OPERATION:;
-  if (getenv("BASHLAB_MONGODB_VAR_STRING"))
-    strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
+  if (getenv("BASHLAB_WORKSPACE_ANS"))
+    strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
 
   mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
   mdb_doc = bson_new();
@@ -209,7 +209,7 @@ OPERATION:;
 OUTPUT:;
 
 STDOUT:;
-  // putenv("BASHLAB_MONGODB_VAR_STRING=ans");
+  // putenv("BASHLAB_WORKSPACE_ANS=ans");
   exitcode = system("workspace.list");
 
 WORKSPACE:;

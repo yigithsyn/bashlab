@@ -198,8 +198,8 @@ INPUTT:;
   }
 
 OPERATION:;
-  if (getenv("BASHLAB_MONGODB_VAR_STRING"))
-    strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
+  if (getenv("BASHLAB_WORKSPACE_ANS"))
+    strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
 
   mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
   int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);

@@ -355,8 +355,8 @@ STDOUT:;
 
 WORKSPACE:;
 
-//   if (getenv("BASHLAB_MONGODB_VAR_STRING"))
-//     strcpy(mdb_var_str, getenv("BASHLAB_MONGODB_VAR_STRING"));
+//   if (getenv("BASHLAB_WORKSPACE_ANS"))
+//     strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
 
 //   if (mdb_col != NULL)
 //   {
