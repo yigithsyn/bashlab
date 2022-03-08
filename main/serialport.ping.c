@@ -60,8 +60,24 @@ static const char *program_json =
 
 #include <libserialport.h>
 
-/* Helper function for error handling. */
-int check(enum sp_return result);
+/* Helper function for error message handling. */
+int sp_check(enum sp_return result, char *buff)
+{
+  switch (result)
+  {
+  case SP_ERR_ARG:
+    strcpy(buff, "Invalid argument");
+  case SP_ERR_FAIL:
+    strcpy(buff, sp_last_error_message());
+  case SP_ERR_SUPP:
+    strcpy(buff, "Not supported");
+  case SP_ERR_MEM:
+    strcpy(buff, "Couldn't allocate memory");
+  case SP_OK:
+  default:
+    return result;
+  }
+}
 
 int main(int argc, char *argv[])
 {
@@ -191,9 +207,9 @@ OPERATION:;
   struct sp_port **port_list;
   size_t N = 0;
   enum sp_return sp_result = sp_list_ports(&port_list);
-  if (sp_result != SP_OK)
+  if (sp_check(sp_result, buff) != SP_OK)
   {
-    fprintf(stderr, "%s: serialport listing failed.\n", PROGNAME);
+    fprintf(stderr, "%s: serialport listing failed: %s.\n", PROGNAME, buff);
     exitcode = EXIT_FAILURE;
     goto EXIT_OPERATION;
   }
@@ -201,14 +217,56 @@ OPERATION:;
   while (port_list[N] != NULL)
     sp_found = sp_found || !strcmp(arg_port->sval[0], sp_get_port_name(port_list[N++]));
 
-  printf("%zu\n",N);
-  
+  printf("%zu\n", N);
+
   if (!sp_found)
   {
     fprintf(stderr, "%s: could not find avaliable port named '%s'.\n", PROGNAME, arg_port->sval[0]);
     exitcode = EXIT_FAILURE;
     goto EXIT_OPERATION;
   }
+
+  // open port
+  struct sp_port *port;
+  sp_check(sp_get_port_by_name("COM1", &port), buff);
+  if (sp_check(sp_open(port, SP_MODE_READ_WRITE), buff) != SP_OK)
+  {
+    fprintf(stderr, "%s: serialport opening failed: %s.\n", PROGNAME, buff);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
+  sp_check(sp_set_baudrate(port, atoi(arg_baud->sval[0])), buff);
+  sp_check(sp_set_bits(port, 8), buff);
+  sp_check(sp_set_parity(port, SP_PARITY_NONE), buff);
+  sp_check(sp_set_stopbits(port, 1), buff);
+  sp_check(sp_set_flowcontrol(port, SP_FLOWCONTROL_NONE), buff);
+
+  // close port
+  if (sp_check(sp_close(port), buff) != SP_OK)
+  {
+    fprintf(stderr, "%s: serialport closing failed: %s.\n", PROGNAME, buff);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
+  sp_free_port(port);
+
+  // write to port
+  char buff2[100];
+  int result = 0;
+  unsigned int timeout = 1000;
+
+  strcpy(buff2, arg_buff->sval[0]);
+  strcat(buff2, "\r");
+
+  printf("Sending '%s' (%d bytes) on port %s.\n", buff2, strlen(buff2), arg_port->sval[0]);
+  result = sp_check(sp_blocking_write(port, buff2, strlen(buff2), timeout), buff);
+  printf("Sent %d bytes successfully.\n", result);
+
+  // read port
+  result = sp_check(sp_blocking_read(port, buff2, 99, timeout), buff);
+  buff2[result] = '\0';
+  printf("Timed out, %d bytes received.\n%s\n", result, buff2);
+
 
 
 OUTPUT:;
@@ -239,69 +297,6 @@ STDOUT:;
   //   fprintf(stdout, "\n");
   // }
 
-  struct sp_port *port;
-  check(sp_get_port_by_name("COM1", &port));
-
-  printf("Opening port.\n");
-  check(sp_open(port, SP_MODE_READ_WRITE));
-
-  printf("Setting port to 9600 8N1, no flow control.\n");
-  check(sp_set_baudrate(port, 9600));
-  check(sp_set_bits(port, 8));
-  check(sp_set_parity(port, SP_PARITY_NONE));
-  check(sp_set_stopbits(port, 1));
-  check(sp_set_flowcontrol(port, SP_FLOWCONTROL_NONE));
-
-  char *data1 = "D1 220\r";
-  int size1 = strlen(data1);
-  char *data2 = "INC1\r";
-  int size2 = strlen(data2);
-
-  /* We'll allow a 1 second timeout for send and receive. */
-  unsigned int timeout = 1000;
-
-  /* On success, sp_blocking_write() and sp_blocking_read()
-   * return the number of bytes sent/received before the
-   * timeout expired. We'll store that result here. */
-  int result;
-
-  /* Send data. */
-  printf("Sending '%s' (%d bytes) on port %s.\n", data1, size1, "COM1");
-  result = check(sp_blocking_write(port, data1, size1, timeout));
-  if (result == size2)
-    printf("Sent %d bytes successfully.\n", size1);
-  else
-    printf("Timed out, %d/%d bytes sent.\n", result, size1);
-  // printf("Sending '%s' (%d bytes) on port %s.\n", data2, size2, "COM1");
-  // result = check(sp_blocking_write(port, data2, size2, timeout));
-  // if (result == size2)
-  //   printf("Sent %d bytes successfully.\n", size2);
-  // else
-  //   printf("Timed out, %d/%d bytes sent.\n", result, size2);
-  /* Allocate a buffer to receive data. */
-  char *buf = malloc(30 + 1);
-
-  /* Try to receive the data on the other port. */
-  printf("Receiving %d bytes on port.\n", 30);
-  result = check(sp_blocking_read(port, buf, 30, timeout));
-
-  /* Check whether we received the number of bytes we wanted. */
-
-  printf("Timed out, %d bytes received.\n", result);
-
-  /* Check if we received the same data we sent. */
-  buf[result] = '\0';
-  printf("Received '%s'.\n", buf);
-
-  printf("Sending '%s' (%d bytes) on port %s. ", data2, size2, "COM1");
-  result = check(sp_blocking_write(port, data2, size2, timeout));
-  if (result == size2)
-    printf("Sent %d bytes successfully.\n", size2);
-  else
-    printf("Timed out, %d/%d bytes sent.\n", result, size2);
-
-  check(sp_close(port));
-  sp_free_port(port);
 
 WORKSPACE:;
 
@@ -423,32 +418,4 @@ EXIT:;
   // argtable cleanup
   arg_freetable(argtable, argcount + 1); // +1 for end
   return exitcode;
-}
-
-/* Helper function for error handling. */
-int check(enum sp_return result)
-{
-  /* For this example we'll just exit on any error by calling abort(). */
-  char *error_message;
-
-  switch (result)
-  {
-  case SP_ERR_ARG:
-    printf("Error: Invalid argument.\n");
-    abort();
-  case SP_ERR_FAIL:
-    error_message = sp_last_error_message();
-    printf("Error: Failed: %s\n", error_message);
-    sp_free_error_message(error_message);
-    abort();
-  case SP_ERR_SUPP:
-    printf("Error: Not supported.\n");
-    abort();
-  case SP_ERR_MEM:
-    printf("Error: Couldn't allocate memory.\n");
-    abort();
-  case SP_OK:
-  default:
-    return result;
-  }
 }
