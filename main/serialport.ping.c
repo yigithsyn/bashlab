@@ -215,10 +215,7 @@ OPERATION:;
   }
   bool sp_found = false;
   while (port_list[N] != NULL)
-  {
-    sp_found = sp_found || !strcmp(arg_port->sval[0], sp_get_port_name(port_list[N]));
-    N++;
-  }
+    sp_found = !strcmp(arg_port->sval[0], sp_get_port_name(port_list[N++])) || sp_found;
 
   if (!sp_found)
   {
