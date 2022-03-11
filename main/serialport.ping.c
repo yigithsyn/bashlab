@@ -226,7 +226,7 @@ OPERATION:;
   }
 
   // open port
-  sp_check(sp_get_port_by_name("COM1", &port), buff);
+  sp_check(sp_get_port_by_name(arg_port->sval[0], &port), buff);
   if (sp_check(sp_open(port, SP_MODE_READ_WRITE), buff) != SP_OK)
   {
     fprintf(stderr, "%s: serialport opening failed: %s.\n", PROGNAME, buff);
