@@ -47,8 +47,9 @@ mongoc_cursor_t *mdb_crs, *mdb_crs1;
 static const char *program_json =
     "{"
     "\"name\": \"workspace.del\","
-    "\"desc\": \"sets worskpace variable\","
+    "\"desc\": \"deletes a workspace variable\","
     "\"pargs\": ["
+    /*       */ "{\"name\":\"var\", \"minc\":1, \"maxc\":1, \"desc\":\"variable name to be delete\"}"
     /*       */ "],"
     "\"oargs\": ["
     /*        */ ""
@@ -181,19 +182,17 @@ MAIN:;
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }
+  struct arg_str *arg_var = (struct arg_str *)argtable[0];
 
 INPUTT:;
 
 OPERATION:;
-  if (getenv("BASHLAB_WORKSPACE_ANS"))
-    strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
-
-  mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+  mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
   mdb_doc = bson_new();
   bson_t mdb_doc_child1, mdb_doc_child2;
   BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$pull", &mdb_doc_child1);
   BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-  BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
+  BSON_APPEND_UTF8(&mdb_doc_child2, "name", arg_var->sval[0]);
   bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
   bson_append_document_end(mdb_doc, &mdb_doc_child1);
 

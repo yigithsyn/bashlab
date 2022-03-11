@@ -9,8 +9,8 @@
     // "args": [ "a", "5", "11.1", "-2.3", "--verbose"],
     // "args": [ "a", "aa", "bb", "cc", "--verbose"],
     // "args": [ "300E6", "1"],
-    // "args": [],
-    "args": ["COM1", "9600", "D1 200"],
+    "args": [],
+    // "args": ["COM1", "9600", "D1 200"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
