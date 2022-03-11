@@ -205,6 +205,7 @@ INPUTT:;
 
 OPERATION:;
   struct sp_port **port_list;
+  struct sp_port *port = NULL;
   size_t N = 0;
   enum sp_return sp_result = sp_list_ports(&port_list);
   if (sp_check(sp_result, buff) != SP_OK)
@@ -225,7 +226,6 @@ OPERATION:;
   }
 
   // open port
-  struct sp_port *port;
   sp_check(sp_get_port_by_name("COM1", &port), buff);
   if (sp_check(sp_open(port, SP_MODE_READ_WRITE), buff) != SP_OK)
   {
@@ -395,7 +395,8 @@ EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
   sp_free_port_list(port_list);
-  sp_free_port(port);
+  if (port != NULL)
+    sp_free_port(port);
 
 EXIT_INPUT:;
 
