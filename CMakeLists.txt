@@ -32,11 +32,7 @@ if(UNIX)
   set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 serialport m) 
 endif(UNIX)
 
-file(GLOB SOURCES "libs/algo/linspace.c")
-add_executable(linspace main/linspacex.c ${SOURCES} ${COMMONS})
-target_include_directories(linspace PUBLIC "libs/algo")
-target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS linspace CONFIGURATIONS Release) 
+
 
 add_executable(workspace.clr main/workspace.clr.c ${SOURCES} ${COMMONS})
 target_link_libraries(workspace.clr ${COMMON_LINK_LIBS_OPTIM})
@@ -82,3 +78,9 @@ install(TARGETS workspace.del CONFIGURATIONS Release)
 add_executable(serialport.ping main/serialport.ping.c ${COMMONS})
 target_link_libraries(serialport.ping ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS serialport.ping CONFIGURATIONS Release)
+
+file(GLOB SOURCES "libs/algo/linspace.c")
+add_executable(linspace main/linspace.c ${SOURCES} ${COMMONS})
+target_include_directories(linspace PUBLIC "libs/algo")
+target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS linspace CONFIGURATIONS Release) 
