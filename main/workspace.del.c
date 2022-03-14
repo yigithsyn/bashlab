@@ -208,7 +208,7 @@ OPERATION:;
 OUTPUT:;
 
 STDOUT:;
-  // putenv("BASHLAB_WORKSPACE_ANS=ans");
+  // putenv("BL_WORKSPACE_ANS=ans");
   exitcode = system("workspace.list");
 
 WORKSPACE:;

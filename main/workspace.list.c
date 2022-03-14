@@ -385,8 +385,8 @@ STDOUT:;
   }
 WORKSPACE:;
 
-  // if (getenv("BASHLAB_WORKSPACE_ANS"))
-  //   strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
+  // if (getenv("BL_WORKSPACE_ANS"))
+  //   strcpy(mdb_var_str, getenv("BL_WORKSPACE_ANS"));
 
   //   bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
   //   int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);

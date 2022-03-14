@@ -221,8 +221,8 @@ STDOUT:;
 
 WORKSPACE:;
 
-  if (getenv("BASHLAB_WORKSPACE_ANS"))
-    strcpy(mdb_var_str, getenv("BASHLAB_WORKSPACE_ANS"));
+  if (getenv("BL_WORKSPACE_ANS"))
+    strcpy(mdb_var_str, getenv("BL_WORKSPACE_ANS"));
 
   if (mdb_col != NULL)
   {
