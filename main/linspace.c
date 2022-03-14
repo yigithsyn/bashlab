@@ -188,17 +188,18 @@ INPUTT:;
   struct arg_str *var_args[3] = {arg_a, arg_b, arg_N};
   char_t var_names[3][BL_WORKSPACE_MAX_VARLENGTH];
   for (size_t i = 0; i < Nvar; i++)
-    strcpy(var_names[i], (char *)var_args[i]->hdr.datatype);
+    strcpy(var_names[i], (char *)var_args[i]->sval[0]);
   bool var_founds[3] = {false, false, false};
   size_t var_dims[3] = {1, 1, 1};
   size_t var_limitNs[3][BL_WORKSPACE_MAX_DIM] = {
-      {1},
+      {0},
       {1},
       {1}};
   size_t var_Ns[3][BL_WORKSPACE_MAX_DIM] = {
       {0},
       {0},
       {0}};
+  size_t var_totalNs[3] = {1, 1, 1};
   char_t var_types[3][10] = {"double", "double", "double"};
   number_t *var_vals[3] = {NULL, NULL, NULL};
 
@@ -243,6 +244,13 @@ INPUTT:;
       bson_destroy(mdb_qry);
       bson_destroy(mdb_qry1);
 
+      if (!var_founds[i])
+      {
+        fprintf(stderr, "%s: variable \"%s\" not found.\n", PROGNAME, var_names[i]);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_INPUT;
+      }
+
       // dim check
       mdb_qry = BCON_NEW("pipeline", "[",
                          "{", "$match", "{", "variables.name", BCON_UTF8(var_names[i]), "}", "}",
@@ -262,16 +270,16 @@ INPUTT:;
       size_t dim = 0;
       while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
         dim++;
+      bson_destroy(mdb_doc);
+      mongoc_cursor_destroy(mdb_crs);
+      bson_destroy(mdb_qry);
+
       if (dim != var_dims[i])
       {
         fprintf(stderr, "%s: variable \"%s\" dimension should be '%zu' instead of '%zu'.\n", PROGNAME, var_names[i], var_dims[i], dim);
         exitcode = EXIT_FAILURE;
         goto EXIT_INPUT;
       }
-
-      bson_destroy(mdb_doc);
-      mongoc_cursor_destroy(mdb_crs);
-      bson_destroy(mdb_qry);
 
       // size check
       mdb_qry = BCON_NEW("pipeline", "[",
@@ -296,20 +304,20 @@ INPUTT:;
       {
         size_t j = 0;
         while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
-        {
-          if ((size_t)bson_iter_value(&iter1)->value.v_double > var_limitNs[i][j])
-          {
-            fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should exceeded '%zu'.\n", PROGNAME, var_names[i], j, var_limitNs[i][j]);
-            exitcode = EXIT_FAILURE;
-            goto EXIT_INPUT;
-          }
           var_Ns[i][j++] = (size_t)bson_iter_value(&iter1)->value.v_double;
-        }
       }
 
       bson_destroy(mdb_doc);
       mongoc_cursor_destroy(mdb_crs);
       bson_destroy(mdb_qry);
+
+      for (size_t j = 0; j < var_dims[i]; j++)
+        if (var_Ns[i][j] > var_limitNs[i][j])
+        {
+          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should not exceeded '%zu'.\n", PROGNAME, var_names[i], j, var_limitNs[i][j]);
+          exitcode = EXIT_FAILURE;
+          goto EXIT_INPUT;
+        }
 
       // type check
       mdb_qry = BCON_NEW("pipeline", "[",
@@ -330,15 +338,52 @@ INPUTT:;
         goto EXIT_INPUT;
       }
 
+      bool is_matched = false;
       if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
           bson_iter_init_find(&iter, mdb_doc, "value_type"))
+        is_matched = !strcmp(bson_iter_value(&iter)->value.v_utf8.str, var_types[i]);
+
+      bson_destroy(mdb_doc);
+      mongoc_cursor_destroy(mdb_crs);
+      bson_destroy(mdb_qry);
+
+      if (!is_matched)
       {
-          if (strcmp(bson_iter_value(&iter)->value.v_utf8.str, var_types[i]) != 0)
-          {
-            fprintf(stderr, "%s: variable \"%s\" should be \"%s\" instead of \"%s\".\n", PROGNAME, var_names[i], var_types[i], bson_iter_value(&iter)->value.v_utf8.str);
-            exitcode = EXIT_FAILURE;
-            goto EXIT_INPUT;
-          }
+        fprintf(stderr, "%s: variable \"%s\" should be \"%s\" type.\n", PROGNAME, var_names[i], var_types[i]);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_INPUT;
+      }
+
+      // determine total size and allocate memory
+      for (size_t j = 0; j < var_dims[i]; j++)
+        var_totalNs[i] *= var_Ns[i][j];
+      var_vals[i] = (number_t *)calloc(var_totalNs[i], sizeof(number_t));
+
+      // value fetch
+      mdb_qry = BCON_NEW("pipeline", "[",
+                         "{", "$match", "{", "variables.name", BCON_UTF8(var_names[i]), "}", "}",
+                         "{", "$unwind", BCON_UTF8("$variables"), "}",
+                         "{", "$match", "{", "variables.name", BCON_UTF8(var_names[i]), "}", "}",
+                         "{", "$project", "{", "variables.value", BCON_BOOL(true), "}", "}",
+                         "{", "$project", "{", "value", BCON_UTF8("$variables.value"), "}", "}",
+                         "]");
+
+      mdb_crs = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_qry, NULL, NULL);
+      if (mongoc_cursor_error(mdb_crs, &mdb_err))
+      {
+        fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_INPUT;
+      }
+
+      if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
+          bson_iter_init_find(&iter, mdb_doc, "value") &&
+          BSON_ITER_HOLDS_ARRAY(&iter) &&
+          bson_iter_recurse(&iter, &iter1))
+      {
+        size_t j = 0;
+        while (bson_iter_next(&iter1))
+          var_vals[i][j++] = bson_iter_value(&iter1)->value.v_double;
       }
 
       bson_destroy(mdb_doc);
@@ -347,192 +392,6 @@ INPUTT:;
     }
   }
 
-  char *var_name;
-  bool *var_found;
-  size_t *var_dim;
-  size_t *var_limitN;
-  size_t *var_N;
-  number_t *var_val;
-  struct arg_str *var_arg;
-  bson_type_t *var_type;
-
-  // a
-  char *a_name = (char *)arg_a->hdr.datatype;
-  bool a_found = false;
-  size_t a_dim = 1;
-  size_t a_limitN[BL_WORKSPACE_MAX_DIM] = {1, 0, 0};
-  size_t a_N[BL_WORKSPACE_MAX_DIM];
-  bson_type_t a_type = BSON_TYPE_DOUBLE;
-  number_t *a_val = NULL;
-
-  var_arg = arg_a;
-  var_name = a_name;
-  var_found = &a_found;
-  var_dim = &a_dim;
-  var_limitN = a_limitN;
-  var_N = a_N;
-  var_type = &a_type;
-  var_val = a_val;
-
-  if (isnumber(var_arg->sval[0]))
-  {
-    var_N[0]++;
-    var_val = (number_t *)calloc(var_N[0], sizeof(number_t));
-    var_val[0] = atof(var_arg->sval[0]);
-  }
-  else if (mdb_col != NULL)
-  {
-    // name check
-    mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-    mdb_qry1 = BCON_NEW("projection", "{", "variables.name", BCON_BOOL(true), "}");
-    mdb_crs = mongoc_collection_find_with_opts(mdb_col, mdb_qry, mdb_qry1, NULL);
-    if (mongoc_cursor_error(mdb_crs, &mdb_err))
-    {
-      fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
-    if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
-        bson_iter_init_find(&iter, mdb_doc, "variables") &&
-        BSON_ITER_HOLDS_ARRAY(&iter) &&
-        bson_iter_recurse(&iter, &iter1))
-    {
-      while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
-      {
-        bson_iter_recurse(&iter1, &iter2); // step into variables array
-        bson_iter_next(&iter2);            // iter through variables array
-        if (strcmp(bson_iter_value(&iter2)->value.v_utf8.str, var_name) == 0)
-        {
-          *var_found = true;
-          break;
-        }
-      }
-    }
-    bson_destroy(mdb_doc);
-    mongoc_cursor_destroy(mdb_crs);
-    bson_destroy(mdb_qry);
-    bson_destroy(mdb_qry1);
-
-    // dim check
-    mdb_qry = BCON_NEW("pipeline", "[",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables"), "}",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables.size"), "}",
-                       "{", "$project", "{", "variables.size", BCON_BOOL(true), "}", "}",
-                       "]");
-
-    mdb_crs = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_qry, NULL, NULL);
-    if (mongoc_cursor_error(mdb_crs, &mdb_err))
-    {
-      fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
-    size_t dim = 0;
-    while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
-      dim++;
-    if (dim != *var_dim)
-    {
-      fprintf(stderr, "%s: variable \"%s\" dimension should be '%zu' instead of '%zu'.\n", PROGNAME, var_name, *var_dim, dim);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
-
-    bson_destroy(mdb_doc);
-    mongoc_cursor_destroy(mdb_crs);
-    bson_destroy(mdb_qry);
-
-    // size check
-    mdb_qry = BCON_NEW("pipeline", "[",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables"), "}",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables.size"), "}",
-                       "{", "$project", "{", "variables.size", BCON_BOOL(true), "}", "}",
-                       "]");
-
-    mdb_crs = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_qry, NULL, NULL);
-    if (mongoc_cursor_error(mdb_crs, &mdb_err))
-    {
-      fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
-
-    if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
-        bson_iter_init_find(&iter, mdb_doc, "variables") &&
-        bson_iter_recurse(&iter, &iter1))
-    {
-      size_t i = 0;
-      while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
-      {
-        if ((size_t)bson_iter_value(&iter1)->value.v_double > var_limitN[i])
-        {
-          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should exceeded '%zu'.\n", PROGNAME, var_name, i, var_limitN[i]);
-          exitcode = EXIT_FAILURE;
-          goto EXIT_INPUT;
-        }
-        var_N[i] = (size_t)bson_iter_value(&iter1)->value.v_double;
-      }
-    }
-
-    bson_destroy(mdb_doc);
-    mongoc_cursor_destroy(mdb_crs);
-    bson_destroy(mdb_qry);
-
-    // type check
-    mdb_qry = BCON_NEW("pipeline", "[",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables"), "}",
-                       "{", "$match", "{", "variables.name", BCON_UTF8(var_name), "}", "}",
-                       "{", "$unwind", BCON_UTF8("$variables.value"), "}",
-                       "{", "$limit", BCON_INT32(1), "}",
-                       "{", "$project", "{", "variables.value", BCON_BOOL(true), "}", "}",
-                       "{", "$project", "{", "value_type", "{", "$type", BCON_UTF8("$variables.value"), "}", "}", "}",
-                       "]");
-
-    mdb_crs = mongoc_collection_aggregate(mdb_col, MONGOC_QUERY_NONE, mdb_qry, NULL, NULL);
-    if (mongoc_cursor_error(mdb_crs, &mdb_err))
-    {
-      fprintf(stderr, "%s: error in listing workspace: %s.\n", PROGNAME, mdb_err.message);
-      exitcode = EXIT_FAILURE;
-      goto EXIT_INPUT;
-    }
-
-    // while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
-    // {
-    //   char *str = bson_as_json(mdb_doc, NULL);
-    //   printf("%s\n", str);
-    //   bson_free(str);
-    // }
-
-    if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
-        bson_iter_init_find(&iter, mdb_doc, "value_type"))
-    {
-      printf("%s: %s\n", bson_iter_key(&iter), bson_iter_value(&iter)->value.v_utf8.str);
-    }
-    // if (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc) &&
-    //     bson_iter_init_find(&iter, mdb_doc, "variables") &&
-    //     bson_iter_recurse(&iter, &iter1))
-    // {
-    //   size_t i = 0;
-    //   while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
-    //   {
-    //     if ((size_t)bson_iter_value(&iter1)->value.v_double > var_limitN[i])
-    //     {
-    //       fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should exceeded '%zu'.\n", PROGNAME, var_name, i, var_limitN[i]);
-    //       exitcode = EXIT_FAILURE;
-    //       goto EXIT_INPUT;
-    //     }
-    //     var_N[i] = (size_t)bson_iter_value(&iter1)->value.v_double;
-    //   }
-    // }
-
-    bson_destroy(mdb_doc);
-    mongoc_cursor_destroy(mdb_crs);
-    bson_destroy(mdb_qry);
-  }
   // while (mongoc_cursor_next(mdb_crs, (const bson_t **)&mdb_doc))
   // {
   //   char *str = bson_as_json(mdb_doc, NULL);
