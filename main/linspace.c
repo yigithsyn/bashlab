@@ -197,8 +197,8 @@ INPUTT:;
   char *a_name = (char *)arg_a->hdr.datatype;
   bool a_found = false;
   size_t a_dim = 1;
-  size_t a_limitN[BASHLAB_WORKSPACE_MAX_DIM] = {1, 0, 0};
-  size_t a_N[BASHLAB_WORKSPACE_MAX_DIM];
+  size_t a_limitN[BL_WORKSPACE_MAX_DIM] = {1, 0, 0};
+  size_t a_N[BL_WORKSPACE_MAX_DIM];
   bson_type_t a_type = BSON_TYPE_DOUBLE;
   number_t *a_val = NULL;
 

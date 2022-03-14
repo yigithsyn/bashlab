@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(BLAB_WS, 0, json_error);
+  workspace = json_load_file(BL_WORKSPACE, 0, json_error);
   if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -336,10 +336,10 @@ OUTPUT:;
   json_object_set_new(var, "name", json_string(buff));
   var_val = json_array();
   /* write out large arrays seperately */
-  sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(json_object_get(var, "name")));
+  sprintf(buff, "%s_%s.txt", BL_WORKSPACE_WO_EXT, json_string_value(json_object_get(var, "name")));
   json_object_set_new(var, "size", json_array());
   json_array_append_new(json_object_get(var, "size"), json_integer(Nans));
-  if (Nans > BLAB_WS_ARR_LIM)
+  if (Nans > BL_WORKSPACE_ARRAY_LIMIT)
   {
     if (verbose->count)
       fprintf(stdout, "Output: File: %ld ... ", tic());
@@ -349,7 +349,7 @@ OUTPUT:;
     fclose(f);
     if (verbose->count)
       fprintf(stdout, "%ld [ms]\n", toc());
-    for (size_t i = 0; i < BLAB_WS_ARR_LIM - 1; ++i)
+    for (size_t i = 0; i < BL_WORKSPACE_ARRAY_LIMIT - 1; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
     for (size_t i = Nans - 2; i < Nans; ++i)
       json_array_append_new(var_val, json_real(ans[i]));
@@ -380,7 +380,7 @@ HISTORY:
     strcat(buff, argv[i]);
   }
   json_array_append_new(ws_hist, json_string(buff));
-  json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
+  json_dump_file(workspace, BL_WORKSPACE, JSON_COMPACT);
 
 STDOUT:
   /* stream */

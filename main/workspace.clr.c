@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(BLAB_WS, 0, json_error);
+  workspace = json_load_file(BL_WORKSPACE, 0, json_error);
   if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -194,9 +194,9 @@ OUTPUT:;
       var_name = json_object_get(var, "name");
       for (size_t i = 0; i < json_array_size(var_size); ++i)
         Nans *= json_integer_value(json_array_get(var_size, i));
-      if (Nans > BLAB_WS_ARR_LIM)
+      if (Nans > BL_WORKSPACE_ARRAY_LIMIT)
       {
-        sprintf(buff, "%s_%s.txt", BLAB_WS_WO_EXT, json_string_value(var_name));
+        sprintf(buff, "%s_%s.txt", BL_WORKSPACE_WO_EXT, json_string_value(var_name));
         if (stat(buff, &stat_buff) == 0)
         {
           if (remove(buff) != 0)
@@ -214,7 +214,7 @@ OUTPUT:;
     json_array_clear(ws_hist);
 
 HISTORY:
-  json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
+  json_dump_file(workspace, BL_WORKSPACE, JSON_COMPACT);
 
 /* ======================================================================== */
 /* exit                                                                     */

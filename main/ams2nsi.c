@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  workspace = json_load_file(BLAB_WS, 0, json_error);
+  workspace = json_load_file(BL_WORKSPACE, 0, json_error);
   if (workspace != NULL && json_typeof(workspace) != JSON_OBJECT)
   {
     fprintf(stderr, "%s: invalid workspace.\n", PROGNAME);
@@ -328,7 +328,7 @@ HISTORY:
     strcat(buff, argv[i]);
   }
   json_array_append_new(ws_hist, json_string(buff));
-  json_dump_file(workspace, BLAB_WS, JSON_COMPACT);
+  json_dump_file(workspace, BL_WORKSPACE, JSON_COMPACT);
 
 STDOUT:
 // /* stream */
