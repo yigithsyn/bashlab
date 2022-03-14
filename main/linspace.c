@@ -458,73 +458,88 @@ STDOUT:;
 
 WORKSPACE:;
 
-  // if (getenv("BL_WORKSPACE_ANS"))
-  //   strcpy(mdb_var_str, getenv("BL_WORKSPACE_ANS"));
+  if (getenv("BL_WORKSPACE_ANS"))
+    strcpy(mdb_var_str, getenv("BL_WORKSPACE_ANS"));
 
-  // if (mdb_col != NULL)
-  // {
-  //   bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-  //   int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
-  //   bson_destroy(mdb_qry);
+  if (mdb_col != NULL)
+  {
+    bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+    int64_t mdb_cnt = mongoc_collection_count_documents(mdb_col, mdb_qry, NULL, NULL, NULL, &mdb_err);
+    bson_destroy(mdb_qry);
 
-  //   if (mdb_cnt < 0)
-  //   {
-  //     fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
-  //     exitcode = EXIT_FAILURE;
-  //     goto EXIT_WORKSPACE;
-  //   }
-  //   else if (mdb_cnt == 0)
-  //   {
-  //     bson_t *mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
-  //     bson_t *mdb_doc = bson_new();
-  //     bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-  //     BSOa_NPPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
-  //     BSOa_NPPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-  //     BSOa_NPPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
-  //     BSOa_NPPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
-  //     for (size_t i = 0; i < N1; ++i)
-  //       bsoa_Nppend_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
-  //     bsoa_Nppend_array_end(&mdb_doc_child2, &mdb_doc_child3);
-  //     BSOa_NPPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
-  //     bsoa_Nppend_double(&mdb_doc_child3, "no", -1, (double)N1);
-  //     bsoa_Nppend_array_end(&mdb_doc_child2, &mdb_doc_child3);
-  //     bsoa_Nppend_document_end(&mdb_doc_child1, &mdb_doc_child2);
-  //     bsoa_Nppend_document_end(mdb_doc, &mdb_doc_child1);
+    if (mdb_cnt < 0)
+    {
+      fprintf(stderr, "%s: counting variables failed.\n", PROGNAME);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_WORKSPACE;
+    }
+    else if (mdb_cnt == 0)
+    {
+      mdb_qry = BCON_NEW("variables", "{", "$exists", BCON_BOOL(true), "}");
+      mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
+      BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
+      BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
+      for (size_t i = 0; i < N; ++i)
+        bson_append_double(&mdb_doc_child3, "no", -1, out[i]);
+      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
+      bson_append_double(&mdb_doc_child3, "no", -1, (double)N);
+      bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
+      bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-  //     if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-  //     {
-  //       fprintf(stderr, "%s: variable insertation failed.\n", PROGNAME);
-  //       exitcode = EXIT_FAILURE;
-  //       goto EXIT_WORKSPACE;
-  //     }
-  //     bson_destroy(mdb_qry);
-  //     bson_destroy(mdb_doc);
-  //   }
-  //   else
-  //   {
-  //     bson_t *mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
-  //     bson_t *mdb_doc = bson_new();
-  //     bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-  //     BSOa_NPPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-  //     BSOa_NPPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
-  //     for (size_t i = 0; i < N1; ++i)
-  //       bsoa_Nppend_utf8(&mdb_doc_child3, "no", -1, out1[i], -1);
-  //     bsoa_Nppend_array_end(&mdb_doc_child1, &mdb_doc_child2);
-  //     BSOa_NPPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
-  //     bsoa_Nppend_double(&mdb_doc_child2, "no", -1, (double)N1);
-  //     bsoa_Nppend_array_end(&mdb_doc_child1, &mdb_doc_child2);
-  //     bsoa_Nppend_document_end(mdb_doc, &mdb_doc_child1);
+      printf("%zu\n", strlen(bson_get_data(mdb_doc)));
+      printf("%u %u\n", mdb_doc->len, 16 * 1024 * 1024);
 
-  //     if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
-  //     {
-  //       fprintf(stderr, "%s: variable update failed.\n", PROGNAME);
-  //       exitcode = EXIT_FAILURE;
-  //       goto EXIT_WORKSPACE;
-  //     }
-  //     bson_destroy(mdb_qry);
-  //     bson_destroy(mdb_doc);
-  //   }
-  // }
+      if (mdb_doc->len > BL_WORSKPACE_MAX_RAW_SIZE)
+      {
+        fprintf(stderr, "%s: variable \"%s\" size (%u) is larger than allowed size (%u).\n", PROGNAME, mdb_var_str, mdb_doc->len, BL_WORSKPACE_MAX_RAW_SIZE);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
+      }
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      {
+        fprintf(stderr, "%s: variable insertation failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
+        exitcode = EXIT_FAILURE;
+        goto EXIT_WORKSPACE;
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
+    }
+    else
+    {
+      mdb_qry = BCON_NEW("variables.name", BCON_UTF8(mdb_var_str));
+      mdb_doc = bson_new();
+      bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
+      BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
+      for (size_t i = 0; i < N; ++i)
+        bson_append_double(&mdb_doc_child2, "no", -1, out[i]);
+      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+      BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
+      bson_append_double(&mdb_doc_child2, "no", -1, (double)N);
+      bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
+      bson_append_document_end(mdb_doc, &mdb_doc_child1);
+
+      if (mdb_doc->len > BL_WORSKPACE_MAX_RAW_SIZE)
+      {
+        fprintf(stderr, "%s: variable \"%s\" size (%u) is larger than allowed size (%u).\n", PROGNAME, mdb_var_str, mdb_doc->len, BL_WORSKPACE_MAX_RAW_SIZE);
+        exitcode = EXIT_FAILURE;
+      }
+      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      {
+        fprintf(stderr, "%s: variable update failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
+        exitcode = EXIT_FAILURE;
+      }
+      bson_destroy(mdb_qry);
+      bson_destroy(mdb_doc);
+      if (exitcode == EXIT_FAILURE)
+        goto EXIT_WORKSPACE;
+    }
+  }
 
 HISTORY:
   if (mdb_col != NULL)
