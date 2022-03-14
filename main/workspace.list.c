@@ -347,7 +347,7 @@ STDOUT:;
       max_var_name_length = strlen(var_names[i]);
   for (size_t i = 0; i < var_lngth; i++)
   {
-    fprintf(stdout, "%-*s: ", max_var_name_length, var_names[i]);
+    fprintf(stdout, "%-*s: ", (int)max_var_name_length, var_names[i]);
     fprintf(stdout, "%s[", (var_types[i] == BSON_TYPE_DOUBLE) ? "number" : "string");
     for (size_t j = 1; j < var_sizeN[i] - 1; ++j)
       fprintf(stdout, "%zux", var_sizes[i][j]);

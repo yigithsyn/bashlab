@@ -44,6 +44,7 @@ bson_iter_t iter, iter1, iter2, iter3;
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
+#include "linspace.h"
 #define PROGNAME "linspace"
 static const char *program_json =
     "{"
@@ -409,7 +410,7 @@ INPUTT:;
   // post check
   if ((size_t)var_vals[2][0] < 2)
   {
-    fprintf(stderr, "%s: \"%s\" should be at least '%zu'.\n", PROGNAME, var_names[2], 2);
+    fprintf(stderr, "%s: \"%s\" should be at least '%zu'.\n", PROGNAME, var_names[2], (size_t)2);
     exitcode = EXIT_FAILURE;
     goto EXIT_INPUT;
   }
@@ -436,11 +437,11 @@ STDOUT:;
   {
     sprintf(buff, "%zu", Nans - 1);
     for (size_t i = 0; i < MIN(Nans, 3); ++i)
-      fprintf(stdout, "[%-*zu]: %.16G\n", strlen(buff), i, ans[i]);
+      fprintf(stdout, "[%-*zu]: %.16G\n", (int)strlen(buff), i, ans[i]);
     if (Nans > 5)
       fprintf(stdout, "...\n");
     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(stdout, "[%-*zu]: %.16G\n", strlen(buff), i, ans[i]);
+      fprintf(stdout, "[%-*zu]: %.16G\n", (int)strlen(buff), i, ans[i]);
   }
   else
   {

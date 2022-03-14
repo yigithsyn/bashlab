@@ -247,7 +247,7 @@ OPERATION:;
   strcpy(sp_buff, arg_buff->sval[0]);
   strcat(sp_buff, "\r");
 
-  printf("Sending '%s' (%d bytes) on port %s.\n", sp_buff, strlen(sp_buff), arg_port->sval[0]);
+  printf("Sending '%s' (%zu bytes) on port %s.\n", sp_buff, strlen(sp_buff), arg_port->sval[0]);
   sp_Nbytes = sp_check(sp_blocking_write(port, sp_buff, strlen(sp_buff), timeout), buff);
   printf("Sent %d bytes successfully.\n", sp_Nbytes);
 
