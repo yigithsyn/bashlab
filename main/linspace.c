@@ -191,15 +191,19 @@ INPUTT:;
     strcpy(var_names[i], (char *)var_args[i]->sval[0]);
   bool var_founds[3] = {false, false, false};
   size_t var_dims[3] = {1, 1, 1};
-  size_t var_limitNs[3][BL_WORKSPACE_MAX_DIM] = {
-      {0},
+  size_t var_size_limits_upper[3][BL_WORKSPACE_MAX_DIM] = {
+      {1},
       {1},
       {1}};
-  size_t var_Ns[3][BL_WORKSPACE_MAX_DIM] = {
+  size_t var_size_limits_lower[3][BL_WORKSPACE_MAX_DIM] = {
+      {1},
+      {1},
+      {1}};
+  size_t var_sizes[3][BL_WORKSPACE_MAX_DIM] = {
       {0},
       {0},
       {0}};
-  size_t var_totalNs[3] = {1, 1, 1};
+  size_t var_total_sizes[3] = {1, 1, 1};
   char_t var_types[3][10] = {"double", "double", "double"};
   number_t *var_vals[3] = {NULL, NULL, NULL};
 
@@ -207,8 +211,8 @@ INPUTT:;
   {
     if (isnumber(var_args[i]->sval[0]))
     {
-      var_Ns[i][0]++;
-      var_vals[i] = (number_t *)calloc(var_Ns[i][0], sizeof(number_t));
+      var_sizes[i][0]++;
+      var_vals[i] = (number_t *)calloc(var_sizes[i][0], sizeof(number_t));
       var_vals[i][0] = atof(var_args[i]->sval[0]);
     }
     else if (mdb_col != NULL)
@@ -304,7 +308,7 @@ INPUTT:;
       {
         size_t j = 0;
         while (bson_iter_next(&iter1)) // iter through variables docs, while actually it is single doc
-          var_Ns[i][j++] = (size_t)bson_iter_value(&iter1)->value.v_double;
+          var_sizes[i][j++] = (size_t)bson_iter_value(&iter1)->value.v_double;
       }
 
       bson_destroy(mdb_doc);
@@ -312,9 +316,9 @@ INPUTT:;
       bson_destroy(mdb_qry);
 
       for (size_t j = 0; j < var_dims[i]; j++)
-        if (var_Ns[i][j] > var_limitNs[i][j])
+        if (var_sizes[i][j] > var_size_limits_upper[i][j] || var_sizes[i][j] < var_size_limits_lower[i][j])
         {
-          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should not exceeded '%zu'.\n", PROGNAME, var_names[i], j, var_limitNs[i][j]);
+          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should not exceeded '%zu' and below '%zu'.\n", PROGNAME, var_names[i], j, var_size_limits_upper[i][j], var_size_limits_lower[i][j]);
           exitcode = EXIT_FAILURE;
           goto EXIT_INPUT;
         }
@@ -356,8 +360,8 @@ INPUTT:;
 
       // determine total size and allocate memory
       for (size_t j = 0; j < var_dims[i]; j++)
-        var_totalNs[i] *= var_Ns[i][j];
-      var_vals[i] = (number_t *)calloc(var_totalNs[i], sizeof(number_t));
+        var_total_sizes[i] *= var_sizes[i][j];
+      var_vals[i] = (number_t *)calloc(var_total_sizes[i], sizeof(number_t));
 
       // value fetch
       mdb_qry = BCON_NEW("pipeline", "[",
@@ -402,30 +406,54 @@ INPUTT:;
   // {
   // }
 
+  // post check
+  if ((size_t)var_vals[2][0] < 2)
+  {
+    fprintf(stderr, "%s: \"%s\" should be at least '%zu'.\n", PROGNAME, var_names[2], 2);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_INPUT;
+  }
+
 OPERATION:;
+  number_t a = var_vals[0][0], b = var_vals[1][0];
+  size_t N = (size_t)var_vals[2][0];
+  number_t *out = (number_t *)calloc(N, sizeof(number_t));
+  if (verbose->count)
+  {
+    fprintf(stdout, "Step size: %.16G\n", (b - a) / (N - 1));
+    fprintf(stdout, "Operation: %ld ... ", tic());
+  }
+  linspace(a, b, (int)N, out);
+  if (verbose->count)
+    fprintf(stdout, "%ld [ms]\n", toc());
 
 OUTPUT:;
 
 STDOUT:;
-  // size_t Nans = N1;
-  // char **ans = out1;
-  // if (verbose->count)
-  // {
-  //   for (int i = 0; i < Nans; i++)
-  //     fprintf(stdout, "%s: %s\n", sp_get_port_name(port_list[i]), sp_get_port_description(port_list[i]));
-  // }
-  // else
-  // {
-  //   if (Nans > 0)
-  //     fprintf(stdout, "%s", ans[0]);
-  //   for (size_t i = 1; i < MIN(Nans, 3); ++i)
-  //     fprintf(stdout, ", %s", ans[i]);
-  //   if (Nans > 5)
-  //     fprintf(stdout, ", ...");
-  //   for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-  //     fprintf(stdout, ", %s", ans[i]);
-  //   fprintf(stdout, "\n");
-  // }
+  size_t Nans = N;
+  number_t *ans = out;
+  if (verbose->count)
+  {
+    sprintf(buff, "%zu", Nans - 1);
+    for (size_t i = 0; i < MIN(Nans, 3); ++i)
+      fprintf(stdout, "[%-*zu]: %.16G\n", strlen(buff), i, ans[i]);
+    if (Nans > 5)
+      fprintf(stdout, "...\n");
+    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+      fprintf(stdout, "[%-*zu]: %.16G\n", strlen(buff), i, ans[i]);
+  }
+  else
+  {
+    if (Nans > 0)
+      fprintf(stdout, "%.16G", ans[0]);
+    for (size_t i = 1; i < MIN(Nans, 3); ++i)
+      fprintf(stdout, ", %.16G", ans[i]);
+    if (Nans > 5)
+      fprintf(stdout, ", ...");
+    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+      fprintf(stdout, ", %.16G", ans[i]);
+    fprintf(stdout, "\n");
+  }
 
 WORKSPACE:;
 
@@ -529,13 +557,12 @@ EXIT_WORKSPACE:;
 EXIT_OUTPUT:;
 
 EXIT_OPERATION:;
+  free(out);
 
 EXIT_INPUT:;
   for (size_t i = 0; i < Nvar; i++)
     if (var_vals[i] != NULL)
       free(var_vals[i]);
-  // if (a_val != NULL)
-  //   free(a_val);
 
 EXIT:;
   // mongoc cleanup
