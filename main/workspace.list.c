@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 MAIN:;
   if (mdb_col == NULL)
   {
-    fprintf(stderr, "%s: function requires valid workspace.\n", PROGNAME);
+    fprintf(stderr, "%s: function requires workspace database.\n", PROGNAME);
     exitcode = EXIT_FAILURE;
     goto EXIT;
   }

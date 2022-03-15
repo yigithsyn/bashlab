@@ -11,7 +11,8 @@
     // "args": [ "300E6", "1"],
     // "args": [],
     // "args": ["COM1", "9600", "D1 200"],
-    "args": ["a", "b", "N", "--verbose"],
+    // "args": ["a", "b", "N", "--verbose"],
+    "args": ["-h"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
