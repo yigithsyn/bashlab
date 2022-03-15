@@ -67,9 +67,9 @@ if [ "$1" == "libmongoc" ]; then
   # Dependencies
   # apt update
   # sudo apt-get install cmake libssl-dev libsasl2-dev
-  curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.20.1/mongo-c-driver-1.20.1.tar.gz --output libs/mongo-c-driver-1.20.1.tar.gz --silent
-  tar -xvf libs/mongo-c-driver-1.20.1.tar.gz --directory libs/
-  cd libs/mongo-c-driver-1.20.1
+  curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.20.1/mongo-c-driver-1.21.1.tar.gz --output libs/mongo-c-driver-1.21.1.tar.gz --silent
+  tar -xvf libs/mongo-c-driver-1.21.1.tar.gz --directory libs/
+  cd libs/mongo-c-driver-1.21.1
   mkdir build_dir
   cd build_dir
   # In Windows: for x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
@@ -77,7 +77,7 @@ if [ "$1" == "libmongoc" ]; then
   cmake --build . --config Release
   cmake --install . --prefix /usr/local
   cd ../../..
-  rm -rf libs/mongo-c-driver-1.20.1
+  rm -rf libs/mongo-c-driver-1.21.1
   exit
 fi
 

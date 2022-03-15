@@ -64,16 +64,16 @@ IF "%1"=="civetweb" EXIT /B 0
 
 :libmongoc
 ECHO libmongoc: A high-performance MongoDB driver for C
-curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.20.1/mongo-c-driver-1.20.1.tar.gz --output libs\mongo-c-driver-1.20.1.tar.gz --silent
-tar -xvf libs\mongo-c-driver-1.20.1.tar.gz --directory libs\
-CD libs\mongo-c-driver-1.20.1
+curl -L https://github.com/mongodb/mongo-c-driver/releases/download/1.21.1/mongo-c-driver-1.21.1.tar.gz --output libs\mongo-c-driver-1.21.1.tar.gz --silent
+tar -xvf libs\mongo-c-driver-1.21.1.tar.gz --directory libs\
+CD libs\mongo-c-driver-1.21.1
 MKDIR build_dir
 CD build_dir
 @REM For x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
 cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
-RMDIR /Q /S libs\mongo-c-driver-1.20.1
+RMDIR /Q /S libs\mongo-c-driver-1.21.1
 IF "%1"=="libmongoc" EXIT /B 0
 
 :serialport
