@@ -491,51 +491,20 @@ WORKSPACE:;
       bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
       bson_append_document_end(mdb_doc, &mdb_doc_child1);
 
-      printf("%zu\n", strlen(bson_get_data(mdb_doc)));
-      printf("%u %u\n", mdb_doc->len, 16 * 1024 * 1024);
-
       if (mdb_doc->len > BL_WORSKPACE_MAX_RAW_SIZE)
       {
-        if (verbose->count > 0)
-          fprintf(stdout, "Workspace: Variable length MongoDB BSON document limit. Writing into file. %ld ... ", tic());
-        char *data = bson_as_json(mdb_doc, NULL);
-        sprintf(buff, "%s_%s_%s.json", mdb_dtb_str, mdb_col_str, mdb_var_str);
-        FILE *fp = fopen(buff, "wt");
-        if (fp != NULL)
-        {
-          fputs(data, fp);
-          fclose(fp);
-        }
-        bson_free(data);
-        fprintf(stdout, "%ld [ms]\n", toc());
-
-        bson_destroy(mdb_doc);
-        mdb_doc = bson_new();
-        bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-        BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$push", &mdb_doc_child1);
-        BSON_APPEND_DOCUMENT_BEGIN(&mdb_doc_child1, "variables", &mdb_doc_child2);
-        BSON_APPEND_UTF8(&mdb_doc_child2, "name", mdb_var_str);
-        BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "value", &mdb_doc_child3);
-        for (size_t i = 0; i < 3; ++i)
-          bson_append_double(&mdb_doc_child3, "no", -1, out[i]);
-        for (size_t i = N - 2; i < N; ++i)
-          bson_append_double(&mdb_doc_child3, "no", -1, out[i]);
-        bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
-        BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child2, "size", &mdb_doc_child3);
-        bson_append_double(&mdb_doc_child3, "no", -1, (double)N);
-        bson_append_array_end(&mdb_doc_child2, &mdb_doc_child3);
-        bson_append_bool(&mdb_doc_child2, "file", -1, true);
-        bson_append_document_end(&mdb_doc_child1, &mdb_doc_child2);
-        bson_append_document_end(mdb_doc, &mdb_doc_child1);
+        fprintf(stderr, "%s: variable \"%s\" size '%u' exceeds database document limit '%u'\n", PROGNAME, mdb_var_str, mdb_doc->len, BL_WORSKPACE_MAX_RAW_SIZE);
+        exitcode = EXIT_FAILURE;
       }
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      else if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
       {
         fprintf(stderr, "%s: variable insertation failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
         exitcode = EXIT_FAILURE;
-        goto EXIT_WORKSPACE;
       }
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
+      if (exitcode == EXIT_FAILURE)
+        goto EXIT_WORKSPACE;
     }
     else
     {
@@ -554,43 +523,18 @@ WORKSPACE:;
 
       if (mdb_doc->len > BL_WORSKPACE_MAX_RAW_SIZE)
       {
-        if (verbose->count > 0)
-          fprintf(stdout, "Workspace: Variable length MongoDB BSON document limit. Writing into file. %ld ... ", tic());
-        char *data = bson_as_json(mdb_doc, NULL);
-        sprintf(buff, "%s_%s_%s.json", mdb_dtb_str, mdb_col_str, mdb_var_str);
-        FILE *fp = fopen(buff, "wt");
-        if (fp != NULL)
-        {
-          fputs(data, fp);
-          fclose(fp);
-        }
-        bson_free(data);
-        fprintf(stdout, "%ld [ms]\n", toc());
-
-        bson_destroy(mdb_doc);
-        mdb_doc = bson_new();
-        bson_t mdb_doc_child1, mdb_doc_child2, mdb_doc_child3;
-        BSON_APPEND_DOCUMENT_BEGIN(mdb_doc, "$set", &mdb_doc_child1);
-        BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.value", &mdb_doc_child2);
-        for (size_t i = 0; i < 3; ++i)
-          bson_append_double(&mdb_doc_child2, "no", -1, out[i]);
-        for (size_t i = N - 2; i < N; ++i)
-          bson_append_double(&mdb_doc_child2, "no", -1, out[i]);
-        bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-        BSON_APPEND_ARRAY_BEGIN(&mdb_doc_child1, "variables.$.size", &mdb_doc_child2);
-        bson_append_double(&mdb_doc_child2, "no", -1, (double)N);
-        bson_append_array_end(&mdb_doc_child1, &mdb_doc_child2);
-        bson_append_bool(&mdb_doc_child1, "variables.$.file", -1, true);
-        bson_append_document_end(mdb_doc, &mdb_doc_child1);
+        fprintf(stderr, "%s: variable \"%s\" size '%u' exceeds database document limit '%u'\n", PROGNAME, mdb_var_str, mdb_doc->len, BL_WORSKPACE_MAX_RAW_SIZE);
+        exitcode = EXIT_FAILURE;
       }
-      if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
+      else if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, NULL, NULL, &mdb_err))
       {
         fprintf(stderr, "%s: variable update failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
         exitcode = EXIT_FAILURE;
-        goto EXIT_WORKSPACE;
       }
       bson_destroy(mdb_qry);
       bson_destroy(mdb_doc);
+      if (exitcode == EXIT_FAILURE)
+        goto EXIT_WORKSPACE;
     }
   }
 
