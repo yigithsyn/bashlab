@@ -1,6 +1,7 @@
 test/Beam*.txt
 test/*.csv
 test/workspace*.json
+test/local*.json
 test/workspace*.txt
 build
 libs
