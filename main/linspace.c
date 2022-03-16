@@ -212,6 +212,7 @@ INPUTT:;
   {
     if (isnumber(var_args[i]->sval[0]))
     {
+      var_founds[i] = true;
       var_sizes[i][0]++;
       var_vals[i] = (number_t *)calloc(var_sizes[i][0], sizeof(number_t));
       var_vals[i][0] = atof(var_args[i]->sval[0]);
