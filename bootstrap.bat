@@ -17,6 +17,7 @@ IF "%1"=="argtable3" GOTO argtable3
 IF "%1"=="civetweb" GOTO civetweb
 IF "%1"=="libmongoc" GOTO libmongoc
 IF "%1"=="serialport" GOTO serialport
+IF "%1"=="libantenna" GOTO libantenna
 GOTO build
 @REM for arguements with quotes
 @REM IF "%~1"=="build" GOTO build
@@ -88,6 +89,18 @@ copy /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
 CD ../..
 RMDIR /Q /S libs\libserialport-6f9b03e
 IF "%1"=="serialport" EXIT /B 0
+
+:libantenna
+ECHO libantenna: Antennas and propagation tookit library for C
+git clone https://github.com/yigithsyn/libantenna libs/libantenna
+CD libs/libantenna
+MKDIR build
+CD build
+cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
+cmake.exe --build . --target INSTALL --config Release
+CD ../../..
+RMDIR /Q /S libs\libantenna
+IF "%1"=="libantenna" EXIT /B 0
 
 :build
 ECHO ============================

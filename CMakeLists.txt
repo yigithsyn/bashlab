@@ -20,7 +20,7 @@ if(WIN32)
   link_directories($ENV{USERPROFILE}/AppData/Local/lib)
 
   # set(COMMON_LINK_LIBS_DEBUG jansson_d argtable3d)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 libserialport)
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 libserialport libantenna) 
 endif(WIN32)
 
 if(UNIX)

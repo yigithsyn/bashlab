@@ -38,6 +38,7 @@
     "macros.h": "c",
     "mongoc.h": "c",
     "sstream": "c",
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "libantenna.h": "c"
   }
 }
