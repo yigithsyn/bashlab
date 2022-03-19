@@ -81,7 +81,6 @@ if [ "$1" == "libmongoc" ]; then
   exit
 fi
 
-
 if [ "$1" == "serialport" ]; then
   echo "Libserialport: Minimal, cross-platform shared library written in C"
   curl -L https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/libserialport/0.1.1-4/libserialport_0.1.1.orig.tar.xz --output libs/libserialport-0.1.1-4.tar.xz --silent
@@ -94,6 +93,22 @@ if [ "$1" == "serialport" ]; then
   sudo make install
   cd ../../
   rm -rf libs/libserialport-0.1.1-4/
+  exit
+fi
+
+if [ "$1" == "libantenna" ]; then
+  echo ============================
+  echo "[INFO] Dependecies: libantenna: Antennas and propagation tookit library for C"
+  echo ============================
+  git clone https://github.com/yigithsyn/libantenna libs/libantenna
+  cd libs/libantenna
+  mkdir build
+  cd build
+  cmake -DBUILD_SHARED_LIBS=ON ..
+  cmake --build . --config Release
+  cmake --install . --prefix /usr/local
+  cd ../../..
+  rm -rf libs/libantenna
   exit
 fi
 
