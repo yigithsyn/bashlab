@@ -427,7 +427,7 @@ OUTPUT:;
 STDOUT:;
   size_t Nans = N;
   number_t *ans = out;
-  if (verbose->count)
+  if (verbose->count || mdb_col == NULL)
   {
     sprintf(buff, "%zu", Nans - 1);
     for (size_t i = 0; i < MIN(Nans, 3); ++i)
