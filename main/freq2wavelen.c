@@ -21,12 +21,16 @@
 #include <unistd.h>
 #endif
 
+#define BUFF_SIZE 250
+#define BUFF2_SIZE BUFF_SIZE
+static char buff[BUFF_SIZE];
+static char buff2[BUFF2_SIZE];
+
 static struct stat stat_buff;
 static json_error_t *json_error;
 static json_t *ivar;
 static size_t ivar_index;
 static size_t argcount = 0;
-static char buff[250];
 
 // mongodb
 static mongoc_uri_t *mdb_uri = NULL;
@@ -427,11 +431,11 @@ STDOUT:;
   {
     sprintf(buff, "%zu", Nans - 1);
     for (size_t i = 0; i < MIN(Nans, 3); ++i)
-      fprintf(stdout, "[%-*zu]: %.16G\n", (int)strlen(buff), i, ans[i]);
+      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, la_wavelength_hr(ans[i], buff2, BUFF2_SIZE-1));
     if (Nans > 5)
       fprintf(stdout, "...\n");
     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(stdout, "[%-*zu]: %.16G\n", (int)strlen(buff), i, ans[i]);
+      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, la_wavelength_hr(ans[i], buff2, BUFF2_SIZE-1));
   }
   else
   {
