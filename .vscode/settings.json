@@ -12,7 +12,7 @@
     // "args": [],
     // "args": ["COM1", "9600", "D1 200"],
     // "args": ["a", "b", "N", "--verbose"],
-    "args": ["-h"],
+    "args": ["3.3E9"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
