@@ -29,16 +29,14 @@ if(UNIX)
   include_directories("/usr/local/include/libbson-1.0")
  
   # set(COMMON_LINK_LIBS_DEBUG jansson argtable3 m)
-  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 serialport m) 
+  set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 serialport antenna m) 
 endif(UNIX)
 
 add_executable(ams2nsi main/ams2nsi.c ${SOURCES} ${COMMONS})
 target_link_libraries(ams2nsi ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ams2nsi CONFIGURATIONS Release) 
 
-add_executable(freq2wavelen main/freq2wavelen.c ${COMMONS})
-target_link_libraries(freq2wavelen ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS freq2wavelen CONFIGURATIONS Release) 
+
 
 add_executable(wavelen2freq main/wavelen2freq.c ${COMMONS})
 target_link_libraries(wavelen2freq ${COMMON_LINK_LIBS_OPTIM})
@@ -82,3 +80,7 @@ install(TARGETS linspace CONFIGURATIONS Release)
 add_executable(workspace.clr main/workspace.clr.c ${SOURCES} ${COMMONS})
 target_link_libraries(workspace.clr ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS workspace.clr CONFIGURATIONS Release) 
+
+add_executable(freq2wavelen main/freq2wavelen.c ${COMMONS})
+target_link_libraries(freq2wavelen ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS freq2wavelen CONFIGURATIONS Release) 
