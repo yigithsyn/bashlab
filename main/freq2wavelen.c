@@ -192,7 +192,7 @@ INPUTT:;
     strcpy(var_names[i], (char *)var_args[i]->sval[0]);
   bool var_founds[BL_MAX_ARG_NUM] = {false};
   size_t var_dims[BL_MAX_ARG_NUM] = {1};
-  size_t var_size_limits_upper[BL_MAX_ARG_NUM][BL_WORKSPACE_MAX_DIM] = {{100}};
+  size_t var_size_limits_upper[BL_MAX_ARG_NUM][BL_WORKSPACE_MAX_DIM] = {{BL_WORSKPACE_MAX_VAR_LENGTH}};
   size_t var_size_limits_lower[BL_MAX_ARG_NUM][BL_WORKSPACE_MAX_DIM] = {{1}};
   size_t var_sizes[BL_MAX_ARG_NUM][BL_WORKSPACE_MAX_DIM] = {{0}};
   size_t var_total_sizes[BL_MAX_ARG_NUM] = {1};
@@ -301,7 +301,7 @@ INPUTT:;
       for (size_t j = 0; j < var_dims[i]; j++)
         if (var_sizes[i][j] > var_size_limits_upper[i][j] || var_sizes[i][j] < var_size_limits_lower[i][j])
         {
-          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' should not exceeded '%zu' and below '%zu'.\n", PROGNAME, var_names[i], j, var_size_limits_upper[i][j], var_size_limits_lower[i][j]);
+          fprintf(stderr, "%s: variable \"%s\" size at dim '%zu' is '%zu'. It should be bwetween '%zu' and '%zu'.\n", PROGNAME, var_names[i], j, var_sizes[i][j], var_size_limits_lower[i][j], var_size_limits_upper[i][j]);
           exitcode = EXIT_FAILURE;
           goto EXIT_INPUT;
         }

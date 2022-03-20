@@ -36,12 +36,6 @@ add_executable(ams2nsi main/ams2nsi.c ${SOURCES} ${COMMONS})
 target_link_libraries(ams2nsi ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS ams2nsi CONFIGURATIONS Release) 
 
-
-
-add_executable(wavelen2freq main/wavelen2freq.c ${COMMONS})
-target_link_libraries(wavelen2freq ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS wavelen2freq CONFIGURATIONS Release)
-
 add_executable(s11toswr main/s11toswr.c ${COMMONS})
 target_link_libraries(s11toswr ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS s11toswr CONFIGURATIONS Release) 
@@ -84,3 +78,7 @@ install(TARGETS workspace.clr CONFIGURATIONS Release)
 add_executable(freq2wavelen main/freq2wavelen.c ${COMMONS})
 target_link_libraries(freq2wavelen ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS freq2wavelen CONFIGURATIONS Release) 
+
+add_executable(wavelen2freq main/wavelen2freq.c ${COMMONS})
+target_link_libraries(wavelen2freq ${COMMON_LINK_LIBS_OPTIM})
+install(TARGETS wavelen2freq CONFIGURATIONS Release)
