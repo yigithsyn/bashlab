@@ -401,7 +401,8 @@ OPERATION:;
     fprintf(stdout, "Input length: %zu\n", N);
     fprintf(stdout, "Operation: %ld ... ", tic());
   }
-  la_wavelen2freq(in, N, out);
+  for (size_t i = 0; i < N; i++)
+    out[i] = ap_wavelen2freq(in[i]);
   if (verbose->count)
     fprintf(stdout, "%ld [ms]\n", toc());
 
@@ -414,11 +415,11 @@ STDOUT:;
   {
     sprintf(buff, "%zu", Nans - 1);
     for (size_t i = 0; i < MIN(Nans, 3); ++i)
-      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, la_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
+      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
     if (Nans > 5)
       fprintf(stdout, "...\n");
     for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, la_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
+      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
   }
   else
   {

@@ -51,7 +51,7 @@ bson_iter_t mdb_iter, mdb_iter1, mdb_iter2, mdb_iter3;
 #include "libantenna.h"
 #define PROGNAME "s11toswr"
 static const char *program_json =
-   "{"
+    "{"
     "\"name\": \"s11toswr\","
     "\"desc\": \"convert microwave/rf S11 [dB] parameters to standing wave ratio (SWR)\","
     "\"pargs\": ["
@@ -400,7 +400,8 @@ OPERATION:;
     fprintf(stdout, "Input length: %zu\n", N);
     fprintf(stdout, "Operation: %ld ... ", tic());
   }
-  la_s11dbtoswr(in, N, out);
+  for (size_t i = 0; i < N; i++)
+    out[i] = ap_s11dbtoswr(in[i]);
   if (verbose->count)
     fprintf(stdout, "%ld [ms]\n", toc());
 
