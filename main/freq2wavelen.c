@@ -401,13 +401,16 @@ INPUTT:;
   // {
   // }
 
-  // post check
-  // if ((size_t)var_vals[2][0] < 2)
-  // {
-  //   fprintf(stderr, "%s: \"%s\" should be at least '%zu'.\n", PROGNAME, var_names[2], (size_t)2);
-  //   exitcode = EXIT_FAILURE;
-  //   goto EXIT_INPUT;
-  // }
+ // existance check
+  for (size_t i = 0; i < Nvar; i++)
+  {
+    if (!var_founds[i])
+    {
+      fprintf(stderr, "%s: variable \"%s\" not found or inconsistent.\n", PROGNAME, var_args[i]->hdr.datatype, var_names[i]);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_INPUT;
+    }
+  }
 
 OPERATION:;
   double *in = var_vals[0];

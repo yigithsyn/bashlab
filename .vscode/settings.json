@@ -12,7 +12,8 @@
     // "args": [],
     // "args": ["COM1", "9600", "D1 200"],
     // "args": ["a", "b", "N", "--verbose"],
-    "args": ["ans"],
+    // "args": ["ans"],
+    "args": ["400E6", "1", "--verbose"],
     "cwd": "${workspaceFolder}/test"
   },
   "files.associations": {
@@ -39,6 +40,12 @@
     "mongoc.h": "c",
     "sstream": "c",
     "typeinfo": "c",
-    "libantenna.h": "c"
+    "libantenna.h": "c",
+    "mongoc-error.h": "c",
+    "mongoc-collection.h": "c",
+    "mongoc-find-and-modify.h": "c",
+    "bson.h": "c",
+    "bson-error.h": "c",
+    "bson-macros.h": "c"
   }
 }

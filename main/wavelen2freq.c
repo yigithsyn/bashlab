@@ -392,6 +392,17 @@ INPUTT:;
     }
   }
 
+  // existance check
+  for (size_t i = 0; i < Nvar; i++)
+  {
+    if (!var_founds[i])
+    {
+      fprintf(stderr, "%s: variable \"%s\" not found or inconsistent.\n", PROGNAME, var_args[i]->hdr.datatype, var_names[i]);
+      exitcode = EXIT_FAILURE;
+      goto EXIT_INPUT;
+    }
+  }
+
 OPERATION:;
   double *in = var_vals[0];
   size_t N = var_total_sizes[0];
