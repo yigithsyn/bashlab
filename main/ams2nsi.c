@@ -41,7 +41,7 @@ static FILE *fin;
 static FILE *fout;
 static size_t argcount = 0;
 static size_t Nans = 0;
-static char buff[250];
+static char buff[500];
 
 int main(int argc, char *argv[])
 {

@@ -21,7 +21,7 @@
 #include <unistd.h>
 #endif
 
-#define BUFF_SIZE 250
+#define BUFF_SIZE 500
 #define BUFF2_SIZE BUFF_SIZE
 static char buff[BUFF_SIZE];
 static char buff2[BUFF2_SIZE];
@@ -39,7 +39,7 @@ static mongoc_database_t *mdb_dtb = NULL;
 static mongoc_collection_t *mdb_col = NULL;
 static bson_error_t mdb_err;
 static bson_oid_t mdb_oid;
-static char mdb_dtb_str[50] = "local";
+static char mdb_dtb_str[50] = "bashlab";
 static char mdb_col_str[50] = "workspace";
 static char mdb_var_str[50] = "ans";
 bson_t *mdb_qry, *mdb_qry1, *mdb_doc, *mdb_doc1, *mdb_pip;
@@ -177,6 +177,27 @@ int main(int argc, char *argv[])
   if (getenv("BASHLAB_MONGODB_COL_STRING"))
     strcpy(mdb_col_str, getenv("BASHLAB_MONGODB_COL_STRING"));
   mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, mdb_col_str);
+
+  /* ======================================================================== */
+  /* register command                                                         */
+  /* ======================================================================== */
+  mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, "commands");
+  sprintf(buff, "{\"$set\": %s }", program_json);
+  mdb_doc = bson_new_from_json((const uint8_t *)buff, -1, &mdb_err);
+  mdb_qry = BCON_NEW("name", BCON_UTF8(PROGNAME));
+  mdb_qry1 = BCON_NEW("upsert", BCON_BOOL(true));
+  if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, mdb_qry1, NULL, &mdb_err))
+  {
+    fprintf(stderr, "%s: command info update/insert failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
+    exitcode = EXIT_FAILURE;
+    goto EXIT;
+  }
+  bson_destroy(mdb_doc);
+  bson_destroy(mdb_qry);
+  bson_destroy(mdb_qry1);
+
+  mongoc_collection_destroy(mdb_col);
+
 
 /* ======================================================================== */
 /* main operation                                                           */
