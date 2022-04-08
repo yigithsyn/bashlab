@@ -113,7 +113,7 @@ files = []
 data_file_header = "pol\t\tstep\t\tscan\t\treal\t\timag"
 for i in range(Nfreq):
     if args.verbose:
-        print("\t%d MHz ... "%(int(freq[i] / 1e6)), end="")
+        print("\t%d MHz ... " % (int(freq[i] / 1e6)), end="")
     data = np.zeros((int(len(freq) / Nfreq), 5))
     for j in range(int(len(freq) / Nfreq)):
         polj = pol[j * Nfreq + i]
@@ -148,8 +148,8 @@ for file in files:
 # ------------------------------------------------------------------------------
 # HISTORY
 # ------------------------------------------------------------------------------
-if(mdb_col != None):
+if mdb_col != None:
     command = PROGNAME
-    for i in range(len(sys.argv)-1):
-        command += " " + sys.argv[i+1]
+    for i in range(len(sys.argv) - 1):
+        command += " " + sys.argv[i + 1]
     mdb_col.update_one({"history": {"$exists": True}}, {"$push": {"history": command}})
