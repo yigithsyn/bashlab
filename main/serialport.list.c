@@ -48,7 +48,7 @@ bson_iter_t mdb_iter, mdb_iter1, mdb_iter2, mdb_iter3;
 #define PROGNAME "serialport.get"
 static const char *program_json =
     "{"
-    "\"name\": \"serialport.get\","
+    "\"name\": \"serialport.list\","
     "\"desc\": \"lists avaliable serialports on machine\","
     "\"pargs\": ["
     /*       */ "],"
