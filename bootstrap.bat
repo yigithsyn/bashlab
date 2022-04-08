@@ -1,5 +1,7 @@
 @ECHO OFF
 
+RMDIR /Q /S dist > nul 2>&1 
+MKDIR dist
 RMDIR /Q /S requirements > nul 2>&1 
 MKDIR requirements
 RMDIR /Q /S libs > nul 2>&1 
@@ -22,6 +24,7 @@ IF "%1"=="requirements" (
   %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install --upgrade pip --user
   %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install pymongo==4.1.0 
   %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install numpy==1.22.3 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install pyinstaller==4.10 
   EXIT /B 0
 )
 
@@ -104,9 +107,9 @@ curl -L http://sigrok.org/gitweb/?p=libserialport.git;a=snapshot;h=6f9b03e597ea7
 powershell.exe -NoP -NonI -Command "Expand-Archive '.\libs\libserialport-6f9b03e.zip' '.\libs\'"
 CD libs\libserialport-6f9b03e
 msbuild libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x86
-copy /Y libserialport.h %USERPROFILE%\AppData\Local\include\
-copy /Y Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
-copy /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
+COPY /Y libserialport.h %USERPROFILE%\AppData\Local\include\
+COPY /Y Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
+COPY /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
 CD ../..
 RMDIR /Q /S libs\libserialport-6f9b03e
 IF "%1"=="serialport" EXIT /B 0
@@ -127,14 +130,26 @@ IF "%1"=="libantenna" EXIT /B 0
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
+@REM C/C++
 CD build
-
 cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
+CD ..
+
+@REM Python
+pyinstaller --onefile main\ams2nsi.py
+DEL ams2nsi.spec
+RMDIR /Q /S main\__pycache__ > nul 2>&1 
 
 :install
 ECHO ============================
 ECHO Installing ...
 ECHO ============================
+@REM C/C++
+CD build
 cmake.exe --build . --target INSTALL --config Release
-
 CD ..
+
+@REM Python
+COPY /Y dist\*.exe %USERPROFILE%\AppData\Local\bin\
+
+RMDIR /Q /S dist > nul 2>&1 
