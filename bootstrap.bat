@@ -5,6 +5,14 @@ RMDIR /Q /S build > nul 2>&1 && MKDIR build
 MKDIR test
 
 ECHO ============================
+ECHO [INFO] Requirements ...
+ECHO ============================
+IF "%1"=="requirements" (
+  winget install Microsoft.VisualStudio.2019.BuildTools
+  winget install 9MSSZTT1N39L
+)
+
+ECHO ============================
 ECHO [INFO] Dependencies ...
 ECHO ============================
 :algo
