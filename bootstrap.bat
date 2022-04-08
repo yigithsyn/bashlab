@@ -83,6 +83,10 @@ cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
 RMDIR /Q /S libs\mongo-c-driver-1.21.1
+
+@REM Python 
+pip install pymongo==4.1.0 
+
 IF "%1"=="libmongoc" EXIT /B 0
 
 :serialport
