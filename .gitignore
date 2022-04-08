@@ -3,6 +3,7 @@ test/*.csv
 test/workspace*.json
 test/local*.json
 test/workspace*.txt
+test/NF_*.txt
 build
 libs
 # Prerequisites

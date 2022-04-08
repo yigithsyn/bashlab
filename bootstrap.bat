@@ -9,7 +9,12 @@ ECHO [INFO] Requirements ...
 ECHO ============================
 IF "%1"=="requirements" (
   winget install Microsoft.VisualStudio.2019.BuildTools
+  @REM Python 3.8
   winget install 9MSSZTT1N39L
+  pip install --upgrade pip
+  pip install pymongo==4.1.0 
+  pip install numpy==1.22.3 
+  EXIT /B 0
 )
 
 ECHO ============================
@@ -83,10 +88,6 @@ cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU
 cmake.exe --build . --target INSTALL --config Release
 CD ../../..
 RMDIR /Q /S libs\mongo-c-driver-1.21.1
-
-@REM Python 
-pip install pymongo==4.1.0 
-
 IF "%1"=="libmongoc" EXIT /B 0
 
 :serialport
