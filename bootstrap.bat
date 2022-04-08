@@ -1,19 +1,27 @@
 @ECHO OFF
 
-RMDIR /Q /S libs > nul 2>&1 && MKDIR libs
-RMDIR /Q /S build > nul 2>&1 && MKDIR build
-MKDIR test
+RMDIR /Q /S requirements > nul 2>&1 
+MKDIR requirements
+RMDIR /Q /S libs > nul 2>&1 
+MKDIR libs
+RMDIR /Q /S build > nul 2>&1
+MKDIR build
+MKDIR test > nul 2>&1
 
 ECHO ============================
 ECHO [INFO] Requirements ...
 ECHO ============================
 IF "%1"=="requirements" (
-  winget install Microsoft.VisualStudio.2019.BuildTools
+  @REM winget install Microsoft.VisualStudio.2019.BuildTools
+  @REM winget install 9MSSZTT1N39L
   @REM Python 3.8
-  winget install 9MSSZTT1N39L
-  pip install --upgrade pip
-  pip install pymongo==4.1.0 
-  pip install numpy==1.22.3 
+  winget uninstall Python.Python.3
+  curl -L https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe --output requirements\python-3.8.10.exe --silent
+  requirements\python-3.8.10.exe /quiet InstallAllUsers=0 PrependPath=1
+  RMDIR /Q /S requirements > nul 2>&1 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install --upgrade pip --user
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install pymongo==4.1.0 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install numpy==1.22.3 
   EXIT /B 0
 )
 
