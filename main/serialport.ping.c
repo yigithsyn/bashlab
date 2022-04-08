@@ -38,6 +38,10 @@ static bson_oid_t mdb_oid;
 static char mdb_dtb_str[50] = "bashlab";
 static char mdb_col_str[50] = "workspace";
 static char mdb_var_str[50] = "ans";
+bson_t *mdb_qry, *mdb_qry1, *mdb_doc, *mdb_doc1, *mdb_pip;
+mongoc_cursor_t *mdb_crs, *mdb_crs1;
+bson_iter_t mdb_iter, mdb_iter1, mdb_iter2, mdb_iter3;
+
 /*============================================================================*/
 /* Specifics                                                                  */
 /*============================================================================*/
