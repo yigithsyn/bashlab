@@ -41,8 +41,8 @@ IF "%1"=="dependencies" (
   CD libs\argtable-v3.2.1.52f24e5
   MKDIR build
   CD build
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+  cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
+  cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S libs\argtable-v3.2.1.52f24e5
 
@@ -52,8 +52,8 @@ IF "%1"=="dependencies" (
   CD libs\jansson-2.14
   MKDIR build
   CD build
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+  cmake.exe -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
+  cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S libs\jansson-2.14
 
@@ -63,8 +63,8 @@ IF "%1"=="dependencies" (
   CD libs\civetweb-1.15
   MKDIR build_dir
   CD build_dir
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+  cmake.exe -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
+  cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S libs\civetweb-1.15
 
@@ -75,8 +75,8 @@ IF "%1"=="dependencies" (
   MKDIR build_dir
   CD build_dir
   @REM For x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+  cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
+  cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S libs\mongo-c-driver-1.21.1
 
@@ -84,7 +84,7 @@ IF "%1"=="dependencies" (
   curl -L http://sigrok.org/gitweb/?p=libserialport.git;a=snapshot;h=6f9b03e597ea7200eb616a4e410add3dd1690cb1;sf=zip --output libs\libserialport-6f9b03e.zip --silent
   powershell.exe -NoP -NonI -Command "Expand-Archive '.\libs\libserialport-6f9b03e.zip' '.\libs\'"
   CD libs\libserialport-6f9b03e
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\amd64\msbuild.exe" libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x86
+  msbuild.exe libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x86
   COPY /Y libserialport.h %USERPROFILE%\AppData\Local\include\
   COPY /Y Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
   COPY /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
@@ -96,8 +96,8 @@ IF "%1"=="dependencies" (
   CD libs/libantenna
   MKDIR build
   CD build
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
-  "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+  cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
+  cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S libs\libantenna
 
@@ -119,7 +119,7 @@ ECHO [INFO] Building ...
 ECHO ============================
 @REM C/C++
 CD build
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
+cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 CD ..
 
 @REM Python
@@ -133,7 +133,7 @@ ECHO Installing ...
 ECHO ============================
 @REM C/C++
 CD build
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --build . --target INSTALL --config Release
+cmake.exe --build . --target INSTALL --config Release
 RMDIR /Q /S build > nul 2>&1
 CD ..
 
