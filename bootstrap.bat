@@ -15,10 +15,7 @@ ECHO [INFO] Requirements ...
 ECHO ============================
 IF "%1"=="requirements" (
   @REM C/C++
-  winget uinstall Microsoft.VisualStudio.2019.BuildTools
-  winget install Microsoft.VisualStudio.2019.BuildTools
-  @REM Install latest compiler manually by importing .vsconfig
-  @REM "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+  @REM Install Visual Studio Community Edition and C++ Desktop Toolset
 
   @REM Python 3.8
   winget uninstall Python.Python.3
