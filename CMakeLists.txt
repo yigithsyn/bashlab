@@ -32,13 +32,6 @@ if(UNIX)
   set(COMMON_LINK_LIBS_OPTIM jansson argtable3 mongoc-1.0 bson-1.0 serialport antenna m) 
 endif(UNIX)
 
-add_executable(ams2nsi main/ams2nsi.c ${SOURCES} ${COMMONS})
-target_link_libraries(ams2nsi ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS ams2nsi CONFIGURATIONS Release) 
-
-
-
-
 # MongoDB as workspace
 add_executable(serialport.list main/serialport.list.c ${COMMONS})
 target_link_libraries(serialport.list ${COMMON_LINK_LIBS_OPTIM})
@@ -84,5 +77,5 @@ install(TARGETS s11toswr CONFIGURATIONS Release)
 
 add_executable(ffdist main/ffdist.c ${COMMONS})
 target_link_libraries(ffdist ${COMMON_LINK_LIBS_OPTIM})
-install(TARGETS ffdist CONFIGURATIONS Release) 
+install(TARGETS ffdist CONFIGURATIONS Release)
 
