@@ -8,7 +8,6 @@
         "${env:USERPROFILE}/AppData/Local/include",
         "${env:USERPROFILE}/AppData/Local/include/libmongoc-1.0",
         "${env:USERPROFILE}/AppData/Local/include/libbson-1.0",
-        "${workspaceFolder}/libs/algo"
       ]
     },
     {
@@ -16,7 +15,6 @@
       "includePath": [
         "${default}",
         "${workspaceFolder}/include",
-        "${workspaceFolder}/libs/algo",
         "/usr/local/include/libmongoc-1.0",
         "/usr/local/include/libbson-1.0"
       ]

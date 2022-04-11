@@ -53,9 +53,7 @@ add_executable(serialport.ping main/serialport.ping.c ${COMMONS})
 target_link_libraries(serialport.ping ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS serialport.ping CONFIGURATIONS Release)
 
-file(GLOB SOURCES "libs/algo/linspace.c")
 add_executable(linspace main/linspace.c ${SOURCES} ${COMMONS})
-target_include_directories(linspace PUBLIC "libs/algo")
 target_link_libraries(linspace ${COMMON_LINK_LIBS_OPTIM})
 install(TARGETS linspace CONFIGURATIONS Release) 
 
