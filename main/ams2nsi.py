@@ -35,9 +35,9 @@ program = json.loads(program_json)
 # ==============================================================================
 # register program
 # ==============================================================================
-if os.getenv("BASHLAB_MONGODB_URI_STRING"):
-    if uri_parser.parse_uri(os.getenv("BASHLAB_MONGODB_URI_STRING")):
-        mdb_cli = MongoClient(os.getenv("BASHLAB_MONGODB_URI_STRING"), appname=PROGNAME, socketTimeoutMS=0, connectTimeoutMS=0, serverSelectionTimeoutMS=100)
+if os.getenv("BASHLAB_MONGODB_URI"):
+    if uri_parser.parse_uri(os.getenv("BASHLAB_MONGODB_URI")):
+        mdb_cli = MongoClient(os.getenv("BASHLAB_MONGODB_URI"), appname=PROGNAME, socketTimeoutMS=0, connectTimeoutMS=0, serverSelectionTimeoutMS=100)
         try:
             mdb_cli.admin.command("ping")
         except MongoDBConnectionFailure:
@@ -67,12 +67,12 @@ args = parser.parse_args()
 # workspace
 # ==============================================================================
 if mdb_cli != None:
-    if os.getenv("BASHLAB_MONGODB_DTB_STRING"):
-        mdb_dtb_str = os.env("BASHLAB_MONGODB_DTB_STRING")
+    if os.getenv("BASHLAB_MONGODB_DATABASE"):
+        mdb_dtb_str = os.env("BASHLAB_MONGODB_DATABASE")
     mdb_dtb = mdb_cli[mdb_dtb_str]
 
-    if os.getenv("BASHLAB_MONGODB_COL_STRING"):
-        mdb_col_str = os.env("BASHLAB_MONGODB_DTB_STRING")
+    if os.getenv("BASHLAB_MONGODB_COLLECTION"):
+        mdb_col_str = os.env("BASHLAB_MONGODB_DATABASE")
     mdb_col = mdb_dtb[mdb_col_str]
 
 # ==============================================================================

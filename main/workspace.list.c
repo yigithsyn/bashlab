@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* register program                                                         */
   /* ======================================================================== */
-  if (getenv("BASHLAB_MONGODB_URI_STRING"))
+  if (getenv("BASHLAB_MONGODB_URI"))
   {
     mongoc_init();
-    mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &mdb_err);
+    mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI"), &mdb_err);
     if (mdb_uri)
     {
       mdb_cli = mongoc_client_new_from_uri(mdb_uri);
@@ -183,11 +183,11 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
-  if (!getenv("BASHLAB_MONGODB_URI_STRING"))
+  if (!getenv("BASHLAB_MONGODB_URI"))
     goto MAIN;
 
   mongoc_init();
-  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI_STRING"), &mdb_err);
+  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI"), &mdb_err);
   if (!mdb_uri)
     goto MAIN;
 
@@ -197,12 +197,12 @@ int main(int argc, char *argv[])
 
   mongoc_client_set_appname(mdb_cli, PROGNAME);
 
-  if (getenv("BASHLAB_MONGODB_DTB_STRING"))
-    strcpy(mdb_dtb_str, getenv("BASHLAB_MONGODB_DTB_STRING"));
+  if (getenv("BASHLAB_MONGODB_DATABASE"))
+    strcpy(mdb_dtb_str, getenv("BASHLAB_MONGODB_DATABASE"));
   mdb_dtb = mongoc_client_get_database(mdb_cli, mdb_dtb_str);
 
-  if (getenv("BASHLAB_MONGODB_COL_STRING"))
-    strcpy(mdb_col_str, getenv("BASHLAB_MONGODB_COL_STRING"));
+  if (getenv("BASHLAB_MONGODB_COLLECTION"))
+    strcpy(mdb_col_str, getenv("BASHLAB_MONGODB_COLLECTION"));
   mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, mdb_col_str);
 
 /* ======================================================================== */
