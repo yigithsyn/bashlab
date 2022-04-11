@@ -1,9 +1,5 @@
 @ECHO OFF
 
-
-
-
-
 MKDIR test > nul 2>&1
 
 ECHO ============================
