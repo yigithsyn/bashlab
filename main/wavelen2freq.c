@@ -454,28 +454,13 @@ OUTPUT:;
 STDOUT:;
   size_t Nans = N;
   number_t *ans = out;
-  if (verbose->count || mdb_col == NULL)
-  {
-    sprintf(buff, "%zu", Nans - 1);
-    for (size_t i = 0; i < MIN(Nans, 3); ++i)
-      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
-    if (Nans > 5)
-      fprintf(stdout, "...\n");
-    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
-  }
-  else
-  {
-    if (Nans > 0)
-      fprintf(stdout, "%.16G", ans[0]);
-    for (size_t i = 1; i < MIN(Nans, 3); ++i)
-      fprintf(stdout, ", %.16G", ans[i]);
-    if (Nans > 5)
-      fprintf(stdout, ", ...");
-    for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
-      fprintf(stdout, ", %.16G", ans[i]);
-    fprintf(stdout, "\n");
-  }
+  sprintf(buff, "%zu", Nans - 1);
+  for (size_t i = 0; i < MIN(Nans, 3); ++i)
+    fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
+  if (Nans > 5)
+    fprintf(stdout, "...\n");
+  for (size_t i = MAX(MIN(Nans, 3), Nans - 2); i < Nans; ++i)
+    fprintf(stdout, "[%-*zu]: %s\n", (int)strlen(buff), i, ap_frequency_hr(ans[i], buff2, BUFF2_SIZE - 1));
 
 WORKSPACE:;
 
