@@ -265,7 +265,7 @@ OPERATION:;
   sp_check(sp_get_port_by_name(arg_port->sval[0], &port), buff);
   if (sp_check(sp_open(port, SP_MODE_READ_WRITE), buff) != SP_OK)
   {
-    fprintf(stderr, "%s: serialport opening failed: %s.\n", PROGNAME, buff);
+    fprintf(stderr, "%s: serialport '%s' opening failed: %s.\n", PROGNAME, arg_port->sval[0], buff);
     exitcode = EXIT_FAILURE;
     goto EXIT_OPERATION;
   }
