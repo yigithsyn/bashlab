@@ -430,7 +430,7 @@ INPUTT:;
   {
     if (!var_founds[i])
     {
-      fprintf(stderr, "%s: variable \"%s\" not found or inconsistent.\n", PROGNAME, var_args[i]->hdr.datatype, var_names[i]);
+      fprintf(stderr, "%s: variable \"%s\" not found or inconsistent.\n", PROGNAME, var_names[i]);
       exitcode = EXIT_FAILURE;
       goto EXIT_INPUT;
     }
