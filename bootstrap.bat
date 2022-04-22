@@ -115,6 +115,10 @@ IF "%1"=="dependencies" (
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
+mongo bashlab --eval "db.programs.drop()"
+mongoimport --uri %BASHLAB_MONGODB_URI% --db bashlab --collection programs --jsonArray --file list.json
+mongo bashlab --eval "db.programs.find().length()"
+
 RMDIR /Q /S dist > nul 2>&1 
 MKDIR dist
 RMDIR /Q /S build > nul 2>&1

@@ -46,17 +46,7 @@ bson_iter_t mdb_iter, mdb_iter1, mdb_iter2, mdb_iter3;
 /* Specifics                                                                  */
 /*============================================================================*/
 #define PROGNAME "serialport.get"
-static const char *program_json =
-    "{"
-    "\"name\": \"serialport.list\","
-    "\"desc\": \"lists avaliable serialports on machine\","
-    "\"pargs\": ["
-    /*       */ "],"
-    "\"oargs\": ["
-    /*       */ "],"
-    "\"opts\": ["
-    /*      */ "]"
-    "}";
+static const char *program_json = "{\"name\":\"serialport.list\",\"desc\":\"lists avaliable serialports on machine\",\"osOnly\":true,\"pargs\":[],\"oargs\":[],\"opts\":[]}";
 
 #include <libserialport.h>
 
@@ -71,38 +61,6 @@ int main(int argc, char *argv[])
   /* fetch program definitions                                                */
   /* ======================================================================== */
   program = json_loads(program_json, 0, json_error);
-
-  /* ======================================================================== */
-  /* register program                                                         */
-  /* ======================================================================== */
-  if (getenv("BASHLAB_MONGODB_URI"))
-  {
-    mongoc_init();
-    mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI"), &mdb_err);
-    if (mdb_uri)
-    {
-      mdb_cli = mongoc_client_new_from_uri(mdb_uri);
-      if (mdb_cli)
-      {
-        mdb_col = mongoc_client_get_collection(mdb_cli, mdb_dtb_str, "programs");
-        sprintf(buff, "{\"$set\": %s }", program_json);
-        mdb_doc = bson_new_from_json((const uint8_t *)buff, -1, &mdb_err);
-        mdb_qry = BCON_NEW("name", BCON_UTF8(PROGNAME));
-        mdb_qry1 = BCON_NEW("upsert", BCON_BOOL(true));
-        if (!mongoc_collection_update_one(mdb_col, mdb_qry, mdb_doc, mdb_qry1, NULL, &mdb_err))
-        {
-          fprintf(stderr, "%s: program info update/insert failed: %s(%u)\n", PROGNAME, mdb_err.message, mdb_err.code);
-          exitcode = EXIT_FAILURE;
-          goto EXIT;
-        }
-        bson_destroy(mdb_doc);
-        bson_destroy(mdb_qry);
-        bson_destroy(mdb_qry1);
-
-        mongoc_collection_destroy(mdb_col);
-      }
-    }
-  }
 
   /* ======================================================================== */
   /* argument parse                                                           */

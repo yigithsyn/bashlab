@@ -1,0 +1,212 @@
+[
+  {
+    "name": "ams2nsi",
+    "desc": "Convert ASYSOL AMS CSV data file to NSI importable formats",
+    "osOnly": true,
+    "pargs": [
+      {
+        "name": "file",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "AMS csv data file"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "ffdist",
+    "desc": "calculates far-field (Fraunhofer) distance of an aperture",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "freq",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "frequency in Hertz [Hz]"
+      },
+      {
+        "name": "D",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "aperture cross-sectional size in meters [m]"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "freq2wavelen",
+    "desc": "convert frequency to wavelength",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "freq",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "frequency value"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "linspace",
+    "desc": "generate linearly spaced array",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "a",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "starting value of the sequence"
+      },
+      {
+        "name": "b",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "end value of the seqeunce (included)"
+      },
+      {
+        "name": "N",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "number of points"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "s11toswr",
+    "desc": "convert microwave/rf S11 [dB] parameters to standing wave ratio (SWR)",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "s11",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "reflection coefficient (S11) value"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "serialport.list",
+    "desc": "lists avaliable serialports on machine",
+    "osOnly": true,
+    "pargs": [],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "serialport.ping",
+    "desc": "send command and read response from serial port",
+    "osOnly": true,
+    "pargs": [
+      {
+        "name": "port",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "port name"
+      },
+      {
+        "name": "baudrate",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "baudrate of port"
+      },
+      {
+        "name": "buffer",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "string buffer to write into port"
+      }
+    ],
+    "oargs": [
+      {
+        "short": "b",
+        "long": "bits",
+        "name": "bits",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "number of data bits"
+      }
+    ],
+    "opts": []
+  },
+  {
+    "name": "wavelen2freq",
+    "desc": "convert wavelength to frequency",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "wavelength",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "wavelength value(s)"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "workspace.clr",
+    "desc": "clears workspace",
+    "osOnly": false,
+    "pargs": [],
+    "oargs": [],
+    "opts": [
+      {
+        "short": "h",
+        "long": "history",
+        "desc": "clear history"
+      }
+    ]
+  },
+  {
+    "name": "workspace.del",
+    "desc": "deletes a workspace variable",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "var",
+        "minc": 1,
+        "maxc": 1,
+        "desc": "variable name to be delete"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  },
+  {
+    "name": "workspace.list",
+    "desc": "lists workspace",
+    "osOnly": false,
+    "pargs": [],
+    "oargs": [],
+    "opts": [
+      {
+        "short": "h",
+        "long": "history",
+        "desc": "list history"
+      }
+    ]
+  },
+  {
+    "name": "workspace.set",
+    "desc": "sets workspace variable",
+    "osOnly": false,
+    "pargs": [
+      {
+        "name": "val(s)",
+        "minc": 1,
+        "maxc": 100,
+        "desc": "value to be set"
+      }
+    ],
+    "oargs": [],
+    "opts": []
+  }
+]

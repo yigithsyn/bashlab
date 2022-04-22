@@ -8,18 +8,7 @@ from pymongo.errors import ConnectionFailure as MongoDBConnectionFailure
 import numpy as np
 
 PROGNAME = "ams2nsi"
-program_json = """
-{
-    \"name\": \"ams2nsi\",
-    \"desc\": \"Convert ASYSOL AMS CSV data file to NSI importable formats\",
-    \"pargs\": [
-      {\"name\":\"file\", \"minc\":1, \"maxc\":1, \"desc\":\"AMS csv data file\"}
-    ],
-    \"oargs\": [
-    ],
-    \"opts\": [
-    ]
-}"""
+program_json = '{"name":"ams2nsi","desc":"Convert ASYSOL AMS CSV data file to NSI importable formats","osOnly":true,"pargs":[{"name":"file","minc":1,"maxc":1,"desc":"AMS csv data file"}],"oargs":[],"opts":[]}'
 
 mdb_cli = mdb_dtb = mdb_col = None
 mdb_dtb_str = "bashlab"
@@ -30,23 +19,6 @@ mdb_var_str = "ans"
 # fetch program definitions
 # ==============================================================================
 program = json.loads(program_json)
-# print(program)
-
-# ==============================================================================
-# register program
-# ==============================================================================
-if os.getenv("BASHLAB_MONGODB_URI"):
-    if uri_parser.parse_uri(os.getenv("BASHLAB_MONGODB_URI")):
-        mdb_cli = MongoClient(os.getenv("BASHLAB_MONGODB_URI"), appname=PROGNAME, socketTimeoutMS=0, connectTimeoutMS=0, serverSelectionTimeoutMS=100)
-        try:
-            mdb_cli.admin.command("ping")
-        except MongoDBConnectionFailure:
-            mdb_cli = None
-        else:
-            mdb_col = mdb_cli[mdb_dtb_str]["programs"]
-            mdb_col.update_one({"name": PROGNAME}, {"$set": program}, upsert=True)
-mdb_col = None
-
 
 # ==============================================================================
 # argument parsing
@@ -66,6 +38,14 @@ args = parser.parse_args()
 # ==============================================================================
 # workspace
 # ==============================================================================
+if os.getenv("BASHLAB_MONGODB_URI"):
+    if uri_parser.parse_uri(os.getenv("BASHLAB_MONGODB_URI")):
+        mdb_cli = MongoClient(os.getenv("BASHLAB_MONGODB_URI"), appname=PROGNAME, socketTimeoutMS=0, connectTimeoutMS=0, serverSelectionTimeoutMS=100)
+        try:
+            mdb_cli.admin.command("ping")
+        except MongoDBConnectionFailure:
+            mdb_cli = None
+
 if mdb_cli != None:
     if os.getenv("BASHLAB_MONGODB_DATABASE"):
         mdb_dtb_str = os.env("BASHLAB_MONGODB_DATABASE")
