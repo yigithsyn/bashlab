@@ -28,7 +28,7 @@ if [ "$1" == "dependencies" ]; then
   cd dependencies/argtable-v3.2.1.52f24e5
   mkdir build
   cd build
-  cmake -DBUILD_SHARED_LIBS=ON ..
+  cmake -DBUILD_SHARED_LIBS=ON -DARGTABLE3_ENABLE_TESTS=OFF ..
   cmake --build . --config Release
   cmake --install . --prefix /usr/local
   cd ../../..
@@ -40,7 +40,7 @@ if [ "$1" == "dependencies" ]; then
   cd dependencies/jansson-2.14
   mkdir build
   cd build
-  cmake -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON ..
+  cmake -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_WITHOUT_TESTS=ON ..
   cmake --build . --config Release
   cmake --install . --prefix /usr/local
   cd ../../..

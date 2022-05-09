@@ -46,7 +46,7 @@ bson_iter_t iter, iter1, iter2, iter3;
 /*============================================================================*/
 #include "linspace.h"
 #define PROGNAME "linspace"
-static const char *program_json = "{\"name\":\"s11toswr\",\"desc\":\"convert microwave/rf S11 [dB] parameters to standing wave ratio (SWR)\",\"osOnly\":false,\"pargs\":[{\"name\":\"s11\",\"minc\":1,\"maxc\":1,\"desc\":\"reflection coefficient (S11) value\"}],\"oargs\":[],\"opts\":[]}";
+static const char *program_json = "{\"name\":\"linspace\",\"desc\":\"generate linearly spaced array\",\"osOnly\":false,\"pargs\":[{\"name\":\"a\",\"minc\":1,\"maxc\":1,\"desc\":\"starting value of the sequence\"},{\"name\":\"b\",\"minc\":1,\"maxc\":1,\"desc\":\"end value of the seqeunce (included)\"},{\"name\":\"N\",\"minc\":1,\"maxc\":1,\"desc\":\"number of points\"}],\"oargs\":[],\"opts\":[]}";
 
 int main(int argc, char *argv[])
 {
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   program = json_loads(program_json, 0, json_error);
 
-   /* ======================================================================== */
+  /* ======================================================================== */
   /* argument parse                                                           */
   /* ======================================================================== */
   /* copy positional args */
@@ -140,6 +140,15 @@ int main(int argc, char *argv[])
   /* ======================================================================== */
   /* workspace                                                                */
   /* ======================================================================== */
+  if (!getenv("BASHLAB_MONGODB_URI"))
+    goto MAIN;
+
+  mongoc_init();
+  mdb_uri = mongoc_uri_new_with_error(getenv("BASHLAB_MONGODB_URI"), &mdb_err);
+  if (!mdb_uri)
+    goto MAIN;
+
+  mdb_cli = mongoc_client_new_from_uri(mdb_uri);
   if (!mdb_cli)
     goto MAIN;
 
@@ -397,6 +406,12 @@ OPERATION:;
   number_t a = var_vals[0][0], b = var_vals[1][0];
   size_t N = (size_t)var_vals[2][0];
   number_t *out = (number_t *)calloc(N, sizeof(number_t));
+  if (out == NULL)
+  {
+    fprintf(stderr, "%s: Not enough memory\n", PROGNAME);
+    exitcode = EXIT_FAILURE;
+    goto EXIT_OPERATION;
+  }
   if (verbose->count)
   {
     fprintf(stdout, "Step size: %.16G\n", (b - a) / (N - 1));

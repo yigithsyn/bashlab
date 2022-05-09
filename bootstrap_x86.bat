@@ -14,9 +14,9 @@ IF "%1"=="requirements" (
 
   @REM Python 3.8
   winget uninstall Python.Python.3
-  curl -L https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe --output requirements\python-3.8.10-amd64.exe --silent
-  requirements\python-3.8.10-amd64.exe /quiet InstallAllUsers=0 PrependPath=1
-  RMDIR /Q /S requirements > nul 2>&1
+  curl -L https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe --output requirements\python-3.8.10.exe --silent
+  requirements\python-3.8.10.exe /quiet InstallAllUsers=0 PrependPath=1
+  RMDIR /Q /S requirements > nul 2>&1 
   EXIT /B 0
 )
 
@@ -24,8 +24,8 @@ ECHO ============================
 ECHO [INFO] Dependencies ...
 ECHO ============================
 IF "%1"=="dependencies" (
-  vcvars64.bat
-
+  vcvars32.bat
+  
   RMDIR /Q /S dependencies > nul 2>&1 
   MKDIR dependencies
 
@@ -49,7 +49,7 @@ IF "%1"=="dependencies" (
   CD dependencies\argtable-v3.2.1.52f24e5
   MKDIR build
   CD build
-  cmake.exe -DBUILD_SHARED_LIBS=ON -DARGTABLE3_ENABLE_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+  cmake.exe -DBUILD_SHARED_LIBS=ON -DARGTABLE3_ENABLE_TESTS=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
   cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S dependencies\argtable-v3.2.1.52f24e5
@@ -60,7 +60,7 @@ IF "%1"=="dependencies" (
   CD dependencies\jansson-2.14
   MKDIR build
   CD build
-  cmake.exe -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_WITHOUT_TESTS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+  cmake.exe -DJANSSON_BUILD_DOCS=OFF -DJANSSON_BUILD_SHARED_LIBS=ON -DJANSSON_WITHOUT_TESTS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
   cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S dependencies\jansson-2.14
@@ -71,7 +71,7 @@ IF "%1"=="dependencies" (
   @REM CD dependencies\civetweb-1.15
   @REM MKDIR build_dir
   @REM CD build_dir
-  @REM cmake.exe -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+  @REM cmake.exe -DCIVETWEB_ENABLE_SSL=OFF -DCIVETWEB_ENABLE_SERVER_EXECUTABLE=OFF -DCIVETWEB_ENABLE_DEBUG_TOOLS=OFF -DCIVETWEB_BUILD_TESTING=OFF -DBUILD_TESTING=OFF -DCIVETWEB_ENABLE_WEBSOCKETS=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
   @REM cmake.exe --build . --target INSTALL --config Release
   @REM CD ../../..
   @REM RMDIR /Q /S dependencies\civetweb-1.15
@@ -83,7 +83,7 @@ IF "%1"=="dependencies" (
   MKDIR build_dir
   CD build_dir
   @REM For x86, ZLIB ve ICU should be switched off. Otherwise it will not compile properly.
-  cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+  cmake.exe -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF -DENABLE_ZLIB=OFF -DENABLE_ICU=OFF -DENABLE_MONGODB_AWS_AUTH=OFF -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_STATIC=OFF -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
   cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S dependencies\mongo-c-driver-1.21.1
@@ -92,31 +92,31 @@ IF "%1"=="dependencies" (
   curl -L http://sigrok.org/gitweb/?p=libserialport.git;a=snapshot;h=6f9b03e597ea7200eb616a4e410add3dd1690cb1;sf=zip --output dependencies\libserialport-6f9b03e.zip --silent
   powershell.exe -NoP -NonI -Command "Expand-Archive '.\dependencies\libserialport-6f9b03e.zip' '.\dependencies\'"
   CD dependencies\libserialport-6f9b03e
-  msbuild.exe libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x64
+  msbuild.exe libserialport.sln -t:Rebuild -p:Configuration=Release /p:Platform=x86
   COPY /Y libserialport.h %USERPROFILE%\AppData\Local\include\
-  COPY /Y x64\Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
-  COPY /Y x64\Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
+  COPY /Y Release\libserialport.lib %USERPROFILE%\AppData\Local\lib\
+  COPY /Y Release\libserialport.dll %USERPROFILE%\AppData\Local\bin\
   CD ../..
-  @REM RMDIR /Q /S dependencies\libserialport-6f9b03e
+  RMDIR /Q /S dependencies\libserialport-6f9b03e
 
   ECHO libantenna: Antennas and propagation tookit library for C
   git clone https://github.com/yigithsyn/libantenna dependencies/libantenna
   CD dependencies/libantenna
   MKDIR build
   CD build
-  cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+  cmake.exe -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A Win32 ..
   cmake.exe --build . --target INSTALL --config Release
   CD ../../..
   RMDIR /Q /S dependencies\libantenna
  
 
   @REM Python
-  %USERPROFILE%\AppData\Local\Programs\Python\Python38\Scripts\pip install --upgrade pip --user
-  %USERPROFILE%\AppData\Local\Programs\Python\Python38\Scripts\pip install pymongo==4.1.0 
-  %USERPROFILE%\AppData\Local\Programs\Python\Python38\Scripts\pip install numpy==1.22.3 
-  %USERPROFILE%\AppData\Local\Programs\Python\Python38\Scripts\pip install pyinstaller==4.10 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install --upgrade pip --user
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install pymongo==4.1.0 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install numpy==1.22.3 
+  %USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pip install pyinstaller==4.10 
 
-  RMDIR /Q /S dependencies\
+  RMDIR /Q /S dependencies\ > nul 2>&1 
 )
 
 
@@ -136,11 +136,11 @@ MKDIR build
 
 @REM C/C++
 CD build
-cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local ..
+cmake.exe -DCMAKE_INSTALL_PREFIX=%USERPROFILE%\AppData\Local -T host=x86 -A win32 ..
 CD ..
 
 @REM Python
-%USERPROFILE%\AppData\Local\Programs\Python\Python38\Scripts\pyinstaller --onefile main\ams2nsi.py
+%USERPROFILE%\AppData\Local\Programs\Python\Python38-32\Scripts\pyinstaller --onefile main\ams2nsi.py
 DEL ams2nsi.spec
 RMDIR /Q /S main\__pycache__ > nul 2>&1 
 
