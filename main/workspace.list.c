@@ -44,7 +44,7 @@ mongoc_cursor_t *mdb_crs, *mdb_crs1;
 /* Specifics                                                                  */
 /*============================================================================*/
 #define PROGNAME "workspace.list"
-static const char *program_json = "{\"name\":\"workspace.set\",\"desc\":\"sets workspace variable\",\"osOnly\":false,\"pargs\":[{\"name\":\"val(s)\",\"minc\":1,\"maxc\":100,\"desc\":\"value to be set\"}],\"oargs\":[],\"opts\":[]}";
+static const char *program_json = "{\"name\":\"workspace.list\",\"desc\":\"lists workspace\",\"osOnly\":false,\"pargs\":[],\"oargs\":[],\"opts\":[{\"short\":\"h\",\"long\":\"history\",\"desc\":\"list history\"}]}";
 
 int main(int argc, char *argv[])
 {

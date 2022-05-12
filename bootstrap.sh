@@ -105,7 +105,6 @@ if [ "$1" == "dependencies" ]; then
 
   ldconfig
   rm -rf dependencies
-  exit
 fi
 
 rm -rf build && mkdir build && cd build
