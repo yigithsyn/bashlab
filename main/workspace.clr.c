@@ -46,7 +46,7 @@ bson_iter_t iter, iter1, iter2, iter3;
 /* Specifics                                                                  */
 /*============================================================================*/
 #define PROGNAME "workspace.clr"
-static const char *program_json = "{\"name\":\"workspace.del\",\"desc\":\"deletes a workspace variable\",\"osOnly\":false,\"pargs\":[{\"name\":\"var\",\"minc\":1,\"maxc\":1,\"desc\":\"variable name to be delete\"}],\"oargs\":[],\"opts\":[]}";
+static const char *program_json = "{\"name\":\"workspace.clr\",\"desc\":\"clears workspace\",\"osOnly\":false,\"pargs\":[],\"oargs\":[],\"opts\":[{\"short\":\"h\",\"long\":\"history\",\"desc\":\"clear history\"}]}";
 
 int main(int argc, char *argv[])
 {
