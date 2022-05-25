@@ -1,14 +1,20 @@
 #!/bin/bash
 
-################################################################################
-# dependencies
-################################################################################
-echo ============================
-echo "[INFO] Dependencies ..."
-echo ============================
+
 rm -rf build && mkdir build
 mkdir "test"
 
+if [ "$1" == "requirements" ]; then
+  echo ============================
+  echo "[INFO] Requirements ..."
+  echo ============================  
+  # sudo apt update
+
+  sudo apt remove jq -y
+  sudo apt install jq -y
+
+  exit 0
+fi
 
 if [ "$1" == "dependencies" ]; then
   echo ============================
@@ -120,17 +126,19 @@ make
 cd ..
 
 # Python
-pyinstaller --onefile main/ams2nsi.py
-rm -rf main/__pycache__
-rm ams2nsi.spec
+# pyinstaller --onefile main/ams2nsi.py
+# rm -rf main/__pycache__
+# rm ams2nsi.spec
 
 
 echo ============================
 echo "[INFO] Installing ..." 
 echo ============================
+cat list.json | jq -c '.[] | select(.osOnly == false)' > list2.json
 mongo bashlab --eval "db.programs.drop()"
-mongoimport --db bashlab --collection programs --jsonArray --file list.json
+mongoimport --db bashlab --collection programs --file list2.json
 mongo bashlab --eval "db.programs.find().length()"
+rm -rf list2.json
 
 # C/C++
 cd build
@@ -139,5 +147,5 @@ cd ..
 rm -rf build
 
 # Python
-cp dist/ams2nsi /usr/local/bin/
-rm -rf dist
+# cp dist/ams2nsi /usr/local/bin/
+# rm -rf dist
