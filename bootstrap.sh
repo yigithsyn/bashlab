@@ -128,6 +128,10 @@ rm ams2nsi.spec
 echo ============================
 echo "[INFO] Installing ..." 
 echo ============================
+mongo bashlab --eval "db.programs.drop()"
+mongoimport --db bashlab --collection programs --jsonArray --file list.json
+mongo bashlab --eval "db.programs.find().length()"
+
 # C/C++
 cd build
 make install 
