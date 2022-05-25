@@ -125,9 +125,11 @@ IF "%1"=="dependencies" (
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
+TYPE list.json | jq -c '.[] | select(.osOnly == false)' > list2.json
 mongo bashlab --eval "db.programs.drop()"
-mongoimport --uri %BASHLAB_MONGODB_URI% --db bashlab --collection programs --jsonArray --file list.json
+mongoimport --db bashlab --collection programs --file list2.json
 mongo bashlab --eval "db.programs.find().length()"
+DEL -list2.json
 
 RMDIR /Q /S dist > nul 2>&1 
 MKDIR dist
