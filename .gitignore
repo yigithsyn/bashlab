@@ -1,3 +1,6 @@
+node_modules
+
+
 test/Beam*.txt
 test/*.csv
 test/workspace*.json

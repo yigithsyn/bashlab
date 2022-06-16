@@ -1,0 +1,34 @@
+{
+  "name": "bashlab",
+  "version": "1.0.0",
+  "description": "Signal Registry - Core",
+  "main": "main.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yigithsyn/bashlab.git"
+  },
+  "keywords": [
+    "Core",
+    "computation",
+    "service",
+    "for",
+    "Signal",
+    "Registry"
+  ],
+  "author": "Hüseyin YİĞİT",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yigithsyn/bashlab/issues"
+  },
+  "homepage": "https://github.com/yigithsyn/bashlab#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "http-proxy-middleware": "^2.0.6"
+  }
+}
