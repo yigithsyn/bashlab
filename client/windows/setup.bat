@@ -1,18 +1,18 @@
 @ECHO OFF
 
-@REM https://visualstudio.microsoft.com/tr/downloads/
-@REM https://docs.microsoft.com/tr-tr/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+@REM https://visualstudio.microsoft.com/tr/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false
+@REM C++ ile Masaüstü Uygulama Geliştirme'yi seç
 
-RMDIR /Q /S setup > nul 2>&1 
-MKDIR setup
+@REM RMDIR /Q /S setup > nul 2>&1 
+@REM MKDIR setup
 
-curl -L https://aka.ms/vs/17/release/vs_BuildTools.exe --output setup\vs_buildtools.exe
-setup\vs_buildtools.exe^
- --add Microsoft.VisualStudio.Workload.MSBuildTools^
- --add Microsoft.VisualStudio.Workload.VCTools^
- --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64^
- --add Microsoft.VisualStudio.Component.VC.CMake.Project^
- --add Microsoft.VisualStudio.Component.VC.ASAN^
- --passive
+@REM curl -L https://aka.ms/vs/17/release/vs_BuildTools.exe --output setup\vs_buildtools.exe
+@REM setup\vs_buildtools.exe^
+@REM  --add Microsoft.VisualStudio.Workload.MSBuildTools^
+@REM  --add Microsoft.VisualStudio.Workload.VCTools^
+@REM  --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64^
+@REM  --add Microsoft.VisualStudio.Component.VC.CMake.Project^
+@REM  --add Microsoft.VisualStudio.Component.VC.ASAN^
+@REM  --passive
 
-RMDIR /Q /S setup > nul 2>&1 
+@REM RMDIR /Q /S setup > nul 2>&1 
