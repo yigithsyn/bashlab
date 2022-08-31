@@ -135,7 +135,7 @@ IF "%1"=="dependencies" (
 ECHO ============================
 ECHO [INFO] Building ...
 ECHO ============================
-TYPE list.json | jq -c '.[] | select(.osOnly == false)' > list2.json
+TYPE list.json | jq -c ".[] | select(.osOnly == false)" > list2.json
 mongo bashlab --eval "db.programs.drop()"
 mongoimport --db bashlab --collection programs --file list2.json
 mongo bashlab --eval "db.programs.find().length()"
