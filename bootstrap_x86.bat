@@ -2,23 +2,7 @@
 
 MKDIR test > nul 2>&1
 
-ECHO ============================
-ECHO [INFO] Requirements ...
-ECHO ============================
-IF "%1"=="requirements" (
-  RMDIR /Q /S requirements > nul 2>&1 
-  MKDIR requirements
 
-  @REM C/C++
-  @REM Install Visual Studio Community Edition and C++ Desktop Toolset
-
-  @REM Python 3.8
-  winget uninstall Python.Python.3
-  curl -L https://www.python.org/ftp/python/3.8.10/python-3.8.10.exe --output requirements\python-3.8.10.exe --silent
-  requirements\python-3.8.10.exe /quiet InstallAllUsers=0 PrependPath=1
-  RMDIR /Q /S requirements > nul 2>&1 
-  EXIT /B 0
-)
 
 ECHO ============================
 ECHO [INFO] Dependencies ...

@@ -2,32 +2,7 @@
 
 MKDIR test > nul 2>&1
 
-IF "%1"=="requirements" (
-  ECHO =========================================================================
-  ECHO [INFO] Requirements ...
-  ECHO =========================================================================
-  RMDIR /Q /S requirements > nul 2>&1 
-  MKDIR requirements
 
-  @REM C/C++
-  @REM Install Visual Studio Community Edition and C++ Desktop Toolset
-
-  ECHO -------------------------------------------------------------------------
-  ECHO [INFO] Requirements: Python 3.8
-  ECHO -------------------------------------------------------------------------
-  winget uninstall Python.Python.3
-  curl -L https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe --output requirements\python-3.8.10-amd64.exe
-  requirements\python-3.8.10-amd64.exe /quiet InstallAllUsers=0 PrependPath=1
-  RMDIR /Q /S requirements > nul 2>&1
-
-  ECHO -------------------------------------------------------------------------
-  ECHO [INFO] Requirements: Jq: Lightweight and flexible command-line JSON processor
-  ECHO -------------------------------------------------------------------------
-  DEL /F /Q %USERPROFILE%\AppData\Local\bin\jq.exe
-  curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-win64.exe --output %USERPROFILE%\AppData\Local\bin\jq.exe
-  
-  EXIT /B 0
-)
 
 IF "%1"=="dependencies" (
   ECHO =========================================================================
