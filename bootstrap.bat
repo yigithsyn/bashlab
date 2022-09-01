@@ -9,8 +9,6 @@ IF "%1"=="dependencies" (
   ECHO [INFO] Dependencies ...
   ECHO =========================================================================
 
-  vcvars64.bat
-
   RMDIR /Q /S dependencies > nul 2>&1 
   MKDIR dependencies
 
