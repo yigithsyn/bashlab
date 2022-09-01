@@ -1,6 +1,8 @@
 node_modules
-
+dependencies
 msvc
+requirements
+
 
 
 test/Beam*.txt
