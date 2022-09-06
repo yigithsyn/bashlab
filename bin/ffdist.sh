@@ -107,16 +107,21 @@ for i in ${POSITIONAL_ARGS[@]}; do
   if [[ $i =~ ^[+-]?[0-9]+\.?[0-9]*$ ]]; then
     echo "Input is a number."
   else
-    echo "Input is a string."
+    echo ${POSITIONAL_ARGS[1]} | jq empty >/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+      echo "Input is JSON object."
+    else
+      echo "Input is a string."
+    fi
   fi 
 done
 
 
 
-echo ${POSITIONAL_ARGS[0]}
-echo ${POSITIONAL_ARGS[1]}
+# echo ${POSITIONAL_ARGS[0]}
+# echo ${POSITIONAL_ARGS[1]}
 
-echo ${POSITIONAL_ARGS[0]} | jq empty >/dev/null 2>&1
-echo $?
-echo ${POSITIONAL_ARGS[1]} | jq empty >/dev/null 2>&1
-echo $?
+# echo ${POSITIONAL_ARGS[0]} | jq empty >/dev/null 2>&1
+# echo $?
+# echo ${POSITIONAL_ARGS[1]} | jq empty >/dev/null 2>&1
+# echo $?
