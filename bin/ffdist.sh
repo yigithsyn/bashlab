@@ -3,7 +3,7 @@
 # ==============================================================================
 # Definition
 # ==============================================================================
-definition=$(cat << EOF
+DEFINITION=$(cat << EOF
 {
   "name": "ffdist",
   "desc": "Calculates far-field (Fraunhofer) distance of an aperture",
@@ -24,19 +24,10 @@ EOF
 )
 
 # ==============================================================================
-# Common variables
-# ==============================================================================
-ERRSTR_TRY=$(echo "Try '$(echo $definition | jq -r '.name') --help' for more information")
-ERRSTR_MIS="Missing option/argument"
-ERRSTR_UNR="Unrecognized option/argument"
-ERRSTR_TOO="Too many arguments"
-NPARG=$(echo $definition | jq '.pargs | length')
-
-# ==============================================================================
 # Help
 # ==============================================================================
-info="
-$(echo $(echo $definition | jq '.name'): $(echo $definition | jq '.desc') | tr -d \")
+INFO="
+$(echo $(echo $DEFINITION | jq '.name'): $(echo $DEFINITION | jq '.desc') | tr -d \")
 Usage: ffdist freq D [--help] [--verbose]
 
   freq                      frequency in Hertz [Hz]
@@ -44,6 +35,15 @@ Usage: ffdist freq D [--help] [--verbose]
   --help                    display this help and exit
   --verbose                 print processing details \n
 "
+
+# ==============================================================================
+# Common variables
+# ==============================================================================
+ERRSTR_TRY=$(echo "Try '$(echo $DEFINITION | jq -r '.name') --help' for more information")
+ERRSTR_MIS="Missing option/argument"
+ERRSTR_UNR="Unrecognized option/argument"
+ERRSTR_TOO="Too many arguments"
+
 # ==============================================================================
 # Arguments
 # ==============================================================================
@@ -63,15 +63,15 @@ fi
 while [[ $# -eq 1 ]]; do
   case $1 in
     --json)
-      echo $definition | jq '.'
+      echo $DEFINITION | jq '.'
       exit 0
       ;;
     --help)
-      printf "$info"
+      printf "$INFO"
       exit 0
       ;;
     --verbose)
-      verbose=1
+      VERBOSE=1
       shift
       ;;
       *)
@@ -85,11 +85,11 @@ done
 # Arguments: Positional
 # -----------------------------------------------------------------------------
 POSITIONAL_ARGS=()
-if [ $# -eq $NPARG ]; then
+if [ $# -eq $(echo $DEFINITION | jq '.pargs | length') ]; then
   while [[ $# -gt 0 ]]; do
     case $1 in
       *)
-        echo $1
+        # echo $1
         POSITIONAL_ARGS+=("$1") # save positional arg
         shift # past argument
         ;;
@@ -102,18 +102,28 @@ else
 fi
 
 # set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
-for i in ${POSITIONAL_ARGS[@]}; do echo $i; done
+# for i in ${POSITIONAL_ARGS[@]}; do echo $i; done
 for i in ${POSITIONAL_ARGS[@]}; do 
   if [[ $i =~ ^[+-]?[0-9]+\.?[0-9]*$ ]]; then
-    echo "Input is a number."
+    # echo "Input is a number."
+    continue
   else
-    echo ${POSITIONAL_ARGS[1]} | jq empty >/dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-      echo "Input is JSON object."
+    # echo "Input is a string."
+    if [ -z "$BASHLAB_DB" ]; then
+      echo $ERRSTR_MIS | tr -d \"
+      echo $ERRSTR_TRY | tr -d \"
+      exit 1
     else
-      echo "Input is a string."
+      echo $BASHLAB_DB
+      if [ -z "$BASHLAB_VAR" ]; then
+        echo $ERRSTR_MIS | tr -d \"
+        echo $ERRSTR_TRY | tr -d \"
+        exit 1
+      else
+        echo $BASHLAB_VAR
+      fi
     fi
-  fi 
+  fi
 done
 
 
