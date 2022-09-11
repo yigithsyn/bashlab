@@ -108,8 +108,7 @@ if [ $NPOSARGS -gt $(echo $DEFINITION | jq '[.pargs[].maxc] | add') ]; then
   exit 1
 fi
 
-TEMP=$(echo $DEFINITION | jq '.pargs | length')
-for (( i=1; i<=$TEMP; i++ )); do
+for (( i=1; i<=$(echo $DEFINITION | jq '.pargs | length'); i++ )); do
    echo "Welcome $i times"
 done
 exit 0
