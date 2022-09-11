@@ -10,11 +10,15 @@ DEFINITION=$(cat << EOF
   "pargs": [
     {
       "name": "freq",
-      "desc": "frequency in Hertz [Hz]"
+      "desc": "frequency in Hertz [Hz]",
+      "minc": 1,
+      "maxc": 1
     },
     {
       "name": "D",
-      "desc": "aperture cross-sectional size in meters [m]"
+      "desc": "aperture cross-sectional size in meters [m]",
+      "minc": 1,
+      "maxc": 1
     }
   ],
   "oargs": [],
@@ -42,7 +46,11 @@ Usage: ffdist freq D [--help] [--verbose]
 ERRSTR_TRY=$(echo "Try '$(echo $DEFINITION | jq -r '.name') --help' for more information")
 ERRSTR_MIS="Missing option/argument"
 ERRSTR_UNR="Unrecognized option/argument"
+ERRSTR_NDB="BashLab database not defined."
+ERRSTR_VAR="BashLab database variable not found."
 ERRSTR_TOO="Too many arguments"
+
+NPOSARGS=$#
 
 # ==============================================================================
 # Arguments
@@ -60,7 +68,7 @@ fi
 # ------------------------------------------------------------------------------
 # Arguments: Optional
 # ------------------------------------------------------------------------------
-while [[ $# -eq 1 ]]; do
+while [[ $# -gt 0 ]]; do
   case $1 in
     --json)
       echo $DEFINITION | jq '.'
@@ -72,49 +80,53 @@ while [[ $# -eq 1 ]]; do
       ;;
     --verbose)
       VERBOSE=1
+      let NPOSARGS--
       shift
       ;;
-      *)
-      echo "$ERRSTR_UNR '$1'" | tr -d \"
+    -*|--*)
+      echo $ERRSTR_UNR "'$1'" | tr -d \"
       echo $ERRSTR_TRY | tr -d \"
       exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
   esac
 done
 
+# echo $NPOSARGS
+# echo $DEFINITION | jq '[.pargs[].maxc] | add'
+# exit 0
+
 # ------------------------------------------------------------------------------
 # Arguments: Positional
-# -----------------------------------------------------------------------------
-POSITIONAL_ARGS=()
-if [ $# -eq $(echo $DEFINITION | jq '.pargs | length') ]; then
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      *)
-        # echo $1
-        POSITIONAL_ARGS+=("$1") # save positional arg
-        shift # past argument
-        ;;
-    esac
-  done
-else
+# ------------------------------------------------------------------------------
+if [ $NPOSARGS -gt $(echo $DEFINITION | jq '[.pargs[].maxc] | add') ]; then
   echo $ERRSTR_TOO | tr -d \"
   echo $ERRSTR_TRY | tr -d \"
   exit 1
 fi
 
+TEMP=$(echo $DEFINITION | jq '.pargs | length')
+for (( i=1; i<=$TEMP; i++ )); do
+   echo "Welcome $i times"
+done
+exit 0
 # set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
 # for i in ${POSITIONAL_ARGS[@]}; do echo $i; done
 for i in ${POSITIONAL_ARGS[@]}; do 
   if [[ $i =~ ^[+-]?[0-9]+\.?[0-9]*$ ]]; then
-    # echo "Input is a number."
+    echo "${i}: Input is a number."
     continue
   else
-    # echo "Input is a string."
+    echo "${i}: Input is a string."
     if [ -z "$BASHLAB_DB" ]; then
-      echo $ERRSTR_MIS | tr -d \"
+      echo $ERRSTR_NDB | tr -d \"
       echo $ERRSTR_TRY | tr -d \"
       exit 1
     else
-      echo $BASHLAB_DB
+      mongo $BASHLAB_DB --eval "db.workspace.count({'name':'${i}'})" --quiet
       if [ -z "$BASHLAB_VAR" ]; then
         echo $ERRSTR_MIS | tr -d \"
         echo $ERRSTR_TRY | tr -d \"
